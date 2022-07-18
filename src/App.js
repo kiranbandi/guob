@@ -1,24 +1,22 @@
 import logo from './logo.svg';
 import './App.css';
+import Miniview from './Miniview'
+import testing_array from './testing_array'
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Miniview
+      array={testing_array}
+      raw={true}
+      chosen={{
+        "chromosome": "at3",
+        "start": "8497941",
+        "end": "8498072",
+        "key": "at3g23635"
+  }}
+    color={100}
+    />
   );
 }
 

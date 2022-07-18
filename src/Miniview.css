@@ -1,6 +1,9 @@
 
-/* Placeholder for dimensions */
+/* Placeholder for dimensions and locations */
 .miniview {
     width: 80ch;
     height: 4ch;
+    position: absolute;
+    top: 5ch;
+    left: 5ch;
   }
