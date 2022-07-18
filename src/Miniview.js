@@ -14,8 +14,8 @@ const Miniview = ({ array, raw, chosen, color }) => {
         // Checking if the array is already low resolution or not
         if (raw) {
             let subset = array
-            let cap = Math.max.apply(Math, subset.map(d => { return d.end }))
-            let start = Math.min.apply(Math, subset.map(d => {return d.start}))
+            let cap = Math.max(...subset.map(d => d.end))
+            let start = Math.min(...subset.map(d => d.start))
             let distance = cap - start
 
             let increment = distance / density
