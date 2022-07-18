@@ -15,7 +15,7 @@ const Miniview = ({ array, raw, chosen, color }) => {
         if (raw) {
             let subset = array
             let cap = Math.max.apply(Math, subset.map(d => { return d.end }))
-            let start = subset[0].start
+            let start = Math.min.apply(Math, subset.map(d => {return d.start}))
             let distance = cap - start
 
             let increment = distance / density
