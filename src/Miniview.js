@@ -1,14 +1,16 @@
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import './Miniview.css'
 
-const Miniview = ({ array, raw, chosen, color }) => {
+const Miniview = ({ array, raw, chosen, color, bars, doSomething }) => {
 
     const canvasRef = useRef()
 
     useEffect(() => {
 
-        // MAGIC NUMBER, 60 is the current number of bars
-        let density = 60
+       
+        let density;
+        bars == null ? density = 60 : density = bars 
+
         let dataset;
 
         // Checking if the array is already low resolution or not
@@ -44,35 +46,32 @@ const Miniview = ({ array, raw, chosen, color }) => {
         const ctx = canvasRef.current.getContext('2d')
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-        
-        // If a color hasn't been passed, default to red
-        if (color === undefined) {
-            color = 0
-        }
 
         dataset.forEach((d, i) => {
             let opacity = (100 / +max) * +d.number
             ctx.fillStyle = 'hsl(' + color + ', 70%, 50%, ' + opacity + '%)'
             ctx.beginPath()
 
-            if (chosen !== undefined && chosen.start >= d.start && chosen.end <= d.end) {
-                ctx.strokeStyle = 'black'
-                ctx.lineWidth = "2"
-            }
-            else {
-                ctx.strokeStyle = 'white'
-                ctx.lineWidth = "1"
-            }
-
+            // Determining whether to highlight chosen section
+            let chosenLocation = chosen !== undefined && chosen.start >= d.start && chosen.end <= d.end    
+            ctx.strokeStyle = chosenLocation ? 'black' : 'white'
+            ctx.lineWidth = chosenLocation ? '2' : '1'
+           
             ctx.rect((i * 1.05 * ctx.canvas.width / (dataset.length * 1.05)), 2, ctx.canvas.width / (dataset.length * 1.05), ctx.canvas.height - 4)
             ctx.fill();
             ctx.stroke()
         })
 
 
-    }, [array, chosen])
+    }, [array, chosen, color, canvasRef])
 
-    return <canvas ref={canvasRef} className='miniview' width='1000' height='100' />
+    return <canvas ref={canvasRef} className='miniview' width='1000' height='100' onClick={doSomething}/> 
 }
+
+Miniview.defaultProps = {
+    raw: true,
+    color: 0
+}
+
 
 export default Miniview

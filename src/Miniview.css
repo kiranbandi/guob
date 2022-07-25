@@ -1,9 +1,8 @@
 
 /* Placeholder for dimensions and locations */
 .miniview {
-    width: 80ch;
-    height: 4ch;
-    position: absolute;
-    top: 5ch;
-    left: 5ch;
-  }
+  height: 100%;
+  width: 100%;
+  float: left;
+  margin: 0px;
+}

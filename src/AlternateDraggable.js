@@ -1,0 +1,79 @@
+import React from "react"
+import { useRef, useState } from "react"
+import { IoReorderFourSharp } from 'react-icons/io5'
+import { useDrag, useDrop } from "react-dnd"
+import { ItemTypes } from "./ItemTypes"
+import './Draggable.css'
+
+const AlternateDraggable = ({ children,  initialY, id, index, spacing, top }) => {
+    
+    // Two refs needed - one for handle, one for preview
+    const ref = useRef(null)
+    const previewRef = useRef(null)
+
+    const[y, setY] = useState(initialY)
+
+    // function for changing the y-coordinate of the draggable
+    const adjustY = (item, monitor) =>{
+        console.log(item)
+        let coordinate = monitor.getClientOffset()
+       
+        let gap;
+        spacing == null ? gap = 4 : gap = spacing
+
+        let ceiling;
+        top == null ? ceiling = 0 : ceiling = top
+
+        if(coordinate !== null){  
+
+            let hoverBoundingRect = ref.current?.getBoundingClientRect();
+            let hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
+            let height = hoverBoundingRect.bottom - hoverBoundingRect.top + gap
+            let increment = Math.round((coordinate.y - hoverMiddleY)/height)
+            setY(Math.max(increment*height, ceiling))
+        }
+    }
+
+    // Drag function
+ const [{ isDragging }, drag, preview] = useDrag(
+    () => ({
+        type: ItemTypes.FREE,
+        item: () => { return { id, index, y } },
+        collect: (monitor) => ({
+            isDragging: !!monitor.isDragging(),
+        }),
+        end: (item, monitor) => (
+            adjustY(item, monitor)
+        ),
+    }), []
+)
+
+// Empty drop function -> prevents another draggable from being placed on top
+const [, drop] = useDrop(
+    ()=>({
+        accept: ItemTypes.FREE,
+        drop(_item,monitor){},
+    })
+)
+    let opacity = isDragging ? 0.5 : 1
+
+    drag(ref)
+    drop(preview(previewRef))
+
+    return (
+        <div ref={previewRef} className='draggable' style={{position:'absolute', top: y, left: 0, width: '100%'}}>
+        <div className='draggableItem' style=
+            {{
+                opacity: opacity,
+            }}>
+            {children}
+        </div>
+        <button ref={ref} className='handle'>
+            <IoReorderFourSharp className="handle_image" />
+        </button>
+    </div>
+
+    )
+}
+
+export default AlternateDraggable;
