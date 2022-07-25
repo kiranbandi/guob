@@ -15,7 +15,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top }) =>
 
     // function for changing the y-coordinate of the draggable
     const adjustY = (item, monitor) =>{
-        console.log(item)
+        
         let coordinate = monitor.getClientOffset()
        
         let gap;
