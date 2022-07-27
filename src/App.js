@@ -1,5 +1,3 @@
-import logo from './logo.svg';
-import './App.css';
 import Miniview from './Miniview'
 import testing_array from './testing_array'
 import Draggable from './Draggable';
