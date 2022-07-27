@@ -1,4 +1,4 @@
-import Miniview from './Miniview'
+import Miniview from './features/miniview/Miniview'
 import testing_array from './testing_array'
 import Draggable from './Draggable';
 import DragContainer from './DragContainer';
