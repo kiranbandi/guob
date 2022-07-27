@@ -30,6 +30,7 @@ function App() {
               "end": "8498072",
               "key": "at3g23635"
             }}
+            average={true}
             color={number}
             doSomething={() => setNumber(number => number + 20)}
           />
@@ -59,6 +60,8 @@ function App() {
             }}
             color={thirdNumber}
             doSomething={() => alert('Clicked the initial bottom view!')}
+            coordinateX={500}
+            width={'50%'}
           />
         </Draggable>
       </DragContainer>
@@ -77,8 +80,7 @@ function App() {
           
         />
       </AlternateDraggable>
-      <AlternateDraggable initialY={300} top={300}            index={57}
-            id={"TESTING"}>
+    
       <Miniview
             array={testing_array}
             chosen={{
@@ -89,10 +91,14 @@ function App() {
             }}
             color={number}
             doSomething={() => setNumber(number => number + 20)}
+            coordinateX={50}
+            coordinateY={700}
+            height={50}
+            width={'60%'}
 
            
           />
-      </AlternateDraggable>
+ 
     </>
   );
 }

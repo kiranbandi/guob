@@ -1,25 +1,28 @@
 import React, { useEffect, useRef, useState } from "react"
 import './Miniview.css'
+import { scaleLinear } from "d3-scale"
 
-const Miniview = ({ array, raw, chosen, color, bars, doSomething }) => {
+
+const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning }) => {
 
     const canvasRef = useRef()
 
     useEffect(() => {
 
-       
         let density;
-        bars == null ? density = 60 : density = bars 
+        bars ?  density = bars : density = 60 
 
         let dataset;
+        let cap = Math.max(...array.map(d => d.end))
+        let start = Math.min(...array.map(d => d.start))
+        let distance = cap - start
+        const ctx = canvasRef.current.getContext('2d')
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
         // Checking if the array is already low resolution or not
-        if (raw) {
-            let subset = array
-            let cap = Math.max(...subset.map(d => d.end))
-            let start = Math.min(...subset.map(d => d.start))
-            let distance = cap - start
+        if (average) {
 
+            let subset = array
             let increment = distance / density
 
             dataset = []
@@ -36,24 +39,17 @@ const Miniview = ({ array, raw, chosen, color, bars, doSomething }) => {
                     }
                     dataset.push(temp)
                 }
-            }
-        }
-        else {
-            dataset = array
-        }
+            } 
+            
 
         let max = Math.max(...dataset.map(d => d.number))
-        const ctx = canvasRef.current.getContext('2d')
-
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
         dataset.forEach((d, i) => {
             let opacity = (100 / +max) * +d.number
             ctx.fillStyle = 'hsl(' + color + ', 70%, 50%, ' + opacity + '%)'
             ctx.beginPath()
 
             // Determining whether to highlight chosen section
-            let chosenLocation = chosen !== undefined && chosen.start >= d.start && chosen.end <= d.end    
+            let chosenLocation = !!chosen && chosen.start >= d.start && chosen.end <= d.end    
             ctx.strokeStyle = chosenLocation ? 'black' : 'white'
             ctx.lineWidth = chosenLocation ? '2' : '1'
            
@@ -61,16 +57,48 @@ const Miniview = ({ array, raw, chosen, color, bars, doSomething }) => {
             ctx.fill();
             ctx.stroke()
         })
+        }
+
+        else {
+            dataset = array
+            let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
+            ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
+            dataset.forEach(gene =>{
+                let x = xScale(gene.start)
+                let rectWidth = xScale(gene.start-gene.end)
+                ctx.beginPath()
+                ctx.rect(x, 0, rectWidth, ctx.canvas.height)
+                ctx.fill()
+            })
+        }
+
+       
 
 
     }, [array, chosen, color, canvasRef])
 
-    return <canvas ref={canvasRef} className='miniview' width='1000' height='100' onClick={doSomething}/> 
+    let position = absolutePositioning ? 'absolute' : 'relative'
+
+    let style = {
+        position: position,
+        top: coordinateY,
+        left: coordinateX,
+        width: width,
+        height: height,
+        margin: 0 
+    }
+
+    return <canvas ref={canvasRef} className='miniview' width='2000' height='1000' style={style} onClick={doSomething}/> 
 }
 
 Miniview.defaultProps = {
-    raw: true,
-    color: 0
+    average: false,
+    color: 0,
+    coordinateX: 0,
+    coordinateY: 0,
+    width: '100%',
+    height: '100%',
+    absolutePositioning: false
 }
 
 
