@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import update from 'immutability-helper'
-import Draggable from './Draggable'
-import Miniview from './Miniview'
-import testing_array from './testing_array'
+
 
 function DragContainer({ children }) {
 
