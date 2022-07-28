@@ -1,11 +1,49 @@
 import React, { useEffect, useRef, useState } from "react"
 import './Miniview.css'
 import { scaleLinear } from "d3-scale"
+import { useDispatch } from "react-redux"
+import { nanoid } from "@reduxjs/toolkit"
+
+
+import { addMiniview, moveMiniview } from "./miniviewSlice"
 
 
 const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning }) => {
 
     const canvasRef = useRef()
+
+    const dispatch = useDispatch()
+
+    const [xLocation, setXLocation] = useState(coordinateX)
+    const [yLocation, setYlocation] = useState(coordinateY)
+    
+    // Temporary, this almost certainly should not be here
+    const [key, setKey] = useState(nanoid())
+
+    dispatch(
+        addMiniview({
+            key:key,
+            xLocation,
+            yLocation,
+            array
+        })
+    )
+    
+
+    const onMiniviewClicked = () => {
+        
+        setXLocation(200)
+        setYlocation(100)
+        
+        dispatch(
+
+            moveMiniview({
+                key: key,
+                xLocation,
+                yLocation
+            })
+        )
+    }
 
     useEffect(() => {
 
@@ -75,20 +113,21 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
        
 
 
-    }, [array, chosen, color, canvasRef])
+    }, [array, chosen, color, canvasRef, xLocation, yLocation])
 
     let position = absolutePositioning ? 'absolute' : 'relative'
 
     let style = {
         position: position,
-        top: coordinateY,
-        left: coordinateX,
+        top: yLocation,
+        left: xLocation,
         width: width,
         height: height,
         margin: 0 
     }
+    
 
-    return <canvas ref={canvasRef} className='miniview' width='2000' height='1000' style={style} onClick={doSomething}/> 
+    return <canvas ref={canvasRef} className='miniview' width='2000' height='1000' style={style} onClick={onMiniviewClicked}/> 
 }
 
 Miniview.defaultProps = {

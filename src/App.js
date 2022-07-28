@@ -4,6 +4,8 @@ import Draggable from './Draggable';
 import DragContainer from './DragContainer';
 import { useState } from 'react';
 import AlternateDraggable from './AlternateDraggable'
+import { useSelector } from 'react-redux';
+import { selectMiniviews } from 'features/miniview/miniviewSlice';
 
 
 function App() {
@@ -14,6 +16,7 @@ function App() {
   const [secondNumber, setSecondNumber] = useState(60)
   const [thirdNumber, setThirdNumber] = useState(90)
 
+  // const testSelector = useSelector(selectMiniviews)
 
 
   return (
