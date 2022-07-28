@@ -15,7 +15,7 @@ const initialState = {
             coordinateX: 0,
             coordinateY: 0,
             height: 50,
-            width: '60%',
+            width: 400,
             id: 'example'
         }
     }

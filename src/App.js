@@ -6,6 +6,7 @@ import { useState } from 'react';
 import AlternateDraggable from './AlternateDraggable'
 import { useDispatch, useSelector } from 'react-redux';
 import { addMiniview, moveMiniview, selectMiniviews } from 'features/miniview/miniviewSlice';
+import './example.css'
 
 
 function App() {
@@ -18,18 +19,27 @@ function App() {
 
 
   const dispatch = useDispatch()
+  let width = 900
+  let height = 700
 
   return (
     <>
-      <div height={1000} width={2000} onMouseMove={(e)=> {
-      setTestX(e.clientX)
-      setTestY(e.clientY)
+      <div className='example' height={height} width={width} onMouseMove={(e)=> {
+      
+      let coordinateX = e.clientX
+      let coordinateY = e.clientY
+
+      coordinateX = Math.min((width - testSelector.width), coordinateX - testSelector.width/2)
+      coordinateY = Math.min((height - testSelector.height), coordinateY+ 10)
+
+      setTestX(coordinateX)
+      setTestY(coordinateY)
       
       dispatch(
       moveMiniview({
       key:'example',
-      coordinateX: testX,
-      coordinateY: testY
+      coordinateX: coordinateX,
+      coordinateY: coordinateY
     }))}}>
 
    <Miniview 

@@ -11,6 +11,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     const canvasRef = useRef()
 
     useEffect(() => {
+        console.log("Slowness")
         let density;
         bars ?  density = bars : density = 60 
 
