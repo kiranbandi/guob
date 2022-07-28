@@ -1,9 +1,10 @@
-import { createAsyncThunk, createSlice, nanoid } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import testing_array from 'testing_array';
 
 const initialState = {
+    // Currently just a placeholder 
     miniviews: {
-       'test': { array: testing_array,
+       'example': { array: testing_array,
             chosen: {
               "chromosome": "at3",
               "start": "8497941",
@@ -15,7 +16,7 @@ const initialState = {
             coordinateY: 0,
             height: 50,
             width: '60%',
-            id: 'test'
+            id: 'example'
         }
     }
 }
