@@ -2,51 +2,17 @@ import React, { useEffect, useRef, useState } from "react"
 import './Miniview.css'
 import { scaleLinear } from "d3-scale"
 import { useDispatch } from "react-redux"
-import { nanoid } from "@reduxjs/toolkit"
-
 
 import { addMiniview, moveMiniview } from "./miniviewSlice"
 
 
-const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning }) => {
+const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, id }) => {
 
     const canvasRef = useRef()
 
-    const dispatch = useDispatch()
-
-    const [xLocation, setXLocation] = useState(coordinateX)
-    const [yLocation, setYlocation] = useState(coordinateY)
-    
-    // Temporary, this almost certainly should not be here
-    const [key, setKey] = useState(nanoid())
-
-    dispatch(
-        addMiniview({
-            key:key,
-            xLocation,
-            yLocation,
-            array
-        })
-    )
-    
-
-    const onMiniviewClicked = () => {
-        
-        setXLocation(200)
-        setYlocation(100)
-        
-        dispatch(
-
-            moveMiniview({
-                key: key,
-                xLocation,
-                yLocation
-            })
-        )
-    }
+    // const [key, setKey] = useState(id)
 
     useEffect(() => {
-
         let density;
         bars ?  density = bars : density = 60 
 
@@ -57,7 +23,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         const ctx = canvasRef.current.getContext('2d')
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-        // Checking if the array is already low resolution or not
+        // Checking if the array is low resolution or not
         if (average) {
 
             let subset = array
@@ -97,6 +63,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         })
         }
 
+        // If not low resolution, we draw everything in the array
         else {
             dataset = array
             let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
@@ -109,25 +76,21 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
                 ctx.fill()
             })
         }
-
-       
-
-
-    }, [array, chosen, color, canvasRef, xLocation, yLocation])
+    }, [array, color])
 
     let position = absolutePositioning ? 'absolute' : 'relative'
 
     let style = {
         position: position,
-        top: yLocation,
-        left: xLocation,
+        top: coordinateY,
+        left: coordinateX,
         width: width,
         height: height,
         margin: 0 
     }
     
 
-    return <canvas ref={canvasRef} className='miniview' width='2000' height='1000' style={style} onClick={onMiniviewClicked}/> 
+    return <canvas ref={canvasRef} className='miniview' width='2000' height='1000' style={style} onClick={doSomething}/> 
 }
 
 Miniview.defaultProps = {

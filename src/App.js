@@ -4,8 +4,8 @@ import Draggable from './Draggable';
 import DragContainer from './DragContainer';
 import { useState } from 'react';
 import AlternateDraggable from './AlternateDraggable'
-import { useSelector } from 'react-redux';
-import { selectMiniviews } from 'features/miniview/miniviewSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { addMiniview, moveMiniview, selectMiniviews } from 'features/miniview/miniviewSlice';
 
 
 function App() {
@@ -15,13 +15,70 @@ function App() {
   const [number, setNumber] = useState(40)
   const [secondNumber, setSecondNumber] = useState(60)
   const [thirdNumber, setThirdNumber] = useState(90)
+  const [test, setTest] = useState(50)
+  const [secondTest, setSecondTest] = useState(700)
 
   // const testSelector = useSelector(selectMiniviews)
 
+  const dispatch = useDispatch()
+
+  dispatch(
+    addMiniview({
+      coordinateX: test,
+      coordinateY: secondTest,
+      key: 1234
+    })
+  )
 
   return (
-    <>
-      <DragContainer className='Container'>
+    <div onMouseMove={(e)=> {
+      setTest(e.clientX)
+      setSecondTest(e.clientY)
+      
+      dispatch(
+      moveMiniview({
+      key:1234,
+      coordinateX: test,
+      coordinateY: secondTest
+    }))}} onMouseDown={() => 
+    dispatch(
+    addMiniview({
+      array: testing_array,
+      chosen:{
+        "chromosome": "at3",
+        "start": "8497941",
+        "end": "8498072",
+        "key": "at3g23635"
+      },
+      color: number,
+      coordinateX: test,
+      coordinateY: secondTest,
+      height: 50,
+      width: '60%',
+      key: 1234
+    })
+  )
+    }>
+
+<Miniview
+            array={testing_array}
+            chosen={{
+              "chromosome": "at3",
+              "start": "8497941",
+              "end": "8498072",
+              "key": "at3g23635"
+            }}
+            color={number}
+            doSomething={() => setNumber(number => number + 20)}
+            coordinateX={test}
+            coordinateY={secondTest}
+            height={50}
+            width={'60%'}
+            id={1234}
+
+           
+          />
+      <DragContainer className='Container' >
         <Draggable key={0}>
           <Miniview
             array={testing_array}
@@ -82,25 +139,9 @@ function App() {
         />
       </AlternateDraggable>
     
-      <Miniview
-            array={testing_array}
-            chosen={{
-              "chromosome": "at3",
-              "start": "8497941",
-              "end": "8498072",
-              "key": "at3g23635"
-            }}
-            color={number}
-            doSomething={() => setNumber(number => number + 20)}
-            coordinateX={50}
-            coordinateY={700}
-            height={50}
-            width={'60%'}
-
-           
-          />
+     
  
-    </>
+    </div>
   );
 }
 

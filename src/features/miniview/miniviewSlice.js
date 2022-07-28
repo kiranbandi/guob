@@ -10,14 +10,16 @@ export const miniviewSlice = createSlice({
 
     reducers: {
         addMiniview: (state, action) =>{
-            state.miniviews[action.payload.key] = action.payload
+            if(!state.miniviews[action.payload.key]){
+                state.miniviews[action.payload.key] = action.payload
+            }
         },
         removeMiniview: (state,action) =>{
             delete  state.miniviews[action.payload.key]
         },
         moveMiniview: (state, action) => {
-            state.miniviews[action.payload.key].xLocation = action.xLocation
-            state.miniviews[action.payload.key].yLocation = action.yLocation
+            state.miniviews[action.payload.key].coordinateX = action.payload.coordinateX
+            state.miniviews[action.payload.key].coordinateY = action.payload.coordinateY
         }
     }
 })
