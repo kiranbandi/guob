@@ -10,8 +10,6 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     const canvasRef = useRef()
 
-    // const [key, setKey] = useState(id)
-
     useEffect(() => {
         let density;
         bars ?  density = bars : density = 60 
