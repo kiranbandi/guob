@@ -31,6 +31,7 @@ const Draggable = ({ children, id, index, moveDraggable }) => {
             const clientOffset = monitor.getClientOffset()
             const hoverClientY = clientOffset.y - hoverBoundingRect.top
 
+            // Dragging downwards
             if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
                 return
             }
@@ -49,7 +50,7 @@ const Draggable = ({ children, id, index, moveDraggable }) => {
 
     }))
 
-    // Preview isn't working correctly due to a asynchronicity
+    // Drag function
     const [{ isDragging }, drag, preview] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,

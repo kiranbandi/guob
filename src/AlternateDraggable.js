@@ -5,7 +5,7 @@ import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import './Draggable.css'
 
-const AlternateDraggable = ({ children,  initialY, id, index, spacing, top }) => {
+const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...props }) => {
     
     // Two refs needed - one for handle, one for preview
     const ref = useRef(null)
@@ -15,14 +15,15 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top }) =>
 
     // function for changing the y-coordinate of the draggable
     const adjustY = (item, monitor) =>{
-        
+
         let coordinate = monitor.getClientOffset()
        
         let gap;
-        spacing == null ? gap = 4 : gap = spacing
+        spacing == undefined ? gap = 4 : gap = spacing
 
         let ceiling;
-        top == null ? ceiling = 0 : ceiling = top
+        top == undefined ? ceiling = 0 : ceiling = top
+        
 
         if(coordinate !== null){  
 
@@ -61,7 +62,7 @@ const [, drop] = useDrop(
     drop(preview(previewRef))
 
     return (
-        <div ref={previewRef} className='draggable' style={{position:'absolute', top: y, left: 0, width: '100%'}}>
+        <div ref={previewRef} className='draggable' style={{position:'absolute', top: y, left: 0, width: '100%'}} {...props}>
         <div className='draggableItem' style=
             {{
                 opacity: opacity,
@@ -75,5 +76,6 @@ const [, drop] = useDrop(
 
     )
 }
+
 
 export default AlternateDraggable;

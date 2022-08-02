@@ -1,5 +1,10 @@
 .example {
-    width: 1000px;
-    height: 1000px;
+    width: 500px;
+    height: 700px;
     border: 1px solid black;
+}
+
+.draggable {
+    cursor: zoom-in;
+    border: 2px solid pink
 }

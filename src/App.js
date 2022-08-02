@@ -1,5 +1,7 @@
 import Miniview from './features/miniview/Miniview'
 import testing_array from './testing_array'
+import testing_array2 from './testing_array2'
+import testing_array3 from 'testing_array3';
 import Draggable from './Draggable';
 import DragContainer from './DragContainer';
 import { useState } from 'react';
@@ -19,12 +21,35 @@ function App() {
 
 
   const dispatch = useDispatch()
-  let width = 900
-  let height = 700
+  let width = 800
+  let height = 400
+
+
+  // I don't need this up here. Can put in the miniview for a zoom function
+  function showZoom(event) {
+    let horizontalOffset = event.target.clientLeft
+    let verticalOffset = event.target.clientTop
+    let coordinateX = event.pageX - horizontalOffset
+    let coordinateY = event.pageY - verticalOffset + 50
+
+    setTestX(coordinateX)
+    setTestY(coordinateY)
+
+    dispatch(
+      moveMiniview({
+        key: 'example',
+        coordinateX: coordinateX,
+        coordinateY: coordinateY
+      })
+    )
+
+  }
+
+
 
   return (
     <>
-      <div className='example' height={height} width={width} onMouseMove={(e)=> {
+      {/* <div className='example' height={height} width={width} onMouseMove={(e)=> {
       
       let coordinateX = e.clientX
       let coordinateY = e.clientY
@@ -41,7 +66,8 @@ function App() {
       coordinateX: coordinateX,
       coordinateY: coordinateY
     }))}}>
-
+*/}
+<div>
    <Miniview 
         array={testSelector.array}
         coordinateX={testSelector.coordinateX}
@@ -51,8 +77,32 @@ function App() {
       />
  
     </div>
+      <AlternateDraggable initialY={150} onMouseMove={(e) => showZoom(e)}>
+        <Miniview
+          array={testing_array2}
+          coordinateX={0}
+          coordinateY={0}
+          raw={true}
+          color={300}
+          onMouseOver={(e) => console.log(e.pageX)}
+
+
+        />
+      </AlternateDraggable>
+
+      <AlternateDraggable initialY={300} onMouseMove={(e) => showZoom(e)}>
+        <Miniview
+          array={testing_array3}
+          coordinateX={0}
+          coordinateY={0}
+          raw={true}
+          color={200}
+          onMouseOver={() => console.log("sup")}
+        />
+      </AlternateDraggable>
+
     </>
-    
+
   );
 }
 
