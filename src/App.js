@@ -12,14 +12,14 @@ function App() {
   return (
     <div className="App">
       
-      <p>SVG</p>
 
       <Links arrayCoordinates={dataSet1} type="canvas"/>
-      <p>SVG</p>
+
+
+      <Links arrayCoordinates={dataSet2} type="svg"/>
 
       <Links arrayCoordinates={dataSet3} type="canvas"/>
-      <p>Canvas</p>
-      <Links arrayCoordinates={dataSet2} type="canvas"/>
+      
    </div>
   );
 }
