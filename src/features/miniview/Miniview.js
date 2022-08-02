@@ -87,8 +87,31 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         margin: 0 
     }
     
+    const dispatch = useDispatch()
+      // I don't need this up here. Can put in the miniview for a zoom function
+  function showZoom(event) {
+    let horizontalOffset = event.target.clientLeft
+    let verticalOffset = event.target.clientTop
+    let coordinateX = event.pageX - horizontalOffset
+    let coordinateY = event.pageY - verticalOffset + 50
 
-    return <canvas ref={canvasRef} className='miniview' width='2000' height='1000' style={style}/> 
+    // setTestX(coordinateX)
+    // setTestY(coordinateY)
+
+    dispatch(
+      moveMiniview({
+        key: 'example',
+        coordinateX: coordinateX,
+        coordinateY: coordinateY
+      })
+    )
+
+  }
+
+
+
+
+    return <canvas ref={canvasRef} className='miniview' width='2000' height='1000' style={style} onClick={doSomething} onMouseMove={(e)=> showZoom(e)}/> 
 }
 
 Miniview.defaultProps = {
