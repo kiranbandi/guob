@@ -13,7 +13,6 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     // TODO Not a huge fan of using this here
     const zoomSelector = useSelector(selectMiniviews)['example']
 
-
     useEffect(() => {
 
         if (array !== undefined) {
@@ -90,7 +89,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             }
         }
 
-    }, [array, color, beginning, fin])
+    }, [array, color])
 
     let position = absolutePositioning ? 'absolute' : 'relative'
 
@@ -131,9 +130,6 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         })
 
         // TODO these are placeholders + hacky fixes
-        // Use a selector to find the modifier width?
-        let modifier = 200
-        
         if (id) {
             dispatch(changeMiniviewColor({
                 key: 'example',

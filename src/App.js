@@ -20,66 +20,37 @@ function App() {
   const [testY, setTestY] = useState(testSelector.coordinateY)
 
 
-  const dispatch = useDispatch()
-  let width = 800
-  let height = 400
-
-
-  // I don't need this up here. Can put in the miniview for a zoom function
-  // function showZoom(event) {
-  //   let horizontalOffset = event.target.clientLeft
-  //   let verticalOffset = event.target.clientTop
-  //   let coordinateX = event.pageX - horizontalOffset
-  //   let coordinateY = event.pageY - verticalOffset + 50
-
-  //   setTestX(coordinateX)
-  //   setTestY(coordinateY)
-
-  //   dispatch(
-  //     moveMiniview({
-  //       key: 'example',
-  //       coordinateX: coordinateX,
-  //       coordinateY: coordinateY
-  //     })
-  //   )
-
-  // }
-
-
 
   return (
     <>
-      {/* <div className='example' height={height} width={width} onMouseMove={(e)=> {
-      
-      let coordinateX = e.clientX
-      let coordinateY = e.clientY
 
-      coordinateX = Math.min((width - testSelector.width), coordinateX - testSelector.width/2)
-      coordinateY = Math.min((height - testSelector.height), coordinateY+ 10)
-
-      setTestX(coordinateX)
-      setTestY(coordinateY)
-      
-      dispatch(
-      moveMiniview({
-      key:'example',
-      coordinateX: coordinateX,
-      coordinateY: coordinateY
-    }))}}>
-*/}
 <div>
-   {testSelector.visible && <Miniview 
-        className={'zoom'}
-        array={testSelector.array}
-        coordinateX={testSelector.coordinateX}
-        coordinateY={testSelector.coordinateY}
-        width={testSelector.width}
-        height={testSelector.height}
-        beginning={testSelector.start}
-        fin={testSelector.end}
-        color={testSelector.color}
-      />}
- 
+
+<DragContainer>
+    <Draggable>
+      <Miniview
+        array={testing_array}
+        color={50}
+        id={3}
+      />
+    </Draggable>
+    <Draggable>
+      <Miniview
+            array={testing_array2}
+        color={150}
+        id={4}
+      />
+    </Draggable>
+    <Draggable>
+      <Miniview
+            array={testing_array3}
+        color={250}
+        id={5}
+      />
+    </Draggable>
+
+</DragContainer>
+   
     </div>
       <AlternateDraggable initialY={150}>
         <Miniview
@@ -100,8 +71,37 @@ function App() {
           id={2}
         />
       </AlternateDraggable>
+      <Miniview
+        array={testing_array}
+        color={350}
+        id={5}
+        chosen={
+          {
+        "chromosome": "at3",
+        "start": "9541483",
+        "end": "9542114",
+        "key": "at3g26110"
+    }
+        }
+        height={50}
+        
+      />
+
+{testSelector.visible && <Miniview 
+        className={'zoom'}
+        array={testSelector.array}
+        coordinateX={testSelector.coordinateX}
+        coordinateY={testSelector.coordinateY}
+        width={testSelector.width}
+        height={testSelector.height}
+        beginning={testSelector.start}
+        fin={testSelector.end}
+        color={testSelector.color}
+      />}
+ 
 
     </>
+    
 
   );
 }
