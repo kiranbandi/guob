@@ -45,7 +45,7 @@ export const miniviewSlice = createSlice({
     }
 })
 
-export const {addMiniview, removeMiniview, moveMiniview } = miniviewSlice.actions;
+export const {addMiniview, removeMiniview, moveMiniview, updateData } = miniviewSlice.actions;
 
 export const selectMiniviews = (state) => state.miniview.miniviews
 

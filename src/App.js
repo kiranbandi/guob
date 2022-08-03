@@ -26,24 +26,24 @@ function App() {
 
 
   // I don't need this up here. Can put in the miniview for a zoom function
-  function showZoom(event) {
-    let horizontalOffset = event.target.clientLeft
-    let verticalOffset = event.target.clientTop
-    let coordinateX = event.pageX - horizontalOffset
-    let coordinateY = event.pageY - verticalOffset + 50
+  // function showZoom(event) {
+  //   let horizontalOffset = event.target.clientLeft
+  //   let verticalOffset = event.target.clientTop
+  //   let coordinateX = event.pageX - horizontalOffset
+  //   let coordinateY = event.pageY - verticalOffset + 50
 
-    setTestX(coordinateX)
-    setTestY(coordinateY)
+  //   setTestX(coordinateX)
+  //   setTestY(coordinateY)
 
-    dispatch(
-      moveMiniview({
-        key: 'example',
-        coordinateX: coordinateX,
-        coordinateY: coordinateY
-      })
-    )
+  //   dispatch(
+  //     moveMiniview({
+  //       key: 'example',
+  //       coordinateX: coordinateX,
+  //       coordinateY: coordinateY
+  //     })
+  //   )
 
-  }
+  // }
 
 
 
@@ -68,7 +68,7 @@ function App() {
     }))}}>
 */}
 <div>
-   <Miniview 
+   <Miniview className={'zoom'}
         array={testSelector.array}
         coordinateX={testSelector.coordinateX}
         coordinateY={testSelector.coordinateY}
@@ -77,7 +77,7 @@ function App() {
       />
  
     </div>
-      <AlternateDraggable initialY={150} onMouseMove={(e) => showZoom(e)}>
+      <AlternateDraggable initialY={150}>
         <Miniview
           array={testing_array2}
           coordinateX={0}
@@ -85,12 +85,13 @@ function App() {
           raw={true}
           color={300}
           onMouseOver={(e) => console.log(e.pageX)}
+          id={1}
 
 
         />
       </AlternateDraggable>
 
-      <AlternateDraggable initialY={300} onMouseMove={(e) => showZoom(e)}>
+      <AlternateDraggable initialY={300}>
         <Miniview
           array={testing_array3}
           coordinateX={0}
@@ -98,6 +99,7 @@ function App() {
           raw={true}
           color={200}
           onMouseOver={() => console.log("sup")}
+          id={2}
         />
       </AlternateDraggable>
 

@@ -8,3 +8,6 @@
     cursor: zoom-in;
     border: 2px solid pink
 }
+.zoom {
+    border: 1px solid black
+}
