@@ -11,7 +11,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     const canvasRef = useRef()
 
     // const [ dataset, setDataset ] = useState()
-    const [ limit, setLimit ] = useState()
+
 
     useEffect(() => {
         // console.log("Array length: " + array.length)
@@ -23,7 +23,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
 
         let cap = Math.max(...array.map(d => d.end))
-        setLimit(cap)
+
         // console.log("\nUSeEffect cap: " + cap)
         let start = Math.min(...array.map(d => d.start))
         let distance = cap - start
@@ -77,13 +77,16 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
             let widthScale = scaleLinear().domain([0, cap-start]).range([0, ctx.canvas.width])
             ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
-            array.forEach(gene => {
+            if(array.length > 1){
+                 array.forEach(gene => {
                 let x = xScale(gene.start)
                 let rectWidth = widthScale(gene.end-gene.start)   
                 ctx.beginPath()
                 ctx.rect(x, 0, rectWidth, ctx.canvas.height)
                 ctx.fill()
             })
+            }
+           
         }
     }
     
@@ -106,19 +109,16 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     //     console.log(limit)
     // }, [limit])
 
+    // Scaling weird because using the wrong width
     function showZoom(event) {
         let horizontalOffset = event.target.clientLeft
         let verticalOffset = event.target.clientTop
         let coordinateX = event.pageX - horizontalOffset
         let yLoc = event.target.offsetParent.offsetTop + event.target.clientHeight + 10
 
-
-        console.log(event.target.offsetParent.offsetTop)
-        console.log(event.target.clientHeight)
         let cap = Math.max(...array.map(d => d.end))
         let start = Math.min(...array.map(d => d.start))
-        const ctx = canvasRef.current.getContext('2d')
-        let testScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
+        let testScale = scaleLinear().domain([start, cap]).range([0, event.target.offsetParent.clientWidth])
         let center = testScale.invert(coordinateX)
         let beginning = center - 100000
         let end = center + 100000
@@ -126,9 +126,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             return (item.end >= beginning && item.start <= end)
         })
 
-        let widthOfCanvas = ctx.canvas.width
-        // let modifier = selectMiniviews()['example'].width/2
-       
+        // TODO these are placeholders
         let modifier = 200
         if (id) {
             dispatch(updateData({

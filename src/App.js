@@ -68,7 +68,8 @@ function App() {
     }))}}>
 */}
 <div>
-   <Miniview className={'zoom'}
+   <Miniview 
+        className={'zoom'}
         array={testSelector.array}
         coordinateX={testSelector.coordinateX}
         coordinateY={testSelector.coordinateY}
@@ -82,7 +83,6 @@ function App() {
           array={testing_array2}
           coordinateX={0}
           coordinateY={0}
-          raw={true}
           color={300}
           onMouseOver={(e) => console.log(e.pageX)}
           id={1}
@@ -96,9 +96,7 @@ function App() {
           array={testing_array3}
           coordinateX={0}
           coordinateY={0}
-          raw={true}
           color={200}
-          onMouseOver={() => console.log("sup")}
           id={2}
         />
       </AlternateDraggable>
