@@ -75,6 +75,8 @@ function App() {
         coordinateY={testSelector.coordinateY}
         width={testSelector.width}
         height={testSelector.height}
+        beginning={testSelector.start}
+        fin={testSelector.end}
       />
  
     </div>

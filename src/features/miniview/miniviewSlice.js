@@ -41,6 +41,12 @@ export const miniviewSlice = createSlice({
         },
         updateData: (state, action) => {
             state.miniviews[action.payload.key].array = action.payload.array
+            if(action.payload.start !== undefined){
+                state.miniviews[action.payload.key].start = action.payload.start
+            }
+            if(action.payload.end !== undefined){
+                state.miniviews[action.payload.key].end = action.payload.end
+            }
         }
     }
 })

@@ -6,12 +6,9 @@ import { useDispatch } from "react-redux"
 import { addMiniview, moveMiniview, selectMiniviews, updateData } from "./miniviewSlice"
 
 
-const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, id, ...props }) => {
+const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, id, beginning, fin, ...props }) => {
 
     const canvasRef = useRef()
-
-    // const [ dataset, setDataset ] = useState()
-
 
     useEffect(() => {
         // console.log("Array length: " + array.length)
@@ -22,10 +19,13 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         bars ? density = bars : density = 60
 
 
-        let cap = Math.max(...array.map(d => d.end))
+        let cap
+        fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
 
         // console.log("\nUSeEffect cap: " + cap)
-        let start = Math.min(...array.map(d => d.start))
+       
+        let start;
+        beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
         let distance = cap - start
         const ctx = canvasRef.current.getContext('2d')
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -73,19 +73,22 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
         // If not low resolution, we draw everything in the array
         else {
-            // console.log(array.length + " " + start + " " + cap)
+
             let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
             let widthScale = scaleLinear().domain([0, cap-start]).range([0, ctx.canvas.width])
             ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
-            if(array.length > 1){
-                 array.forEach(gene => {
+            
+            // Potential yikes
+            // if(array.length > 1 ){
+            array.forEach(gene => {
                 let x = xScale(gene.start)
                 let rectWidth = widthScale(gene.end-gene.start)   
                 ctx.beginPath()
                 ctx.rect(x, 0, rectWidth, ctx.canvas.height)
                 ctx.fill()
             })
-            }
+            // }
+
            
         }
     }
@@ -105,9 +108,6 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     const dispatch = useDispatch()
 
-    // useEffect(()=>{
-    //     console.log(limit)
-    // }, [limit])
 
     // Scaling weird because using the wrong width
     function showZoom(event) {
@@ -116,9 +116,11 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         let coordinateX = event.pageX - horizontalOffset
         let yLoc = event.target.offsetParent.offsetTop + event.target.clientHeight + 10
 
+        let westEnd =  event.target.offsetParent.clientWidth
+
         let cap = Math.max(...array.map(d => d.end))
         let start = Math.min(...array.map(d => d.start))
-        let testScale = scaleLinear().domain([start, cap]).range([0, event.target.offsetParent.clientWidth])
+        let testScale = scaleLinear().domain([start, cap]).range([0, westEnd])
         let center = testScale.invert(coordinateX)
         let beginning = center - 100000
         let end = center + 100000
@@ -132,12 +134,13 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             dispatch(updateData({
                 key: 'example',
                 array: testArray,
-                test: id
+                start: beginning,
+                end: end
             }))
             dispatch(moveMiniview({
                 key: 'example',
-                coordinateX: Math.max(0, Math.min(400, coordinateX - modifier)),
-                coordinateY: yLoc
+                coordinateX: Math.max(0, Math.min(westEnd - 420, coordinateX - modifier)),
+                coordinateY: yLoc,
             }))
 
         }
