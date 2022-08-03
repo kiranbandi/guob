@@ -16,7 +16,8 @@ const initialState = {
             coordinateY: 0,
             height: 50,
             width: 400,
-            id: 'example'
+            id: 'example',
+            visible: false
         }
     }
 }
@@ -36,7 +37,7 @@ export const miniviewSlice = createSlice({
             delete  state.miniviews[action.payload.key]
         },
         moveMiniview: (state, action) => {
-            state.miniviews[action.payload.key].coordinateX = action.payload.coordinateX
+            state.miniviews[action.payload.key].coordinateX = Math.max(0, action.payload.coordinateX - state.miniviews[action.payload.key].width/2)
             state.miniviews[action.payload.key].coordinateY = action.payload.coordinateY
         },
         updateData: (state, action) => {
@@ -47,11 +48,17 @@ export const miniviewSlice = createSlice({
             if(action.payload.end !== undefined){
                 state.miniviews[action.payload.key].end = action.payload.end
             }
+        },
+        changeMiniviewColor: (state, action) => {
+            state.miniviews[action.payload.key].color = action.payload.color
+        },
+        changeMiniviewVisibility: (state, action) => {
+            state.miniviews[action.payload.key].visible = action.payload.visible
         }
     }
 })
 
-export const {addMiniview, removeMiniview, moveMiniview, updateData } = miniviewSlice.actions;
+export const {addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility } = miniviewSlice.actions;
 
 export const selectMiniviews = (state) => state.miniview.miniviews
 
