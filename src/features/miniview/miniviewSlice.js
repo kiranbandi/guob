@@ -31,7 +31,7 @@ export const miniviewSlice = createSlice({
             delete  state.miniviews[action.payload.key]
         },
         moveMiniview: (state, action) => {
-            state.miniviews[action.payload.key].coordinateX = Math.max(0, action.payload.coordinateX - state.miniviews[action.payload.key].width/2)
+            state.miniviews[action.payload.key].coordinateX = action.payload.coordinateX
             state.miniviews[action.payload.key].coordinateY = action.payload.coordinateY
         },
         updateData: (state, action) => {

@@ -31,6 +31,7 @@ function App() {
         fin={testSelector.end}
         color={testSelector.color}
         id={testSelector.id}
+        absolutePositioning={true}
       />}
 <DragContainer>
     <Draggable>

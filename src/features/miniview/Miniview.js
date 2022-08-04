@@ -11,7 +11,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     const canvasRef = useRef()   
     
     // TODO Not a huge fan of using this here
-    const zoomSelector = useSelector(selectMiniviews)['preview']
+    const previewSelector = useSelector(selectMiniviews)['preview']
 
     useEffect(() => {
 
@@ -113,7 +113,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
         let coordinateX = event.pageX - horizontalOffset
 
-        let coordinateY = verticalOffset + event.target.clientHeight
+        let coordinateY = verticalOffset + event.target.clientHeight + 5
 
         let eastEnd = event.target.clientWidth
 
@@ -145,7 +145,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             dispatch(moveMiniview(
                 {
                 key: 'preview',
-                coordinateX: Math.min(eastEnd - zoomSelector.width/2, coordinateX),
+                coordinateX: Math.max(10,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
                 coordinateY: coordinateY,
             }))
             dispatch(changeMiniviewVisibility(
