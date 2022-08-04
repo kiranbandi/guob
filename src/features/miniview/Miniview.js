@@ -104,7 +104,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     const dispatch = useDispatch()
 
-    function showZoom(event) {
+    function showPreview(event) {
 
         let horizontalOffset = event.target.clientLeft
 
@@ -164,7 +164,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     height='1000' 
     style={style} 
     onClick={doSomething} 
-    onMouseMove={(e) => showZoom(e)} 
+    onMouseMove={(e) => showPreview(e)} 
     onMouseLeave={() => dispatch(
         changeMiniviewVisibility({
             key: 'preview',

@@ -2,19 +2,25 @@ import Miniview from './features/miniview/Miniview'
 import testing_array from './testing_array'
 import testing_array2 from './testing_array2'
 import testing_array3 from 'testing_array3';
-import Draggable from './Draggable';
-import DragContainer from './DragContainer';
+import Draggable from './features/draggable/Draggable';
+import DragContainer from './features/draggable/DragContainer';
 import { useState } from 'react';
-import AlternateDraggable from './AlternateDraggable'
+import AlternateDraggable from './features/draggable/AlternateDraggable'
 import { useDispatch, useSelector } from 'react-redux';
 import { addMiniview, moveMiniview, selectMiniviews } from 'features/miniview/miniviewSlice';
 import './example.css'
+import { moveDraggable, addDraggable, removeDraggable, selectDraggables } from 'features/draggable/draggableSlice';
 
 
 function App() {
 
   // Demo of redux miniview
   const testSelector = useSelector(selectMiniviews)['preview']
+
+  let draggableSelector = useSelector(selectDraggables)
+
+
+
 
   return (
     <>
@@ -59,7 +65,7 @@ function App() {
 </DragContainer>
    
     </div>
-      <AlternateDraggable initialY={150}>
+      <AlternateDraggable initialY={draggableSelector['secondTest'].coordinateY} id={draggableSelector['secondTest'].key}>
         <Miniview
           array={testing_array2}
           coordinateX={0}
@@ -69,7 +75,7 @@ function App() {
         />
       </AlternateDraggable>
 
-      <AlternateDraggable initialY={300}>
+      <AlternateDraggable initialY={draggableSelector['test'].coordinateY} id={draggableSelector['test'].key}>
         <Miniview
           array={testing_array3}
           coordinateX={0}
