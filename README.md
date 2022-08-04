@@ -1,6 +1,6 @@
 # Demo of Components on this Branch
 
-![Demo](https://github.com/kiranbandi/guob/blob/taylan/demo.gif)
+![Demo](https://github.com/kiranbandi/guob/blob/taylan/multiple_miniviews.gif)
 
 
 # Getting Started with Create React App
