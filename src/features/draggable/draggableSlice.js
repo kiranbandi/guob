@@ -20,8 +20,6 @@ export const draggableSlice = createSlice({
 
     reducers: {
         moveDraggable: (state, action) =>{
-            console.log(state)
-            console.log(action)
             state.draggables[action.payload.key].coordinateY = action.payload.coordinateY
         },
         addDraggable: (state, action) => {
