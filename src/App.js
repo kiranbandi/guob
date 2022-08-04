@@ -14,18 +14,24 @@ import './example.css'
 function App() {
 
   // Demo of redux miniview
-  const testSelector = useSelector(selectMiniviews)['example']
-  const [number, setNumber] = useState(testSelector.color)
-  const [testX, setTestX] = useState(testSelector.coordinateX)
-  const [testY, setTestY] = useState(testSelector.coordinateY)
-
-
+  const testSelector = useSelector(selectMiniviews)['preview']
 
   return (
     <>
 
 <div>
-
+{testSelector.visible && <Miniview 
+        className={'preview'}
+        array={testSelector.array}
+        coordinateX={testSelector.coordinateX}
+        coordinateY={testSelector.coordinateY}
+        width={testSelector.width}
+        height={testSelector.height}
+        beginning={testSelector.start}
+        fin={testSelector.end}
+        color={testSelector.color}
+        id={testSelector.id}
+      />}
 <DragContainer>
     <Draggable>
       <Miniview
@@ -87,17 +93,7 @@ function App() {
         
       />
 
-{testSelector.visible && <Miniview 
-        className={'zoom'}
-        array={testSelector.array}
-        coordinateX={testSelector.coordinateX}
-        coordinateY={testSelector.coordinateY}
-        width={testSelector.width}
-        height={testSelector.height}
-        beginning={testSelector.start}
-        fin={testSelector.end}
-        color={testSelector.color}
-      />}
+
  
 
     </>

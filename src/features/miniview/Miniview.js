@@ -11,7 +11,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     const canvasRef = useRef()   
     
     // TODO Not a huge fan of using this here
-    const zoomSelector = useSelector(selectMiniviews)['example']
+    const zoomSelector = useSelector(selectMiniviews)['preview']
 
     useEffect(() => {
 
@@ -107,12 +107,13 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     function showZoom(event) {
 
         let horizontalOffset = event.target.clientLeft
-        let verticalOffset = event.target.clientTop
+
+        let verticalOffset;
+        event.target.offsetParent.localName == 'body' ? verticalOffset = event.target.offsetTop : verticalOffset = event.target.offsetParent.offsetTop
 
         let coordinateX = event.pageX - horizontalOffset
 
-        // TODO - This works if in a container, if not, need something else
-        let coordinateY = event.target.offsetParent.offsetTop + event.target.clientHeight + 10
+        let coordinateY = verticalOffset + event.target.clientHeight
 
         let eastEnd = event.target.clientWidth
 
@@ -130,26 +131,26 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         })
 
         // TODO these are placeholders + hacky fixes
-        if (id) {
+        if (id !== 'preview') {
             dispatch(changeMiniviewColor({
-                key: 'example',
+                key: 'preview',
                 color: color
             }))
             dispatch(updateData({
-                key: 'example',
+                key: 'preview',
                 array: testArray,
                 start: beginning,
                 end: end
             }))
             dispatch(moveMiniview(
                 {
-                key: 'example',
+                key: 'preview',
                 coordinateX: Math.min(eastEnd - zoomSelector.width/2, coordinateX),
                 coordinateY: coordinateY,
             }))
             dispatch(changeMiniviewVisibility(
                 {
-                key: 'example',
+                key: 'preview',
                 visible: true
             }))
 
@@ -164,12 +165,13 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     style={style} 
     onClick={doSomething} 
     onMouseMove={(e) => showZoom(e)} 
-    onMouseLeave={() => dispatch(
-        changeMiniviewVisibility({
-            key: 'example',
-            visible: false
-        })
-    )} {...props} />
+    // onMouseLeave={() => dispatch(
+    //     changeMiniviewVisibility({
+    //         key: 'preview',
+    //         visible: false
+    //     })
+    // )}
+     {...props} />
 }
 
 Miniview.defaultProps = {

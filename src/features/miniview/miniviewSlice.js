@@ -4,19 +4,13 @@ import testing_array from 'testing_array';
 const initialState = {
     // Currently just a placeholder 
     miniviews: {
-       'example': { array: testing_array,
-            chosen: {
-              "chromosome": "at3",
-              "start": "8497941",
-              "end": "8498072",
-              "key": "at3g23635"
-            },
+       'preview': { 
             color: 0,
             coordinateX: 0,
             coordinateY: 0,
-            height: 50,
+            height: 25,
             width: 400,
-            id: 'example',
+            id: 'preview',
             visible: false
         }
     }
