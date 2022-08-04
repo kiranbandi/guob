@@ -4,11 +4,11 @@ const initialState={
     // currently a placeholder
     draggables: {
         'test':{
-            coordinateY:300,
+            coordinateY:500,
             key: 'test'
         },
         'secondTest':{
-            coordinateY: 400,
+            coordinateY: 600,
             key: 'secondTest'
         }
     }

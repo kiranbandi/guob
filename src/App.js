@@ -39,6 +39,7 @@ function App() {
         id={testSelector.id}
         absolutePositioning={true}
       />}
+      <h2>Draggable Containter: Items reorder themselves</h2>
 <DragContainer>
     <Draggable>
       <Miniview
@@ -65,6 +66,7 @@ function App() {
 </DragContainer>
    
     </div>
+    <h2>Miniview Component:</h2>
       <AlternateDraggable initialY={draggableSelector['secondTest'].coordinateY} id={draggableSelector['secondTest'].key}>
         <Miniview
           array={testing_array2}
@@ -99,6 +101,7 @@ function App() {
         height={50}
         
       />
+      <h2>Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</h2>
 
 
  
