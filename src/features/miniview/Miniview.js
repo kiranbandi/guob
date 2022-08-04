@@ -165,12 +165,12 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     style={style} 
     onClick={doSomething} 
     onMouseMove={(e) => showZoom(e)} 
-    // onMouseLeave={() => dispatch(
-    //     changeMiniviewVisibility({
-    //         key: 'preview',
-    //         visible: false
-    //     })
-    // )}
+    onMouseLeave={() => dispatch(
+        changeMiniviewVisibility({
+            key: 'preview',
+            visible: false
+        })
+    )}
      {...props} />
 }
 
