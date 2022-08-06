@@ -13,11 +13,8 @@ const Draggable = ({ children, id, index }) => {
     // One ref for handle, one for preview
     const ref = useRef(null)
     const secondRef = useRef(null)
-    // console.log(index)
-    const dispatch = useDispatch()
 
-    // console.log("Draggable:")
-    // console.log(id + "   " + index)
+    const dispatch = useDispatch()
 
     const [, drop] = useDrop(() => ({
         accept: ItemTypes.BOUNDED,
@@ -51,7 +48,6 @@ const Draggable = ({ children, id, index }) => {
             // I THINK this is all is needed when using the redux store
             /////////////////////////////////////////////////////////////////////
 
-
             if (dragIndex != hoverIndex) {
                 dispatch(switchDraggable({
                     startKey: item.id,
@@ -60,10 +56,8 @@ const Draggable = ({ children, id, index }) => {
                     switchIndex: hoverIndex
                 })
                 )
-
                 item.index = hoverIndex
             }
-
         },
         }), [index])
 

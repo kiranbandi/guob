@@ -27,7 +27,8 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             const ctx = canvasRef.current.getContext('2d')
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-            // Checking if the array is low resolution or not
+            // Checking if the array is intended as low resolution - if it is, build a new array with
+            // number of genes in a specific area to build the heatmap
             if (average) {
                 
                 let density;
@@ -108,6 +109,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
         let horizontalOffset = event.target.clientLeft
 
+        // Ternary operator for if the view is in a container or not
         let verticalOffset;
         event.target.offsetParent.localName == 'body' ? verticalOffset = event.target.offsetTop : verticalOffset = event.target.offsetParent.offsetTop
 
