@@ -1,5 +1,5 @@
 import React from "react"
-import { useRef, useState } from "react"
+import { useRef } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
@@ -12,8 +12,6 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
     // Two refs needed - one for handle, one for preview
     const ref = useRef(null)
     const previewRef = useRef(null)
-
-    // const[y, setY] = useState(initialY)
 
     const dispatch = useDispatch()
     // function for changing the y-coordinate of the draggable
@@ -36,8 +34,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
             let increment = Math.round((coordinate.y - hoverMiddleY)/height)
             
             let newLocation = Math.max(increment*height, ceiling)
-            // setY(newLocation)
-            // bring in redux here
+  
             dispatch(moveDraggable({
                 key: id,
                 coordinateY: newLocation,

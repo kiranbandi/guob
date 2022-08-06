@@ -43,19 +43,14 @@ const Draggable = ({ children, id, index }) => {
                 return
             }
 
-            // FOR REDUX : Just change the index. Won't even need a callback.
-
-            // I THINK this is all is needed when using the redux store
-            /////////////////////////////////////////////////////////////////////
-
+            // Updating the redux store - using conditional to keep calls to a minimum
             if (dragIndex != hoverIndex) {
                 dispatch(switchDraggable({
                     startKey: item.id,
-                    startIndex: dragIndex,
-                    switchKey: id,
                     switchIndex: hoverIndex
                 })
                 )
+                // Need to change the item's index or it can't be placed back in the original position due to the conditional
                 item.index = hoverIndex
             }
         },
