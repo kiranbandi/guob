@@ -9,18 +9,17 @@ import AlternateDraggable from './features/draggable/AlternateDraggable'
 import { useDispatch, useSelector } from 'react-redux';
 import { addMiniview, moveMiniview, selectMiniviews } from 'features/miniview/miniviewSlice';
 import './example.css'
-import { moveDraggable, addDraggable, removeDraggable, selectDraggables } from 'features/draggable/draggableSlice';
+import { moveDraggable, addDraggable, removeDraggable, selectAlternateDraggables } from 'features/draggable/alternateDraggableSlice';
+import { nanoid } from '@reduxjs/toolkit';
+import { selectDraggables } from './features/draggable/draggableSlice';
 
 
 function App() {
 
   // Demo of redux miniview
   const testSelector = useSelector(selectMiniviews)['preview']
-
-  let draggableSelector = useSelector(selectDraggables)
-
-
-
+  const draggableSelector = useSelector(selectDraggables)
+  let alternateDraggableSelector = useSelector(selectAlternateDraggables)
 
   return (
     <>
@@ -40,26 +39,26 @@ function App() {
         absolutePositioning={true}
       />}
       <h2>Draggable Containter: Items reorder themselves</h2>
-<DragContainer>
-    <Draggable>
+<DragContainer starting={draggableSelector}>
+    <Draggable key={'zero'}>
       <Miniview
         array={testing_array}
         color={50}
-        id={3}
+        // id={3}
       />
     </Draggable>
-    <Draggable>
+    <Draggable key={'one'}>
       <Miniview
             array={testing_array2}
         color={150}
-        id={4}
+        // id={4}
       />
     </Draggable>
-    <Draggable>
+    <Draggable key={'two'}>
       <Miniview
             array={testing_array3}
         color={250}
-        id={5}
+        // id={5}
       />
     </Draggable>
 
@@ -67,7 +66,7 @@ function App() {
    
     </div>
     <h2>Miniview Component:</h2>
-      <AlternateDraggable initialY={draggableSelector['secondTest'].coordinateY} id={draggableSelector['secondTest'].key}>
+      <AlternateDraggable initialY={alternateDraggableSelector['secondTest'].coordinateY} id={alternateDraggableSelector['secondTest'].key}>
         <Miniview
           array={testing_array2}
           coordinateX={0}
@@ -77,7 +76,7 @@ function App() {
         />
       </AlternateDraggable>
 
-      <AlternateDraggable initialY={draggableSelector['test'].coordinateY} id={draggableSelector['test'].key}>
+      <AlternateDraggable initialY={alternateDraggableSelector['test'].coordinateY} id={alternateDraggableSelector['test'].key}>
         <Miniview
           array={testing_array3}
           coordinateX={0}

@@ -1,69 +1,44 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import update from 'immutability-helper'
+import { useSelector, useDispatch } from 'react-redux'
+import { selectDraggables, addDraggable, moveDraggable } from './draggableSlice';
 
 
-function DragContainer({ children }) {
 
-    // Requires use of key in props to maintain state once moved
-    let arrayOfChildren = Array.isArray(children) ? children : [children]
-    let i = 0;
-    const [draggables, setDraggables] = useState(
-        arrayOfChildren.map(child => {
-            let temp = {
-                index: i,
-                component: child,
-                key: child.key
-            }
-            i++
-            return temp
-        })
-    )
+function DragContainer({ children, starting }) {
 
-    // Need to update state to pass any changes made to the children
-    useEffect(() => {
-        let x = 0
-        let differentArray = arrayOfChildren.map(child => {
-            let temp = {
-                index: x,
-                component: child,
-                key: child.key
-            }
-            x++
-            return temp
-        })
 
-        let newState = draggables.map(child => {
-            return differentArray[child.index]
-        })
-        setDraggables(newState)
+    const dispatch = useDispatch()
 
-    }, [children])
+    const moveDraggable = useCallback((dragIndex, hoverIndex, item) =>{
 
-    // Hook to re-order the draggables in the container
-    const moveDraggable = useCallback((dragIndex, hoverIndex) => {
-        setDraggables((prevDraggables) =>
-            update(prevDraggables, {
-                $splice: [
-                    [dragIndex, 1],
-                    [hoverIndex, 0, prevDraggables[dragIndex]],
-                ],
-            }),
-        )
+        dispatch(moveDraggable({
+            startIndex:dragIndex, switchIndex: hoverIndex, startKey: item
+        }
+        ))
     }, [])
 
-    const renderChild = useCallback((child, index) => {
+    const renderChild = (child, index, id) => {
+        // console.log(index)
         return (
             <child.type
                 {...child.props}
                 index={index}
-                key={index}
-                moveDraggable={moveDraggable}
+                id={id}
+                key={id}
             />
         )
-    }, [])
+    }
 
-    return (
-        <div className='Container'>{draggables.map((child, index) => renderChild(child.component, index))}</div>
+    
+    return(
+        <div className='Container'>
+            {starting.map((item, index) => {
+              
+                return renderChild(children[children.findIndex(child => child.key == item)], index, item )
+                
+                })}
+        </div>
     )
 }
 

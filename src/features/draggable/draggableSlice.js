@@ -1,17 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+import update from 'immutability-helper'
 
-const initialState={
+const initialState = {
     // currently a placeholder
-    draggables: {
-        'test':{
-            coordinateY:500,
-            key: 'test'
-        },
-        'secondTest':{
-            coordinateY: 600,
-            key: 'secondTest'
-        }
-    }
+    // Should be re-ordering the things
+    // THIS SHOULD JUST BE A LIST OF IDS
+    draggables: ['zero', 'one', 'two']
+
 }
 
 export const draggableSlice = createSlice({
@@ -19,19 +14,33 @@ export const draggableSlice = createSlice({
     initialState,
 
     reducers: {
-        moveDraggable: (state, action) =>{
-            state.draggables[action.payload.key].coordinateY = action.payload.coordinateY
+        moveDraggable: (state, action) => {
+            state.draggables[action.payload.key].index = action.payload.index
+
         },
         addDraggable: (state, action) => {
-            state.draggables[action.payload.key] = action.payload
+            // state.draggables[action.payload.key] = action.payload
+            state.draggables.push(action.payload.key)
         },
-        removeDraggable: (state, action) =>{
+        removeDraggable: (state, action) => {
             delete state.draggables[action.payload.key]
+        },
+        switchDraggable: (state, action) => {
+
+            let switchIndex = action.payload.switchIndex
+            let startIndex = state.draggables.indexOf(action.payload.startKey)
+
+            let switchKey = action.payload.switchKey
+            let startKey = action.payload.startKey
+
+            state.draggables.splice(startIndex, 1)
+            state.draggables.splice(switchIndex,0, startKey)
+
         }
     }
 })
 
-export const {moveDraggable, addDraggable, removeDraggable} = draggableSlice.actions
+export const { moveDraggable, addDraggable, removeDraggable, switchDraggable } = draggableSlice.actions
 
 export const selectDraggables = (state) => state.draggable.draggables
 

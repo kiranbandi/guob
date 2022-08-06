@@ -1,8 +1,5 @@
 
 /* Placeholder for dimensions and locations */
-/* .miniview {
-  height: 100%;
-  width: 100%;
-  float: left;
-  margin: 0px;
-} */
+.miniview {
+  cursor: crosshair;
+}

@@ -5,7 +5,7 @@ import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import './Draggable.css'
 import { useDispatch } from "react-redux"
-import { moveDraggable } from "./draggableSlice"
+import { moveDraggable } from "./alternateDraggableSlice"
 
 const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...props }) => {
     
