@@ -2,19 +2,24 @@ import Miniview from './features/miniview/Miniview'
 import testing_array from './testing_array'
 import testing_array2 from './testing_array2'
 import testing_array3 from 'testing_array3';
-import Draggable from './Draggable';
-import DragContainer from './DragContainer';
+import Draggable from './features/draggable/Draggable';
+import DragContainer from './features/draggable/DragContainer';
 import { useState } from 'react';
-import AlternateDraggable from './AlternateDraggable'
+import AlternateDraggable from './features/draggable/AlternateDraggable'
 import { useDispatch, useSelector } from 'react-redux';
 import { addMiniview, moveMiniview, selectMiniviews } from 'features/miniview/miniviewSlice';
 import './example.css'
+import { moveDraggable, addDraggable, removeDraggable, selectAlternateDraggables } from 'features/draggable/alternateDraggableSlice';
+import { nanoid } from '@reduxjs/toolkit';
+import { selectDraggables } from './features/draggable/draggableSlice';
 
 
 function App() {
 
   // Demo of redux miniview
   const testSelector = useSelector(selectMiniviews)['preview']
+  const draggableSelector = useSelector(selectDraggables)
+  let alternateDraggableSelector = useSelector(selectAlternateDraggables)
 
   return (
     <>
@@ -33,33 +38,35 @@ function App() {
         id={testSelector.id}
         absolutePositioning={true}
       />}
-<DragContainer>
-    <Draggable>
+      <h2>Draggable Containter: Items reorder themselves</h2>
+<DragContainer starting={draggableSelector}>
+    <Draggable key={'zero'}>
       <Miniview
         array={testing_array}
         color={50}
-        id={3}
+        // id={3}
       />
     </Draggable>
-    <Draggable>
+    <Draggable key={'one'}>
       <Miniview
             array={testing_array2}
         color={150}
-        id={4}
+        // id={4}
       />
     </Draggable>
-    <Draggable>
+    <Draggable key={'two'}>
       <Miniview
             array={testing_array3}
         color={250}
-        id={5}
+        // id={5}
       />
     </Draggable>
 
 </DragContainer>
    
     </div>
-      <AlternateDraggable initialY={150}>
+    <h2>Miniview Component:</h2>
+      <AlternateDraggable initialY={alternateDraggableSelector['secondTest'].coordinateY} id={alternateDraggableSelector['secondTest'].key}>
         <Miniview
           array={testing_array2}
           coordinateX={0}
@@ -69,7 +76,7 @@ function App() {
         />
       </AlternateDraggable>
 
-      <AlternateDraggable initialY={300}>
+      <AlternateDraggable initialY={alternateDraggableSelector['test'].coordinateY} id={alternateDraggableSelector['test'].key}>
         <Miniview
           array={testing_array3}
           coordinateX={0}
@@ -93,6 +100,7 @@ function App() {
         height={50}
         
       />
+      <h2>Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</h2>
 
 
  

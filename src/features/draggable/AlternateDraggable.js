@@ -1,9 +1,11 @@
 import React from "react"
-import { useRef, useState } from "react"
+import { useRef } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import './Draggable.css'
+import { useDispatch } from "react-redux"
+import { moveDraggable } from "./alternateDraggableSlice"
 
 const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...props }) => {
     
@@ -11,8 +13,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
     const ref = useRef(null)
     const previewRef = useRef(null)
 
-    const[y, setY] = useState(initialY)
-
+    const dispatch = useDispatch()
     // function for changing the y-coordinate of the draggable
     const adjustY = (item, monitor) =>{
 
@@ -31,7 +32,14 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
             let hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
             let height = hoverBoundingRect.bottom - hoverBoundingRect.top + gap
             let increment = Math.round((coordinate.y - hoverMiddleY)/height)
-            setY(Math.max(increment*height, ceiling))
+            
+            let newLocation = Math.max(increment*height, ceiling)
+  
+            dispatch(moveDraggable({
+                key: id,
+                coordinateY: newLocation,
+            }))
+
         }
     }
 
@@ -39,7 +47,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
  const [{ isDragging }, drag, preview] = useDrag(
     () => ({
         type: ItemTypes.FREE,
-        item: () => { return { id, index, y } },
+        item: () => { return { id, index} },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -62,7 +70,7 @@ const [, drop] = useDrop(
     drop(preview(previewRef))
 
     return (
-        <div ref={previewRef} className='draggable' style={{position:'absolute', top: y, left: 0, width: '100%'}} {...props}>
+        <div ref={previewRef} className='draggable' style={{position:'absolute', top: initialY, left: 0, width: '100%'}} {...props}>
         <div className='draggableItem' style=
             {{
                 opacity: opacity,

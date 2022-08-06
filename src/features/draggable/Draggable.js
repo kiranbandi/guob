@@ -5,15 +5,18 @@ import { ItemTypes } from "./ItemTypes"
 import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import './Draggable.css'
+import { useDispatch } from "react-redux"
+import { moveDraggable, switchDraggable } from "./draggableSlice"
 
-const Draggable = ({ children, id, index, moveDraggable }) => {
+const Draggable = ({ children, id, index }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
     const secondRef = useRef(null)
 
-    const [, drop] = useDrop(() => ({
+    const dispatch = useDispatch()
 
+    const [, drop] = useDrop(() => ({
         accept: ItemTypes.BOUNDED,
         hover(item, monitor) {
 
@@ -39,16 +42,19 @@ const Draggable = ({ children, id, index, moveDraggable }) => {
             if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
                 return
             }
-            // Time to actually perform the action
-            moveDraggable(dragIndex, hoverIndex)
-            // Note: we're mutating the monitor item here!
-            // Generally it's better to avoid mutations,
-            // but it's good here for the sake of performance
-            // to avoid expensive index searches.
-            item.index = hoverIndex
-        }
 
-    }))
+            // Updating the redux store - using conditional to keep calls to a minimum
+            if (dragIndex != hoverIndex) {
+                dispatch(switchDraggable({
+                    startKey: item.id,
+                    switchIndex: hoverIndex
+                })
+                )
+                // Need to change the item's index or it can't be placed back in the original position due to the conditional
+                item.index = hoverIndex
+            }
+        },
+        }), [index])
 
     // Drag function
     const [{ isDragging }, drag, preview] = useDrag(
@@ -57,7 +63,7 @@ const Draggable = ({ children, id, index, moveDraggable }) => {
             item: () => { return { id, index } },
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
-            })
+            }),
         }), []
     )
 
