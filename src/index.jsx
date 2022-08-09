@@ -1,23 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import 'bootstrap/dist/css/bootstrap.css';
+import { Container } from './components';
 import { Provider } from 'react-redux';
 import { store } from './app/store';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Expenses from './routes/expenses';
-import Invoices from './routes/invoices';
-import Invoice from './routes/invoice';
-import './main.css';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import { Expenses, Invoices, Invoice, NotFound } from './Pages';
+import CssBaseline from '@mui/material/CssBaseline';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
   <React.StrictMode>
+    <CssBaseline />
     <Provider store={store}>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
-          <Route path="/" element={<App />}>
+          <Route path="/" element={<Container />}>
             <Route path="expenses" element={<Expenses />} />
             <Route path="invoices" element={<Invoices />}>
               <Route index element={
@@ -28,20 +26,11 @@ root.render(
               />
               <Route path=":invoiceId" element={<Invoice />} />
             </Route>
-            <Route path="*" element={
-              <main style={{ padding: '1rem' }}>
-                <p>There's nothing here!</p>
-              </main>
-            }
+            <Route path="*" element={NotFound}
             />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </Provider>
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
