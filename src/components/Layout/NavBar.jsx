@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Container,
-  Box,
-  IconButton,
-  Menu,
-  MenuItem
-} from "@mui/material";
+import { AppBar, Toolbar, Typography, Container, Box, IconButton, Menu, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
 import ViewTimelineIcon from '@mui/icons-material/ViewTimeline';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -53,7 +44,7 @@ font-weight: bold;
             variant="h6"
             noWrap
             component="a"
-            href="/"
+            href="/#"
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -62,20 +53,14 @@ font-weight: bold;
               letterSpacing: '.3rem',
               color: 'inherit',
               textDecoration: 'none',
-            }}
-          >
+            }}>
             GUOB
           </Typography>
-
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
               onClick={handleOpenNavMenu}
-              color="inherit"
-            >
+              color="inherit">
               <MenuIcon />
             </IconButton>
             <Menu
@@ -112,7 +97,7 @@ font-weight: bold;
             variant="h5"
             noWrap
             component="a"
-            href=""
+            href="/#"
             sx={{
               mr: 2,
               display: { xs: 'flex', md: 'none' },

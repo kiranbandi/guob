@@ -2,8 +2,9 @@ import * as React from 'react';
 
 export default function Documentation() {
   return (
-    <main style={{ padding: '1rem 0' }}>
+    <>
       <h2>Documentation</h2>
-    </main>
+      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. At, necessitatibus perferendis saepe sapiente quos delectus alias ducimus voluptate repudiandae soluta!`Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque cupiditate tempora reprehenderit, modi repudiandae sunt placeat assumenda dolore voluptatum iusto!</p>
+    </>
   );
 }
