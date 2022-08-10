@@ -47,7 +47,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, widt
  const [{ isDragging }, drag, preview] = useDrag(
     () => ({
         type: ItemTypes.FREE,
-        item: () => { return { id, index} },
+        item: () => { return { id, index, initialY} },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -61,7 +61,9 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, widt
 const [, drop] = useDrop(
     ()=>({
         accept: ItemTypes.FREE,
-        drop(_item,monitor){ },
+        drop(_item,monitor){
+            
+         },
     })
 )
     let opacity = isDragging ? 0.5 : 1
@@ -70,7 +72,7 @@ const [, drop] = useDrop(
     drop(preview(previewRef))
 
     return (
-        <div ref={previewRef} className='draggable' style={{position:'absolute', top: initialY, left: 0, width: '100%'}} {...props}>
+        <div ref={previewRef} className='alternateDraggable' style={{position:'absolute', top: initialY}} {...props}>
         <div className='draggableItem' style=
             {{
                 opacity: opacity,

@@ -107,8 +107,6 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     function showPreview(event) {
 
-        console.log(event)
-        console.log(event.target)
         let horizontalOffset = event.target.offsetLeft
         
 
@@ -127,7 +125,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         let start = Math.min(...array.map(d => d.start))
         
 
-        let testScale = scaleLinear().domain([start, cap]).range([0, eastEnd])
+        let testScale = scaleLinear().domain([start, cap]).range([horizontalOffset, eastEnd])
         let center = testScale.invert(coordinateX)
         let beginning = center - 50000
         let end = center + 50000

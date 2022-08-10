@@ -1,7 +1,6 @@
-import Miniview from '../features/miniview/Miniview'
-import testing_array from '../data/testing_array'
-import testing_array2 from '../data/testing_array2'
-import testing_array3 from '../data/testing_array3';
+/** @jsxImportSource @emotion/react */
+import Miniview from '../features/miniview/Miniview';
+import testing_array from '../data/testing_array';
 import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
@@ -38,12 +37,12 @@ export default function Demo() {
   }
 
   function addNewAlternateDraggable() {
-   addNewMiniview(testId)
+    addNewMiniview(testId)
     dispatch(addAlternateDraggable({
       key: testId,
       coordinateY: 800
     }))
-    
+
     setTestId(id => id + 1)
   }
 
@@ -94,6 +93,15 @@ export default function Demo() {
         /* cursor: crosshair; */
         border: 2px solid pink;
     }
+    .alternateDraggable{
+      height: 50px;
+      width: 96%;
+      margin-bottom: 35px;
+      border:solid black 1px;
+      flex-direction: row;
+      left: 2%;
+      
+    }
     .preview {
         border: 1px solid black;
         background-color: whitesmoke;
@@ -103,10 +111,11 @@ export default function Demo() {
         border: 1px solid black;
         margin-bottom: 1ch;
     }`}>
+
         <button onClick={addNewDraggable}>Add a Draggable</button>
-      <button onClick={addNewAlternateDraggable}>Add an Alternate Draggable</button>
-      <button onClick={removeADraggable}>Remove a Draggable</button>
-      <button onClick={removeAnAlternateDraggable}>Remove an Alternate Draggable</button>
+        <button onClick={addNewAlternateDraggable}>Add an Alternate Draggable</button>
+        <button onClick={removeADraggable}>Remove a Draggable</button>
+        <button onClick={removeAnAlternateDraggable}>Remove an Alternate Draggable</button>
 
         {testSelector.visible && <Miniview
           className={'preview'}
@@ -121,52 +130,52 @@ export default function Demo() {
           id={testSelector.id}
           absolutePositioning={true}
         />}
-        <h2>Draggable Container: Items reorder themselves</h2>
+
+
+        <h2>Draggable Container: Items re-order themselves</h2>
+
         <DragContainer starting={draggableSelector}>
           {draggableSelector.map(item => {
-              return (
-                <Draggable key={item}>
-                  <Miniview
-                    array={miniviewSelector[item].array}
-                    color={miniviewSelector[item].color} />
-                </Draggable>
-              )
+            return (
+              <Draggable key={item}>
+                <Miniview
+                  array={miniviewSelector[item].array}
+                  color={miniviewSelector[item].color} />
+              </Draggable>
+            )
           })}
-
-
         </DragContainer>
 
-      </div>
-      <h2>Miniview Component:</h2>
+        <h2>Miniview Component:</h2>
 
-      {Object.entries(alternateDraggableSelector).map(item =>{
-        {/* console.log(item) */}
-        return (<AlternateDraggable initialY={item[1].coordinateY} id={item[0]} key={item[0]}>
-          <Miniview 
-            key={item[0]}
-            array={miniviewSelector[item[0]].array}
-            color={miniviewSelector[item[0]].color}
-          />
-        </AlternateDraggable>)
-      })}
+        {Object.entries(alternateDraggableSelector).map(item => {
+          return (<AlternateDraggable initialY={item[1].coordinateY} id={item[0]} key={item[0]}>
+            <Miniview
+              key={item[0]}
+              array={miniviewSelector[item[0]].array}
+              color={miniviewSelector[item[0]].color}
+            />
+          </AlternateDraggable>)
+        })}
 
-      <Miniview
-        array={testing_array}
-        color={350}
-        id={5}
-        chosen={
-          {
-            "chromosome": "at3",
-            "start": "9541483",
-            "end": "9542114",
-            "key": "at3g26110"
+        <Miniview
+          array={testing_array}
+          color={350}
+          id={5}
+          chosen={
+            {
+              "chromosome": "at3",
+              "start": "9541483",
+              "end": "9542114",
+              "key": "at3g26110"
+            }
           }
-        }
-        height={50}
+          height={50}
+        />
 
-      />
-      <h2>Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</h2>
+        <h2>Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</h2>
 
+      </div>
     </>
   );
 }
