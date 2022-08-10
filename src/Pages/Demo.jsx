@@ -6,13 +6,16 @@ import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { selectMiniviews } from '../features/miniview/miniviewSlice';
-import { selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
+import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
 import { selectDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
 import { addAlternateDraggable, removeAlternateDraggable } from '../features/draggable/alternateDraggableSlice';
 import { addMiniview, removeMiniview } from '../features/miniview/miniviewSlice';
+import { Button, Stack, Divider } from '@mui/material'
+import testing_array2 from '../data/testing_array2';
+import testing_array3 from '../data/testing_array3';
 
 export default function Demo() {
 
@@ -24,9 +27,11 @@ export default function Demo() {
 
   const [testId, setTestId] = useState(5)
 
+  const [startY, setStartY] = useState(900)
+
   const dispatch = useDispatch()
 
-
+  // 85 px
   function addNewDraggable() {
     addNewMiniview(testId)
     dispatch(addDraggable({
@@ -34,22 +39,46 @@ export default function Demo() {
     }))
 
     setTestId(id => id + 1)
+    setStartY(startY => startY + 85)
+    Object.entries(alternateDraggableSelector).forEach(item =>{
+      let adjustedLocation = item[1].coordinateY + 85
+      dispatch(moveAlternateDraggable({
+        key: item[0],
+        coordinateY: adjustedLocation
+      }))
+    })
   }
 
   function addNewAlternateDraggable() {
     addNewMiniview(testId)
     dispatch(addAlternateDraggable({
       key: testId,
-      coordinateY: 800
+      coordinateY: startY
     }))
 
     setTestId(id => id + 1)
+    setStartY(startY => startY + 50)
   }
 
   function addNewMiniview(id) {
+    let choice = Math.floor((Math.random() * 3))
+    let chosenArray;
+    switch (choice){
+          case 1:
+            chosenArray = testing_array
+            break
+          case 2:
+            chosenArray = testing_array2
+            break
+          default:
+            chosenArray = testing_array3
+    }
+    let color = Math.floor((Math.random() * 360))
+
     dispatch(addMiniview({
       key: id,
-      array: testing_array
+      array: chosenArray,
+      color: color
     }))
   }
 
@@ -64,6 +93,13 @@ export default function Demo() {
     dispatch(removeDraggable({
       key: choice
     }))
+    Object.entries(alternateDraggableSelector).forEach(item =>{
+      let adjustedLocation = item[1].coordinateY - 85
+      dispatch(moveAlternateDraggable({
+        key: item[0],
+        coordinateY: adjustedLocation
+      }))
+    })
 
   }
 
@@ -78,6 +114,7 @@ export default function Demo() {
     dispatch(removeAlternateDraggable({
       key: choice
     }))
+    setStartY(startY => startY - 50)
 
   }
 
@@ -111,11 +148,12 @@ export default function Demo() {
         border: 1px solid black;
         margin-bottom: 1ch;
     }`}>
-
-        <button onClick={addNewDraggable}>Add a Draggable</button>
-        <button onClick={addNewAlternateDraggable}>Add an Alternate Draggable</button>
-        <button onClick={removeADraggable}>Remove a Draggable</button>
-        <button onClick={removeAnAlternateDraggable}>Remove an Alternate Draggable</button>
+        <Stack mt={5}direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+          <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
+          <Button variant='outlined' onClick={addNewAlternateDraggable}>Add an Alternate Draggable</Button>
+          <Button variant='outlined' onClick={removeADraggable}>Remove a Draggable</Button>
+          <Button variant='outlined' onClick={removeAnAlternateDraggable}>Remove an Alternate Draggable</Button>
+        </Stack>
 
         {testSelector.visible && <Miniview
           className={'preview'}
