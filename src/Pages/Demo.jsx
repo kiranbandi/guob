@@ -118,36 +118,37 @@ export default function Demo() {
 
   }
 
+  let styling = css(css`.example {
+    width: 500px;
+    height: 700px;
+    border: 1px solid black;
+}
+.draggable {
+    /* cursor: crosshair; */
+    border: 2px solid pink;
+}
+.alternateDraggable{
+  height: 50px;
+  width: 96%;
+  margin-bottom: 35px;
+  border:solid black 1px;
+  flex-direction: row;
+  left: 2%;
+  
+}
+.preview {
+    border: 1px solid black;
+    background-color: whitesmoke;
+    z-index: 10;
+}
+.Container{
+    border: 1px solid black;
+    margin-bottom: 1ch;
+}`)
+
   return (
     <>
-      <div
-        css={css`.example {
-        width: 500px;
-        height: 700px;
-        border: 1px solid black;
-    }
-    .draggable {
-        /* cursor: crosshair; */
-        border: 2px solid pink;
-    }
-    .alternateDraggable{
-      height: 50px;
-      width: 96%;
-      margin-bottom: 35px;
-      border:solid black 1px;
-      flex-direction: row;
-      left: 2%;
-      
-    }
-    .preview {
-        border: 1px solid black;
-        background-color: whitesmoke;
-        z-index: 10;
-    }
-    .Container{
-        border: 1px solid black;
-        margin-bottom: 1ch;
-    }`}>
+      <div css={styling}>
         <Stack mt={5}direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
           <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
           <Button variant='outlined' onClick={addNewAlternateDraggable}>Add an Alternate Draggable</Button>

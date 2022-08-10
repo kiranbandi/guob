@@ -14,6 +14,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, widt
     const previewRef = useRef(null)
 
     const dispatch = useDispatch()
+    
     // function for changing the y-coordinate of the draggable
     const adjustY = (item, monitor) =>{
 

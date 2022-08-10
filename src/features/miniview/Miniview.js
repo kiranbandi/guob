@@ -107,12 +107,9 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     function showPreview(event) {
 
-        let horizontalOffset = event.target.offsetLeft
-        
-
-        // Ternary operator for if the view is in a container or not
-        let verticalOffset;
-        event.target.offsetParent.localName == 'body' ? verticalOffset = event.target.offsetTop : verticalOffset = event.target.offsetParent.offsetTop
+        // Ternary operators for if the view is in a container or not
+        let horizontalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetLeft : event.target.offsetParent.offsetLeft
+        let verticalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetTop : event.target.offsetParent.offsetTop
 
         let coordinateX = event.pageX
 
@@ -148,7 +145,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             dispatch(moveMiniview(
                 {
                 key: 'preview',
-                coordinateX: Math.max(event.target.offsetLeft,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
+                coordinateX: Math.max(horizontalOffset,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
                 coordinateY: coordinateY,
             }))
             dispatch(changeMiniviewVisibility(
