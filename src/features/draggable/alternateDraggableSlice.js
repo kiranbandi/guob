@@ -19,19 +19,19 @@ export const alternateDraggableSlice = createSlice({
     initialState,
 
     reducers: {
-        moveDraggable: (state, action) =>{
+        moveAlternateDraggable: (state, action) =>{
             state.draggables[action.payload.key].coordinateY = action.payload.coordinateY
         },
-        addDraggable: (state, action) => {
+        addAlternateDraggable: (state, action) => {
             state.draggables[action.payload.key] = action.payload
         },
-        removeDraggable: (state, action) =>{
+        removeAlternateDraggable: (state, action) =>{
             delete state.draggables[action.payload.key]
         }
     }
 })
 
-export const {moveDraggable, addDraggable, removeDraggable} = alternateDraggableSlice.actions
+export const {moveAlternateDraggable, addAlternateDraggable, removeAlternateDraggable} = alternateDraggableSlice.actions
 
 export const selectAlternateDraggables = (state) =>  state.alternateDraggable.draggables
 

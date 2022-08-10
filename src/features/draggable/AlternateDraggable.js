@@ -1,13 +1,13 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useRef } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import './Draggable.css'
 import { useDispatch } from "react-redux"
-import { moveDraggable } from "./alternateDraggableSlice"
+import { moveAlternateDraggable } from "./alternateDraggableSlice"
 
-const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...props }) => {
+const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, width, ...props }) => {
     
     // Two refs needed - one for handle, one for preview
     const ref = useRef(null)
@@ -35,7 +35,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
             
             let newLocation = Math.max(increment*height, ceiling)
   
-            dispatch(moveDraggable({
+            dispatch(moveAlternateDraggable({
                 key: id,
                 coordinateY: newLocation,
             }))
@@ -61,7 +61,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
 const [, drop] = useDrop(
     ()=>({
         accept: ItemTypes.FREE,
-        drop(_item,monitor){},
+        drop(_item,monitor){ },
     })
 )
     let opacity = isDragging ? 0.5 : 1
@@ -84,6 +84,10 @@ const [, drop] = useDrop(
 
     )
 }
+
+// AlternateDraggable.defaultProps = {
+//     width: '900px'
+// }
 
 
 export default AlternateDraggable;

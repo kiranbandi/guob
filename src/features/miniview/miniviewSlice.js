@@ -1,18 +1,41 @@
 import { createSlice } from '@reduxjs/toolkit';
+import testing_array from '../../data/testing_array';
+import testing_array2 from '../../data/testing_array2';
+import testing_array3 from '../../data/testing_array3';
 
 const initialState = {
     // Currently just a placeholder 
     miniviews: {
-       'preview': { 
-            color: 0,
-            coordinateX: 0,
-            coordinateY: 0,
-            height: 15,
-            width: 400,
-            id: 'preview',
-            visible: false
-        }
-    }
+        'preview': { 
+             color: 0,
+             coordinateX: 0,
+             coordinateY: 0,
+             height: 15,
+             width: 400,
+             id: 'preview',
+             visible: false
+         },
+         'zero':{
+             array: testing_array,
+             color: 50
+         },
+         'one':{
+             array: testing_array2,
+             color: 150
+         },
+         'two':{
+             array: testing_array3,
+             color: 250
+         },
+         'test':{
+             array: testing_array2,
+             color: 200
+         },
+         'secondTest':{
+             array: testing_array3,
+             color: 300
+         }
+     }
 }
 
 

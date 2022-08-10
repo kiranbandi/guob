@@ -5,19 +5,82 @@ import testing_array3 from '../data/testing_array3';
 import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { selectMiniviews } from '../features/miniview/miniviewSlice';
 import { selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
 import { selectDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
+import { useState } from 'react';
+import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
+import { addAlternateDraggable, removeAlternateDraggable } from '../features/draggable/alternateDraggableSlice';
+import { addMiniview, removeMiniview } from '../features/miniview/miniviewSlice';
 
 export default function Demo() {
 
   // Demo of redux miniview
   const testSelector = useSelector(selectMiniviews)['preview']
+  const miniviewSelector = useSelector(selectMiniviews)
   const draggableSelector = useSelector(selectDraggables)
-  let alternateDraggableSelector = useSelector(selectAlternateDraggables)
+  const alternateDraggableSelector = useSelector(selectAlternateDraggables)
 
+  const [testId, setTestId] = useState(5)
+
+  const dispatch = useDispatch()
+
+
+  function addNewDraggable() {
+    addNewMiniview(testId)
+    dispatch(addDraggable({
+      key: testId
+    }))
+
+    setTestId(id => id + 1)
+  }
+
+  function addNewAlternateDraggable() {
+   addNewMiniview(testId)
+    dispatch(addAlternateDraggable({
+      key: testId,
+      coordinateY: 800
+    }))
+    
+    setTestId(id => id + 1)
+  }
+
+  function addNewMiniview(id) {
+    dispatch(addMiniview({
+      key: id,
+      array: testing_array
+    }))
+  }
+
+  function removeADraggable() {
+    let keys = draggableSelector
+    let choice = keys[Math.floor((Math.random() * keys.length))]
+    if (keys.length > 0) {
+      dispatch(removeMiniview({
+        key: choice
+      }))
+    }
+    dispatch(removeDraggable({
+      key: choice
+    }))
+
+  }
+
+  function removeAnAlternateDraggable() {
+    let keys = Object.keys(alternateDraggableSelector)
+    let choice = keys[Math.floor((Math.random() * keys.length))]
+    if (keys.length > 0) {
+      dispatch(removeMiniview({
+        key: choice
+      }))
+    }
+    dispatch(removeAlternateDraggable({
+      key: choice
+    }))
+
+  }
 
   return (
     <>
@@ -40,6 +103,11 @@ export default function Demo() {
         border: 1px solid black;
         margin-bottom: 1ch;
     }`}>
+        <button onClick={addNewDraggable}>Add a Draggable</button>
+      <button onClick={addNewAlternateDraggable}>Add an Alternate Draggable</button>
+      <button onClick={removeADraggable}>Remove a Draggable</button>
+      <button onClick={removeAnAlternateDraggable}>Remove an Alternate Draggable</button>
+
         {testSelector.visible && <Miniview
           className={'preview'}
           array={testSelector.array}
@@ -53,50 +121,35 @@ export default function Demo() {
           id={testSelector.id}
           absolutePositioning={true}
         />}
-        <h2>Draggable Containter: Items reorder themselves</h2>
+        <h2>Draggable Container: Items reorder themselves</h2>
         <DragContainer starting={draggableSelector}>
-          <Draggable key={'zero'}>
-            <Miniview
-              array={testing_array}
-              color={50}
-            // id={3}
-            />
-          </Draggable>
-          <Draggable key={'one'}>
-            <Miniview
-              array={testing_array2}
-              color={150}
-            // id={4}
-            />
-          </Draggable>
-          <Draggable key={'two'}>
-            <Miniview
-              array={testing_array3}
-              color={250}
-            // id={5}
-            />
-          </Draggable>
+          {draggableSelector.map(item => {
+              return (
+                <Draggable key={item}>
+                  <Miniview
+                    array={miniviewSelector[item].array}
+                    color={miniviewSelector[item].color} />
+                </Draggable>
+              )
+          })}
+
+
         </DragContainer>
+
       </div>
       <h2>Miniview Component:</h2>
-      <AlternateDraggable initialY={alternateDraggableSelector['secondTest'].coordinateY} id={alternateDraggableSelector['secondTest'].key}>
-        <Miniview
-          array={testing_array2}
-          coordinateX={0}
-          coordinateY={0}
-          color={300}
-          id={1}
-        />
-      </AlternateDraggable>
-      <AlternateDraggable initialY={alternateDraggableSelector['test'].coordinateY} id={alternateDraggableSelector['test'].key}>
-        <Miniview
-          array={testing_array3}
-          coordinateX={0}
-          coordinateY={0}
-          color={200}
-          id={2}
-        />
-      </AlternateDraggable>
+
+      {Object.entries(alternateDraggableSelector).map(item =>{
+        {/* console.log(item) */}
+        return (<AlternateDraggable initialY={item[1].coordinateY} id={item[0]} key={item[0]}>
+          <Miniview 
+            key={item[0]}
+            array={miniviewSelector[item[0]].array}
+            color={miniviewSelector[item[0]].color}
+          />
+        </AlternateDraggable>)
+      })}
+
       <Miniview
         array={testing_array}
         color={350}
@@ -110,8 +163,10 @@ export default function Demo() {
           }
         }
         height={50}
+
       />
       <h2>Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</h2>
+
     </>
   );
 }
