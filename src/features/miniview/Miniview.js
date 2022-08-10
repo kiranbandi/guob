@@ -107,17 +107,20 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     function showPreview(event) {
 
-        let horizontalOffset = event.target.clientLeft
+        console.log(event)
+        console.log(event.target)
+        let horizontalOffset = event.target.offsetLeft
+        
 
         // Ternary operator for if the view is in a container or not
         let verticalOffset;
         event.target.offsetParent.localName == 'body' ? verticalOffset = event.target.offsetTop : verticalOffset = event.target.offsetParent.offsetTop
 
-        let coordinateX = event.pageX - horizontalOffset
+        let coordinateX = event.pageX
 
         let coordinateY = verticalOffset + event.target.clientHeight + 5
 
-        let eastEnd = event.target.clientWidth
+        let eastEnd = event.target.clientWidth + horizontalOffset
 
         // Would give weird scaling if the array was movable
         let cap = Math.max(...array.map(d => d.end))
@@ -147,7 +150,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             dispatch(moveMiniview(
                 {
                 key: 'preview',
-                coordinateX: Math.max(10,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
+                coordinateX: Math.max(event.target.offsetLeft,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
                 coordinateY: coordinateY,
             }))
             dispatch(changeMiniviewVisibility(
