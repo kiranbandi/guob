@@ -1,14 +1,4 @@
 # Demo of Components on this Branch
-<<<<<<< HEAD
-=======
-
-
-![Demo](https://github.com/kiranbandi/guob/blob/taylan/redux-draggable.gif)
-
-
-
-# Getting Started with Create React App
->>>>>>> ecb6c0db1384044f292ae1ffd644faec555cf535
 
 ![Demo](https://github.com/kiranbandi/guob/blob/taylan/redux-draggable.gif)
 
