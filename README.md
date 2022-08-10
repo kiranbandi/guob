@@ -1,6 +1,6 @@
 # Demo of Components on this Branch
 
-![Demo](https://github.com/kiranbandi/guob/blob/taylan/documentation/redux-draggable.gif)
+![Demo](/documentation/redux-draggable.gif)
 
 ## Available Scripts
 
