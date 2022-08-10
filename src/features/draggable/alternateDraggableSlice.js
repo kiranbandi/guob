@@ -4,11 +4,11 @@ const initialState={
     // currently a placeholder
     draggables: {
         'test':{
-            coordinateY:500,
+            coordinateY:700,
             key: 'test'
         },
         'secondTest':{
-            coordinateY: 600,
+            coordinateY: 800,
             key: 'secondTest'
         }
     }
@@ -19,19 +19,19 @@ export const alternateDraggableSlice = createSlice({
     initialState,
 
     reducers: {
-        moveDraggable: (state, action) =>{
+        moveAlternateDraggable: (state, action) =>{
             state.draggables[action.payload.key].coordinateY = action.payload.coordinateY
         },
-        addDraggable: (state, action) => {
+        addAlternateDraggable: (state, action) => {
             state.draggables[action.payload.key] = action.payload
         },
-        removeDraggable: (state, action) =>{
+        removeAlternateDraggable: (state, action) =>{
             delete state.draggables[action.payload.key]
         }
     }
 })
 
-export const {moveDraggable, addDraggable, removeDraggable} = alternateDraggableSlice.actions
+export const {moveAlternateDraggable, addAlternateDraggable, removeAlternateDraggable} = alternateDraggableSlice.actions
 
 export const selectAlternateDraggables = (state) =>  state.alternateDraggable.draggables
 

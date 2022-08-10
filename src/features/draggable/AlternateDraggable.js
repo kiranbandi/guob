@@ -1,19 +1,20 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useRef } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import './Draggable.css'
 import { useDispatch } from "react-redux"
-import { moveDraggable } from "./alternateDraggableSlice"
+import { moveAlternateDraggable } from "./alternateDraggableSlice"
 
-const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...props }) => {
+const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, width, ...props }) => {
     
     // Two refs needed - one for handle, one for preview
     const ref = useRef(null)
     const previewRef = useRef(null)
 
     const dispatch = useDispatch()
+    
     // function for changing the y-coordinate of the draggable
     const adjustY = (item, monitor) =>{
 
@@ -35,7 +36,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, ...p
             
             let newLocation = Math.max(increment*height, ceiling)
   
-            dispatch(moveDraggable({
+            dispatch(moveAlternateDraggable({
                 key: id,
                 coordinateY: newLocation,
             }))
@@ -70,7 +71,7 @@ const [, drop] = useDrop(
     drop(preview(previewRef))
 
     return (
-        <div ref={previewRef} className='draggable' style={{position:'absolute', top: initialY, left: 0, width: '100%'}} {...props}>
+        <div ref={previewRef} className='alternateDraggable' style={{position:'absolute', top: initialY}} {...props}>
         <div className='draggableItem' style=
             {{
                 opacity: opacity,

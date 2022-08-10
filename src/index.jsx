@@ -1,47 +1,38 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import 'bootstrap/dist/css/bootstrap.css';
+import { Container } from './components';
 import { Provider } from 'react-redux';
-import { store } from './app/store';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Expenses from './routes/expenses';
-import Invoices from './routes/invoices';
-import Invoice from './routes/invoice';
-import './main.css';
+import { store } from './redux/store';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { Dashboard, Demo, Documentation, Home, NotFound } from './Pages';
+import CssBaseline from '@mui/material/CssBaseline';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
   <React.StrictMode>
+    <CssBaseline />
     <Provider store={store}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<App />}>
-            <Route path="expenses" element={<Expenses />} />
-            <Route path="invoices" element={<Invoices />}>
-              <Route index element={
-                <main style={{ padding: '1rem' }}>
-                  <p>Select an invoice</p>
-                </main>
-              }
+      <DndProvider backend={HTML5Backend}>
+        <HashRouter>
+          <Routes>
+            <Route path="/" element={<Container />}>
+              <Route index element={<Home />} />
+              {/* uncessary syntatic sugar since react-router v6 doesnt support optional path params */}
+              <Route path="dashboard">
+                <Route index element={<Dashboard />} />
+                <Route path=":dataID" element={<Dashboard />} />
+              </Route>
+              <Route path="demo" element={<Demo />} />
+              <Route path="documentation" element={<Documentation />} />
+              <Route path="*" element={<NotFound />}
               />
-              <Route path=":invoiceId" element={<Invoice />} />
             </Route>
-            <Route path="*" element={
-              <main style={{ padding: '1rem' }}>
-                <p>There's nothing here!</p>
-              </main>
-            }
-            />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </HashRouter>
+      </DndProvider>
     </Provider>
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();

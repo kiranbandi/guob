@@ -44,10 +44,11 @@ const Draggable = ({ children, id, index }) => {
             }
 
             // Updating the redux store - using conditional to keep calls to a minimum
+            // TODO getting an occasional bug where a draggable cannot be placed back in the same place once switched
             if (dragIndex != hoverIndex) {
                 dispatch(switchDraggable({
                     startKey: item.id,
-                    switchIndex: hoverIndex
+                    switchKey: id
                 })
                 )
                 // Need to change the item's index or it can't be placed back in the original position due to the conditional

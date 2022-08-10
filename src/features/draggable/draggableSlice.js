@@ -3,8 +3,6 @@ import update from 'immutability-helper'
 
 const initialState = {
     // currently a placeholder
-    // Should be re-ordering the things
-    // THIS SHOULD JUST BE A LIST OF IDS
     draggables: ['zero', 'one', 'two']
 
 }
@@ -19,16 +17,17 @@ export const draggableSlice = createSlice({
 
         },
         addDraggable: (state, action) => {
-            // state.draggables[action.payload.key] = action.payload
             state.draggables.push(action.payload.key)
         },
+
         removeDraggable: (state, action) => {
-            delete state.draggables[action.payload.key]
+            let index = state.draggables.indexOf(action.payload.key)
+            state.draggables.splice(index, 1)
         },
         switchDraggable: (state, action) => {
 
             // Switch Index is passed in, but the index of the item being dragged is... fuzzier. Better to take it from the store
-            let switchIndex = action.payload.switchIndex
+            let switchIndex = state.draggables.indexOf(action.payload.switchKey)
             let startIndex = state.draggables.indexOf(action.payload.startKey)
             let startKey = action.payload.startKey
             state.draggables.splice(startIndex, 1)
