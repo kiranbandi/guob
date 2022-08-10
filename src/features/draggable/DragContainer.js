@@ -7,6 +7,7 @@ function DragContainer({ children, starting }) {
 
 
     const renderChild = (child, index, id) => {
+        if(child != undefined){
         return (
             <child.type
                 {...child.props}
@@ -15,11 +16,14 @@ function DragContainer({ children, starting }) {
                 key={id}
             />
         )
+        }
     }
     
     return(
         <div className='Container'>
-            {starting.map((item, index) => renderChild(children[children.findIndex(child => child.key == item)], index, item ))}
+            {children !== undefined && starting.map((item, index) => {
+                return renderChild(children[children.findIndex(child => child !== undefined && child.key == item)], index, item )
+                })}
         </div>
     )
 }

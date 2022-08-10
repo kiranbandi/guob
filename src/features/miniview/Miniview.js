@@ -107,24 +107,22 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     function showPreview(event) {
 
-        let horizontalOffset = event.target.clientLeft
+        // Ternary operators for if the view is in a container or not
+        let horizontalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetLeft : event.target.offsetParent.offsetLeft
+        let verticalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetTop : event.target.offsetParent.offsetTop
 
-        // Ternary operator for if the view is in a container or not
-        let verticalOffset;
-        event.target.offsetParent.localName == 'body' ? verticalOffset = event.target.offsetTop : verticalOffset = event.target.offsetParent.offsetTop
-
-        let coordinateX = event.pageX - horizontalOffset
+        let coordinateX = event.pageX
 
         let coordinateY = verticalOffset + event.target.clientHeight + 5
 
-        let eastEnd = event.target.clientWidth
+        let eastEnd = event.target.clientWidth + horizontalOffset
 
         // Would give weird scaling if the array was movable
         let cap = Math.max(...array.map(d => d.end))
         let start = Math.min(...array.map(d => d.start))
         
 
-        let testScale = scaleLinear().domain([start, cap]).range([0, eastEnd])
+        let testScale = scaleLinear().domain([start, cap]).range([horizontalOffset, eastEnd])
         let center = testScale.invert(coordinateX)
         let beginning = center - 50000
         let end = center + 50000
@@ -147,7 +145,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             dispatch(moveMiniview(
                 {
                 key: 'preview',
-                coordinateX: Math.max(10,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
+                coordinateX: Math.max(horizontalOffset,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
                 coordinateY: coordinateY,
             }))
             dispatch(changeMiniviewVisibility(
