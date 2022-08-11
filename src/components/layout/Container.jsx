@@ -9,9 +9,10 @@ export default function ContainerWrapper() {
     <div>
       <NavBar />
       <Container maxWidth="xl">
-        <Outlet />
+        <Outlet /> 
+        <Footer />
       </Container>
-      <Footer />
+     
     </div>
   );
 }
