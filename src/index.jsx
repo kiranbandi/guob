@@ -6,7 +6,7 @@ import { store } from './redux/store';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { Dashboard, Demo, Documentation, Home, NotFound } from './Pages';
+import { Dashboard, Demo, Documentation, Home, NotFound } from './pages';
 import CssBaseline from '@mui/material/CssBaseline';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
