@@ -8,15 +8,43 @@ function Footer() {
         <>
             <AppBar position="fixed" sx={{ top: 'auto', bottom: 0 }} >
                 <Toolbar>
-                    <Typography variant="h6" component='div' sx={{ flexGrow: 1 }}>
-                    Developed by the Human Computer Interaction Lab at the University of Saskatchewan<img src={uniLogo} height="50px"></img>
+                    <img src={uniLogo} height="40px" />
+                    <Typography
+                        variant="subtitle2"
+                        component='div'
+                        sx={{
+                            ml: 2,
+                            mr: 50,
+                            display: { xs: 'none', md: 'flex' },
+                            fontFamily: 'monospace',
+                            fontWeight: 500,
+                            color: 'inherit',
+                            textDecoration: 'none',
+                        }}>
+                        Developed by the Human Computer Interaction Lab at the University of Saskatchewan
                     </Typography>
-
-                    <Box sx={{ flexGrow: 1 }} />
-                    <IconButton edge={'end'} href="https://hci.usask.ca/index.php/recruitment/">
-                        <Link variant="h6" color="inherit" >
-                            Contact Us: 
-                            <img src={labLogo} height="50px"></img>
+                    <Box
+                        sx={{ flexGrow: 1 }} />
+                    <IconButton
+                        edge={'end'}
+                        href="https://hci.usask.ca/index.php/recruitment/">
+                        <Link
+                            sx={{
+                                display: { xs: 'none', md: 'flex' },
+                                color: 'inherit'
+                            }}>
+                            <Typography
+                                variant="h6"
+                                color="inherit"
+                                sx={{
+                                    mr: 1,
+                                }}
+                            >
+                                Contact Us:
+                            </Typography>
+                            <img
+                                src={labLogo}
+                                height="50px" />
                         </Link>
                     </IconButton>
                 </Toolbar>
