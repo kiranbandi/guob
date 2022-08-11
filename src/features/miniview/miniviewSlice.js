@@ -10,7 +10,7 @@ const initialState = {
              color: 0,
              coordinateX: 0,
              coordinateY: 0,
-             height: 15,
+             height: "1rem",
              width: 400,
              id: 'preview',
              visible: false

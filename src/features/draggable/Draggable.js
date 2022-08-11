@@ -7,6 +7,10 @@ import { IoReorderFourSharp } from 'react-icons/io5'
 import './Draggable.css'
 import { useDispatch } from "react-redux"
 import { moveDraggable, switchDraggable } from "./draggableSlice"
+import { IconButton, Button } from "@mui/material"
+import { styled } from "@mui/material/styles"
+import { teal } from '@mui/material/colors';
+import DragHandleIcon from '@mui/icons-material/DragHandle';
 
 const Draggable = ({ children, id, index }) => {
 
@@ -81,9 +85,15 @@ const Draggable = ({ children, id, index }) => {
                 }}>
                 {children}
             </div>
-            <button ref={ref} className='handle'>
-                <IoReorderFourSharp className="handle_image" />
-            </button>
+            <IconButton ref={ref} className='handle' sx={{
+        backgroundColor: teal[100],
+        borderRadius: 1,
+        '&:hover':{
+            backgroundColor: teal[500]
+        }
+    }} >
+        <DragHandleIcon fontSize="small" className="handle_image" />
+    </IconButton>
         </div>
 
     )
