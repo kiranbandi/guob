@@ -44,11 +44,14 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, widt
 
             let hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
             let height = hoverBoundingRect.bottom - hoverBoundingRect.top + gap
-
+            console.log(height)
             let increment = Math.round((top + delta.y - hoverMiddleY)/height)
             
             let newLocation = Math.max(increment*height, ceiling)
-
+            console.log(coordinate)
+            console.log(monitor)
+            console.log(top)
+            console.log(newLocation)
             dispatch(moveAlternateDraggable({
                 key: id,
                 coordinateY: newLocation,
