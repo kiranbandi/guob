@@ -1,10 +1,30 @@
-import * as React from 'react';
-
+import React, { useRef } from 'react';
+import { useFetch } from '../hooks/useFetch';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import HeatMap from '../components/tracks/HeatMap';
+import Histogram from '../components/tracks/Histogram';
 export default function Dashboard() {
+
+  const isComponentMounted = useRef(true);
+
+  const { data, loading, error } = useFetch("https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json", isComponentMounted, false);
+
+  if (error) {
+    console.log(error);
+  }
+
   return (
     <>
       <h2>Dashboard</h2>
-      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus itaque mollitia nihil nostrum rem, ipsa alias ex, eligendi distinctio dolore, quod vitae quasi? Facilis quaerat saepe provident corporis omnis expedita, maiores laudantium dolore ratione ipsum facere voluptas ducimus quibusdam, illo aspernatur. Id hic enim veritatis illum omnis, eligendi consectetur ipsa?</p>
+      {loading ?
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+          <CircularProgress size={75} />
+        </Box> :
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {data && <HeatMap data={data} />}
+          {data && <Histogram data={data} />}
+        </Box>}
     </>
   );
 }

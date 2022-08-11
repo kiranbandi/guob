@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import ViewTimelineIcon from '@mui/icons-material/ViewTimeline';
 import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
+import { teal } from '@mui/material/colors';
 
 const pages = ['dashboard', 'documentation', 'demo'];
 
@@ -36,7 +37,7 @@ font-weight: bold;
 `;
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" sx={{ backgroundColor: teal['800'] }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <ViewTimelineIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
