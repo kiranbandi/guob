@@ -20,6 +20,7 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, widt
 
         let coordinate = monitor.getClientOffset()
        
+        
         let gap;
         spacing == undefined ? gap = 4 : gap = spacing
 
@@ -28,6 +29,10 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, widt
         
 
         if(coordinate !== null){  
+
+            console.log(monitor)
+            console.log(ref)
+            console.log(coordinate)
 
             let hoverBoundingRect = ref.current?.getBoundingClientRect();
             let hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2

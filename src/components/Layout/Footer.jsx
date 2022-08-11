@@ -25,10 +25,11 @@ function Footer() {
                     </Typography>
                     <Box
                         sx={{ flexGrow: 1 }} />
-                    <IconButton
+                    <IconButton>
+                    
+                        <Link 
                         edge={'end'}
-                        href="https://hci.usask.ca/index.php/recruitment/">
-                        <Link
+                        href="https://hci.usask.ca/index.php/recruitment/"
                             sx={{
                                 display: { xs: 'none', md: 'flex' },
                                 color: 'inherit'
