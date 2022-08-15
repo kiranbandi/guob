@@ -125,7 +125,7 @@ export default function Demo() {
 }
 .draggable {
     /* cursor: crosshair; */
-    border: 2px solid pink;
+    border: 1px solid grey;
 }
 .alternateDraggable{
   height: 50px;
@@ -142,7 +142,7 @@ export default function Demo() {
     z-index: 10;
 }
 .Container{
-    border: 1px solid black;
+    border: 2px solid grey;
     margin-bottom: 1ch;
 }`)
 
