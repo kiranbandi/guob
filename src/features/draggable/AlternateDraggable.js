@@ -88,13 +88,16 @@ const [, drop] = useDrop(
             }}>
             {children}
         </div>
-        <IconButton ref={ref} className='handle' sx={{
+        <IconButton ref={ref} className='handle' variant='contained' 
+        sx={{
         backgroundColor: teal[100],
         borderRadius: 1,
         '&:hover':{
             backgroundColor: teal[500]
         }
-    }} >
+    }
+    } 
+    >
         <DragHandleIcon fontSize="small" className="handle_image" />
     </IconButton>
     </div>

@@ -125,7 +125,7 @@ export default function Demo() {
 }
 .draggable {
     /* cursor: crosshair; */
-    border: 2px solid grey;
+    border: 1px solid grey;
 }
 .alternateDraggable{
   height: 50px;
