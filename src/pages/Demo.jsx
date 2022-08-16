@@ -33,7 +33,9 @@ export default function Demo() {
 
   // 85 px
   function addNewDraggable() {
-    addNewMiniview(testId)
+    let data = determineRandomArray()
+    let color = Math.floor((Math.random() * 360))
+    addNewMiniview(testId, data, color)
     dispatch(addDraggable({
       key: testId
     }))
@@ -50,7 +52,9 @@ export default function Demo() {
   }
 
   function addNewAlternateDraggable() {
-    addNewMiniview(testId)
+    let data = determineRandomArray()
+    let color = Math.floor((Math.random() * 360))
+    addNewMiniview(testId, data, color)
     dispatch(addAlternateDraggable({
       key: testId,
       coordinateY: startY
@@ -60,7 +64,7 @@ export default function Demo() {
     setStartY(startY => startY + 50)
   }
 
-  function addNewMiniview(id) {
+  function determineRandomArray(){
     let choice = Math.floor((Math.random() * 3))
     let chosenArray;
     switch (choice){
@@ -73,12 +77,18 @@ export default function Demo() {
           default:
             chosenArray = testing_array3
     }
-    let color = Math.floor((Math.random() * 360))
+  
+    return chosenArray
+  }
+
+  function addNewMiniview(id, data, color, start, end) {
 
     dispatch(addMiniview({
       key: id,
-      array: chosenArray,
-      color: color
+      array: data,
+      color: color,
+      start: start,
+      end: end
     }))
   }
 
@@ -116,6 +126,20 @@ export default function Demo() {
     }))
     setStartY(startY => startY - 50)
 
+  }
+
+  // TODO - navigation?
+  function takePreviewSnapshot() {
+    let data = testSelector.array
+    let color = testSelector.color
+    addNewMiniview(testId, data, color, testSelector.start, testSelector.end)
+    dispatch(addAlternateDraggable({
+      key: testId,
+      coordinateY: startY
+    }))
+
+    setTestId(id => id + 1)
+    setStartY(startY => startY + 50)
   }
 
   let styling = css(css`.example {
@@ -179,7 +203,9 @@ export default function Demo() {
               <Draggable key={item}>
                 <Miniview
                   array={miniviewSelector[item].array}
-                  color={miniviewSelector[item].color} />
+                  color={miniviewSelector[item].color} 
+                  doSomething={takePreviewSnapshot}
+                  />
               </Draggable>
             )
           })}
@@ -193,6 +219,9 @@ export default function Demo() {
               key={item[0]}
               array={miniviewSelector[item[0]].array}
               color={miniviewSelector[item[0]].color}
+              displayPreview={false}
+              beginning={miniviewSelector[item[0]].start}
+              fin={miniviewSelector[item[0]].end}
             />
           </AlternateDraggable>)
         })}

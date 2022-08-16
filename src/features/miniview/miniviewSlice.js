@@ -44,6 +44,7 @@ export const miniviewSlice = createSlice({
     initialState,
 
     reducers: {
+
         addMiniview: (state, action) =>{
             if(!state.miniviews[action.payload.key]){
                 state.miniviews[action.payload.key] = action.payload
