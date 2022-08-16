@@ -1,0 +1,60 @@
+Supporting Visual Comparisons in Wide Data
+* wide data are datasets with many samples or items, but a relatively small domain for each item - that is, where the X axis of a visualization has to be much larger than the Y axis
+* examples of wide data include genomic information, time series datasets, representations of long linear documents, samples from a large population, trace data from system logs, [others]
+* important characteristics of wide data are [not sure exactly what goes here... e.g., that visualizations take multiple screens horizontally but only a few pixels vertically; that data items can be unique (video frame), categorical, or numerical; the data can have different characteristics at different points within the dataset; others...]
+* many visual analytics tasks with wide data involve comparisons between two datasets
+    - same/different (value, trend, extrema, etc.)
+    - higher/lower (on some attribute)
+    - correlation (direct or inverse relationship)
+* in addition, any of the above comparisons can happen within a subset of the data, meaning that datasets may need to be compared at different locations and scales - and possibly at multiple locations with the same dataset due to periodicity, synteny, or other types of duplication
+* example tasks from realistic scenarios:
+    - whether the density of repeats in a genome correlates with any other genomic information within that genome, or with repeats in other genomes, at any part of a chromosome
+    - whether environmental factors such as temperature and humidity appear to have a leading effect on crime incidence
+    - whether users show similar patterns of behaviour in their activities with a system (e.g. something something)
+    - [example involving periodicity or synteny]
+* [probably taken for granted with this audience] any of these comparisons could be done algorithmically, but because users don't know in advance which comparisons need to be done, it is useful to be able to carry out many lightweight analyses visually and quickly as part of exploration
+* more importantly, the location variability that is characteristic of wide datasets means that algorithmic assessment is more difficult:
+it's not just whether there is an particular pattern across two datasets, but at what location / within what window, or is it periodic, etc., and these are analyses that would be difficult to do algorithmically because there are many parameters that change what is considered the source data
+* although there are already several visualizations that can be used to show wide data (line charts, dot plots, colour stripe charts, slit-scan overviews, etc.), interactions with the visualization are typically limited to [zoom and pan], and as a result, the more complex exploration activities that are common with wide datasets are not well supported
+* [implied or explicit problem statement] visualization designers currently have little information about how to support visual comparison tasks in wide data
+* [motivation: how big a problem is this, how broad, how frequent]
+* to address this problem, we analysed visual comparison tasks to identify a set of visual-analysis components and requirements, and then developed interaction techniques that enable each component
+* overview of the visual-analysis components / requirements: [need to organize this somehow]
+    - compare different parts of two datasets
+    - compare several datasets against one, or all to all
+    - compare multiple parts of a dataset to each other
+    - compare datasets at different scales
+    - users use visual perception to look for similarity and difference; this implies [principles of visual perception such as proximity, contrast, etc]
+    - having two datasets right beside each other is important for noticing patterns
+    - compare multiple datasets all at once, or in pairwise fashion
+    - there may be many different candidates for a "best match"
+    - there may be multiple ways to group and sub-group datasets (e.g., by genome, tissue type, growth stage)
+    - compare at different granularities (i.e., different bin sizes)
+    - collaborate with others during exploration
+    - [others]
+* overview of interaction techniques [also needs better organization]
+    - lightweight track rearranging and overlaying to make use of proximity (or even auto-cycling as a tour)
+    - views that change to a comparison visualization on overlay
+    - pairwise-comparison matrices
+    - spatially-stable overviews as a frame of reference for other information
+    - read-wear visualizations to show exploration history
+    - annotation capabilities to allow marking of specific data windows
+    - flexible and independent scaling for different datasets including normalization and anchor-based normalization
+    - independent panning to allow comparison of different locations
+    - changeable multi-level grouping
+    - splitting of the view to allow different parts of the dataset to be shown side by side (and, "folding," a lightweight version of this similar to holding a finger to anchor one location and then scrolling to another part)
+    - temporary duplication of a dataset track to enable comparisons against itself
+    - interactive control over granularity / bin size to explore the best size
+    - multiple encoding types, with the ability to switch between these or duplicate a track in a different encoding
+    - "link tracks" e.g. syntenic block file or anchor events in a log file like "started task A"; clicking on a link automatically scrolls to line up the two tracks
+    - snapshot capability to capture a current interactive state, with snapshot catalogue and snapshot comparison tool
+    - real-time collaboration capabilities
+* we implemented these interaction techniques in a demonstration visualization tool
+* we evaluated a subset of the interaction techniques [that are related to the XYZ analysis component] in a user study
+* [details of the study]
+    - compared a system with techniques A,B,C to a system with only zoom and pan
+* [summary of the results]
+* [contribution paragraph]
+    - identification of the components of visual comparison in wide datasets
+    - identification of new or existing interaction techniques that support those components
+    - empirical evidence that the techniques [around XYZ] are effective and better than traditional support
