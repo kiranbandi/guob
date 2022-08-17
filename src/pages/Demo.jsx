@@ -16,6 +16,7 @@ import { addMiniview, removeMiniview, selectComparison, removeComparison } from 
 import { Button, Stack, Divider } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
 import testing_array3 from '../data/testing_array3';
+import { Typography } from '@mui/material';
 import { index } from 'd3-array';
 
 export default function Demo() {
@@ -225,7 +226,9 @@ export default function Demo() {
         }
 
 
-        <h2>Draggable Container: Items re-order themselves</h2>
+        <Typography variant={'h5'} sx={{
+          WebkitUserSelect: 'none',
+        }}>Draggable Container: Items re-order themselves</Typography>
 
         <DragContainer starting={draggableSelector}>
           {draggableSelector.map(item => {
@@ -241,7 +244,9 @@ export default function Demo() {
           })}
         </DragContainer>
 
-        <h2>Miniview Component:</h2>
+        <Typography variant={'h5'} sx={{
+          WebkitUserSelect: 'none',
+        }}>Miniview Component:</Typography>
 
         {Object.entries(alternateDraggableSelector).map(item => {
           return (<AlternateDraggable initialY={item[1].coordinateY} id={item[0]} key={item[0]}>
@@ -271,7 +276,10 @@ export default function Demo() {
           height={50}
         />
 
-        <h2>Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</h2>
+        <Typography variant={'h5'} sx={{
+          WebkitUserSelect: 'none',
+        }}>
+        Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</Typography>
 
       </div>
     </>

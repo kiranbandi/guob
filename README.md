@@ -1,6 +1,6 @@
 # Demo of Components on this Branch
 
-![Demo](/documentation/redux-draggable.gif)
+![Demo](/documentation/preview_functionality.gif)
 
 ## Available Scripts
 
