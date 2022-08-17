@@ -149,6 +149,9 @@ export default function Demo() {
   
       setTestId(id => id + 1)
       setStartY(startY => startY + 50)
+
+      // TODO add a box for highlighting selected region
+
     }
   }
 
