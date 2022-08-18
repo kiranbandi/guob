@@ -6,10 +6,10 @@ import { useDispatch, useSelector } from "react-redux"
 import { addMiniview, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from "./miniviewSlice"
 
 
-const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, id, beginning, fin, ...props }) => {
+const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, ...props }) => {
 
-    const canvasRef = useRef()   
-    
+    const canvasRef = useRef()
+
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['preview']
 
@@ -30,7 +30,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             // Checking if the array is intended as low resolution - if it is, build a new array with
             // number of genes in a specific area to build the heatmap
             if (average) {
-                
+
                 let density;
                 bars ? density = bars : density = 60
 
@@ -107,71 +107,73 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
 
     function showPreview(event) {
 
-        // Ternary operators for if the view is in a container or not
-        let horizontalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetLeft : event.target.offsetParent.offsetLeft
-        let verticalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetTop : event.target.offsetParent.offsetTop
+        if (displayPreview) {
+            // Ternary operators for if the view is in a container or not
+            let horizontalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetLeft : event.target.offsetParent.offsetLeft
+            let verticalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetTop : event.target.offsetParent.offsetTop
 
-        let coordinateX = event.pageX
+            let coordinateX = event.pageX
 
-        let coordinateY = verticalOffset + event.target.clientHeight + 5
+            let coordinateY = verticalOffset + event.target.clientHeight + 5
 
-        let eastEnd = event.target.clientWidth + horizontalOffset
+            let eastEnd = event.target.clientWidth + horizontalOffset
 
-        // Would give weird scaling if the array was movable
-        let cap = Math.max(...array.map(d => d.end))
-        let start = Math.min(...array.map(d => d.start))
-        
+            // Would give weird scaling if the array was movable
+            let cap = Math.max(...array.map(d => d.end))
+            let start = Math.min(...array.map(d => d.start))
 
-        let testScale = scaleLinear().domain([start, cap]).range([horizontalOffset, eastEnd])
-        let center = testScale.invert(coordinateX)
-        let beginning = center - 50000
-        let end = center + 50000
-        let testArray = array.filter(item => {
-            return ((item.end >= beginning && item.start <= beginning) || (item.start >= beginning && item.end <= end) || (item.start <= end && item.end >= end))
-        })
 
-        // TODO these are placeholders + hacky fixes
-        if (id !== 'preview') {
-            dispatch(changeMiniviewColor({
-                key: 'preview',
-                color: color
-            }))
-            dispatch(updateData({
-                key: 'preview',
-                array: testArray,
-                start: beginning,
-                end: end
-            }))
-            dispatch(moveMiniview(
-                {
-                key: 'preview',
-                coordinateX: Math.max(horizontalOffset,Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width/2)),
-                coordinateY: coordinateY,
-            }))
-            dispatch(changeMiniviewVisibility(
-                {
-                key: 'preview',
-                visible: true
-            }))
+            let testScale = scaleLinear().domain([start, cap]).range([horizontalOffset, eastEnd])
+            let center = testScale.invert(coordinateX)
+            let beginning = center - 50000
+            let end = center + 50000
+            let testArray = array.filter(item => {
+                return ((item.end >= beginning && item.start <= beginning) || (item.start >= beginning && item.end <= end) || (item.start <= end && item.end >= end))
+            })
 
+            // TODO these are placeholders + hacky fixes
+            if (id !== 'preview') {
+                dispatch(changeMiniviewColor({
+                    key: 'preview',
+                    color: color
+                }))
+                dispatch(updateData({
+                    key: 'preview',
+                    array: testArray,
+                    start: beginning,
+                    end: end
+                }))
+                dispatch(moveMiniview(
+                    {
+                        key: 'preview',
+                        coordinateX: Math.max(horizontalOffset, Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width / 2)),
+                        coordinateY: coordinateY,
+                    }))
+                dispatch(changeMiniviewVisibility(
+                    {
+                        key: 'preview',
+                        visible: true
+                    }))
+
+            }
         }
     }
 
-    return <canvas 
-    ref={canvasRef} 
-    className='miniview' 
-    width='2000' 
-    height='1000' 
-    style={style} 
-    onClick={doSomething} 
-    onMouseMove={(e) => showPreview(e)} 
-    onMouseLeave={() => dispatch(
-        changeMiniviewVisibility({
-            key: 'preview',
-            visible: false
-        })
-    )}
-     {...props} />
+    return <canvas
+        ref={canvasRef}
+        className='miniview'
+        width='2000'
+        height='1000'
+        style={style}
+        onClick={doSomething}
+        onMouseMove={(e) => showPreview(e)}
+        onMouseLeave={() => dispatch(
+            changeMiniviewVisibility({
+                key: 'preview',
+                visible: false
+            })
+        )}
+        {...props} />
 }
 
 Miniview.defaultProps = {
@@ -181,7 +183,8 @@ Miniview.defaultProps = {
     coordinateY: 0,
     width: '100%',
     height: '100%',
-    absolutePositioning: false
+    absolutePositioning: false,
+    displayPreview: true,
 }
 
 

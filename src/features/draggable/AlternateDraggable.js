@@ -1,11 +1,13 @@
-import React, { useEffect } from "react"
 import { useRef } from "react"
-import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import './Draggable.css'
 import { useDispatch } from "react-redux"
 import { moveAlternateDraggable } from "./alternateDraggableSlice"
+import DragHandleIcon from '@mui/icons-material/DragHandle';
+import { IconButton } from "@mui/material"
+import { teal } from '@mui/material/colors';
+
 
 const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, width, ...props }) => {
     
@@ -20,22 +22,28 @@ const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, widt
 
         let coordinate = monitor.getClientOffset()
        
+        let delta = monitor.getDifferenceFromInitialOffset()
+
         let gap;
-        spacing == undefined ? gap = 4 : gap = spacing
+        spacing === undefined ? gap = 4 : gap = spacing
 
         let ceiling;
-        top == undefined ? ceiling = 0 : ceiling = top
+        top === undefined ? ceiling = 0 : ceiling = top
         
 
         if(coordinate !== null){  
 
+            let reference = ref.current.offsetParent
+            let top = reference.offsetTop
             let hoverBoundingRect = ref.current?.getBoundingClientRect();
+
             let hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
             let height = hoverBoundingRect.bottom - hoverBoundingRect.top + gap
-            let increment = Math.round((coordinate.y - hoverMiddleY)/height)
+
+            let increment = Math.round((top - hoverMiddleY)/height)
             
-            let newLocation = Math.max(increment*height, ceiling)
-  
+            let newLocation = Math.max((increment + Math.round(delta.y/height))*height, ceiling)
+
             dispatch(moveAlternateDraggable({
                 key: id,
                 coordinateY: newLocation,
@@ -70,17 +78,28 @@ const [, drop] = useDrop(
     drag(ref)
     drop(preview(previewRef))
 
+
+
     return (
-        <div ref={previewRef} className='alternateDraggable' style={{position:'absolute', top: initialY}} {...props}>
+    <div ref={previewRef} className='alternateDraggable' style={{position:'absolute', top: initialY}} {...props}>
         <div className='draggableItem' style=
             {{
                 opacity: opacity,
             }}>
             {children}
         </div>
-        <button ref={ref} className='handle'>
-            <IoReorderFourSharp className="handle_image" />
-        </button>
+        <IconButton ref={ref} className='handle' variant='contained' 
+        sx={{
+        backgroundColor: teal[100],
+        borderRadius: 1,
+        '&:hover':{
+            backgroundColor: teal[500]
+        }
+    }
+    } 
+    >
+        <DragHandleIcon fontSize="small" className="handle_image" />
+    </IconButton>
     </div>
 
     )

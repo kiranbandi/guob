@@ -10,7 +10,7 @@ const initialState = {
              color: 0,
              coordinateX: 0,
              coordinateY: 0,
-             height: 15,
+             height: "1rem",
              width: 400,
              id: 'preview',
              visible: false
@@ -35,7 +35,8 @@ const initialState = {
              array: testing_array3,
              color: 300
          }
-     }
+     },
+     comparison: []
 }
 
 
@@ -44,6 +45,7 @@ export const miniviewSlice = createSlice({
     initialState,
 
     reducers: {
+
         addMiniview: (state, action) =>{
             if(!state.miniviews[action.payload.key]){
                 state.miniviews[action.payload.key] = action.payload
@@ -70,12 +72,20 @@ export const miniviewSlice = createSlice({
         },
         changeMiniviewVisibility: (state, action) => {
             state.miniviews[action.payload.key].visible = action.payload.visible
+        },
+        addComparison: (state, action) =>{
+                state.comparison.push(action.payload)
+
+        },
+        removeComparison: (state, action) =>{
+            let test = state.comparison.pop()
         }
     }
 })
 
-export const {addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility } = miniviewSlice.actions;
+export const {addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility, addComparison, removeComparison } = miniviewSlice.actions;
 
 export const selectMiniviews = (state) => state.miniview.miniviews
+export const selectComparison = (state) => state.miniview.comparison
 
 export default miniviewSlice.reducer;
