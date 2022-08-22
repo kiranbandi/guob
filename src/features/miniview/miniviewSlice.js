@@ -66,6 +66,9 @@ export const miniviewSlice = createSlice({
             if(action.payload.end !== undefined){
                 state.miniviews[action.payload.key].end = action.payload.end
             }
+            if(action.payload.boxWidth !== undefined){
+                state.miniviews[action.payload.key].boxWidth = action.payload.boxWidth
+            }
         },
         changeMiniviewColor: (state, action) => {
             state.miniviews[action.payload.key].color = action.payload.color

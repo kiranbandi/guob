@@ -139,12 +139,18 @@ export default function Demo() {
       dispatch(removeComparison())
     }
     else{
+      console.log(event)
+      let y = event.target.offsetTop
+      //TODO proper width
       dispatch(addComparison({
         key: testId,
         array: previewSelector.array,
         color: previewSelector.color,
         start: previewSelector.start,
-        end: previewSelector.end
+        end: previewSelector.end,
+        coordinateX: event.pageX,
+        coordinateY: y,
+        boxWidth: previewSelector.boxWidth
       }))
   
   
@@ -178,6 +184,10 @@ export default function Demo() {
     border: 1px solid black;
     background-color: whitesmoke;
     z-index: 10;
+    height: 1rem;
+}
+.comparison {
+  height: 3rem;
 }
 .Container{
     border: 2px solid grey;
@@ -206,10 +216,11 @@ export default function Demo() {
           color={previewSelector.color}
           id={previewSelector.id}
           absolutePositioning={true}
+          preview={true}
         />}
         {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
           return <Miniview
-            className={'preview'}
+            className={'comparison preview'}
             key={item}
             array={comparableSelector[item].array}
             color={comparableSelector[item].color}
@@ -221,6 +232,10 @@ export default function Demo() {
             beginning={comparableSelector[item].start}
             fin={comparableSelector[item].end}
             absolutePositioning={true}
+            preview={true}
+            boxLeft={comparableSelector[item].coordinateX}
+            boxTop={comparableSelector[item].coordinateY}
+            boxWidth={comparableSelector[item].boxWidth}
           />
         }))
         }

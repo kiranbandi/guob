@@ -1,6 +1,6 @@
 .draggable {
     margin-bottom: 1.5rem;
-    height: 50px;
+    height: 3rem;
     border:solid black 1px;
     flex-direction: row;
   }

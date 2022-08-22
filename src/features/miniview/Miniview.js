@@ -2,16 +2,19 @@ import React, { useEffect, useRef, useState } from "react"
 import './Miniview.css'
 import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
+import Window from "./Window"
 
 import { addMiniview, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from "./miniviewSlice"
 
 
-const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, ...props }) => {
+const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, ...props }) => {
 
     const canvasRef = useRef()
 
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['preview']
+
+    let testWidth = 0;
 
     useEffect(() => {
 
@@ -127,12 +130,13 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             let center = testScale.invert(coordinateX)
             let beginning = center - 50000
             let end = center + 50000
+            testWidth = (testScale(end - beginning))
             let testArray = array.filter(item => {
                 return ((item.end >= beginning && item.start <= beginning) || (item.start >= beginning && item.end <= end) || (item.start <= end && item.end >= end))
             })
 
             // TODO these are placeholders + hacky fixes
-            if (id !== 'preview') {
+            if (!preview) {
                 dispatch(changeMiniviewColor({
                     key: 'preview',
                     color: color
@@ -141,7 +145,8 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
                     key: 'preview',
                     array: testArray,
                     start: beginning,
-                    end: end
+                    end: end,
+                    boxWidth: testScale(end - beginning),
                 }))
                 dispatch(moveMiniview(
                     {
@@ -159,7 +164,17 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         }
     }
 
-    return <canvas
+    return (
+    <>
+    { preview && <Window 
+        className={"comparison"}
+        coordinateX={boxLeft}
+        coordinateY={boxTop}
+        width={boxWidth}
+        preview={id =='preview' ? false : true}
+        text={Math.round(beginning)}
+        />}
+    <canvas
         ref={canvasRef}
         className='miniview'
         width='2000'
@@ -174,6 +189,8 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             })
         )}
         {...props} />
+    </>
+)
 }
 
 Miniview.defaultProps = {
