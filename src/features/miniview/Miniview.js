@@ -7,7 +7,7 @@ import Window from "./Window"
 import { addMiniview, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from "./miniviewSlice"
 
 
-const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, ...props }) => {
+const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, ...props }) => {
 
     const canvasRef = useRef()
 
@@ -26,71 +26,22 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
             let start;
             beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
 
-            let distance = cap - start
             const ctx = canvasRef.current.getContext('2d')
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-            // Checking if the array is intended as low resolution - if it is, build a new array with
-            // number of genes in a specific area to build the heatmap
-            if (average) {
 
-                let density;
-                bars ? density = bars : density = 60
-
-                let subset = array
-                let increment = distance / density
-
-                let demo = []
-                if (subset.length > 0) {
-                    for (let i = 1; i <= density; i++) {
-                        let startOfBar = +start + increment * (i - 1)
-                        let endOfBar = +start + increment * i
-
-                        let numberOfGenes = subset.filter(e => e.start >= startOfBar && e.start <= endOfBar).length
-                        var temp = {
-                            start: startOfBar,
-                            end: endOfBar,
-                            number: numberOfGenes,
-                        }
-                        demo.push(temp)
-                    }
-                }
+            let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
+            let widthScale = scaleLinear().domain([0, cap - start]).range([0, ctx.canvas.width])
+            ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
 
 
-
-                let max = Math.max(...demo.map(d => d.number))
-                demo.forEach((d, i) => {
-                    let opacity = (100 / +max) * +d.number
-                    ctx.fillStyle = 'hsl(' + color + ', 70%, 50%, ' + opacity + '%)'
-                    ctx.beginPath()
-
-                    // Determining whether to highlight chosen section
-                    let chosenLocation = !!chosen && chosen.start >= d.start && chosen.end <= d.end
-                    ctx.strokeStyle = chosenLocation ? 'black' : 'white'
-                    ctx.lineWidth = chosenLocation ? '2' : '1'
-
-                    ctx.rect((i * 1.05 * ctx.canvas.width / (demo.length * 1.05)), 2, ctx.canvas.width / (demo.length * 1.05), ctx.canvas.height - 4)
-                    ctx.fill();
-                    ctx.stroke()
-                })
-            }
-
-            // If not low resolution, we draw everything in the array
-            else {
-
-                let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
-                let widthScale = scaleLinear().domain([0, cap - start]).range([0, ctx.canvas.width])
-                ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
-
-
-                array.forEach(gene => {
-                    let x = xScale(gene.start)
-                    let rectWidth = widthScale(gene.end - gene.start)
-                    ctx.beginPath()
-                    ctx.rect(x, 0, rectWidth, ctx.canvas.height)
-                    ctx.fill()
-                })
-            }
+            array.forEach(gene => {
+                let x = xScale(gene.start)
+                let rectWidth = widthScale(gene.end - gene.start)
+                ctx.beginPath()
+                ctx.rect(x, 0, rectWidth, ctx.canvas.height)
+                ctx.fill()
+            })
         }
 
     }, [array, color])
@@ -106,6 +57,7 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
         margin: 0
     }
 
+    // TODO -> does this need to be here?
     const dispatch = useDispatch()
 
     function showPreview(event) {
@@ -165,36 +117,35 @@ const Miniview = ({ array, average, chosen, color, bars, doSomething, coordinate
     }
 
     return (
-    <>
-    { preview && <Window 
-        className={"comparison"}
-        coordinateX={boxLeft}
-        coordinateY={boxTop}
-        width={boxWidth}
-        preview={id =='preview' ? false : true}
-        text={Math.round(beginning)}
-        />}
-    <canvas
-        ref={canvasRef}
-        className='miniview'
-        width='2000'
-        height='1000'
-        style={style}
-        onClick={doSomething}
-        onMouseMove={(e) => showPreview(e)}
-        onMouseLeave={() => dispatch(
-            changeMiniviewVisibility({
-                key: 'preview',
-                visible: false
-            })
-        )}
-        {...props} />
-    </>
-)
+        <>
+            {preview && <Window
+                className={"comparison"}
+                coordinateX={boxLeft}
+                coordinateY={boxTop}
+                width={boxWidth}
+                preview={id == 'preview' ? false : true}
+                text={Math.round(beginning)}
+            />}
+            <canvas
+                ref={canvasRef}
+                className='miniview'
+                width='2000'
+                height='1000'
+                style={style}
+                onClick={doSomething}
+                onMouseMove={(e) => showPreview(e)}
+                onMouseLeave={() => dispatch(
+                    changeMiniviewVisibility({
+                        key: 'preview',
+                        visible: false
+                    })
+                )}
+                {...props} />
+        </>
+    )
 }
 
 Miniview.defaultProps = {
-    average: false,
     color: 0,
     coordinateX: 0,
     coordinateY: 0,
