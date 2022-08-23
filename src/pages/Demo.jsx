@@ -150,6 +150,7 @@ export default function Demo() {
         end: previewSelector.end,
         coordinateX: event.pageX,
         coordinateY: y,
+        target: event.target.id,
         boxWidth: previewSelector.boxWidth
       }))
   
@@ -157,7 +158,8 @@ export default function Demo() {
       setTestId(id => id + 1)
       setStartY(startY => startY + 50)
 
-      // TODO add a box for highlighting selected region
+      // TODO fix box not being tied to the actual array
+      // Coordinate X can stay. CoordinateY needs to change
 
     }
   }
@@ -218,8 +220,12 @@ export default function Demo() {
           absolutePositioning={true}
           preview={true}
         />}
+
+        
         {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
+          let parent = document.getElementById(comparableSelector[item].target).getBoundingClientRect()
           return <Miniview
+      
             className={'comparison preview'}
             key={item}
             array={comparableSelector[item].array}
@@ -234,7 +240,7 @@ export default function Demo() {
             absolutePositioning={true}
             preview={true}
             boxLeft={comparableSelector[item].coordinateX}
-            boxTop={comparableSelector[item].coordinateY}
+            boxTop={parent.y}
             boxWidth={comparableSelector[item].boxWidth}
           />
         }))
@@ -253,6 +259,7 @@ export default function Demo() {
                   array={miniviewSelector[item].array}
                   color={miniviewSelector[item].color}
                   doSomething={takePreviewSnapshot}
+                  id={item}
                 />
               </Draggable>
             )

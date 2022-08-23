@@ -127,6 +127,7 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
                 text={Math.round(beginning)}
             />}
             <canvas
+                id={id}
                 ref={canvasRef}
                 className='miniview'
                 width='2000'
