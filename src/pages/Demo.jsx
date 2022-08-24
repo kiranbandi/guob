@@ -139,9 +139,7 @@ export default function Demo() {
       dispatch(removeComparison())
     }
     else{
-      console.log(event)
       let y = event.target.offsetTop
-      //TODO proper width
       dispatch(addComparison({
         key: testId,
         array: previewSelector.array,
@@ -154,12 +152,8 @@ export default function Demo() {
         boxWidth: previewSelector.boxWidth
       }))
   
-  
       setTestId(id => id + 1)
       setStartY(startY => startY + 50)
-
-      // TODO fix box not being tied to the actual array
-      // Coordinate X can stay. CoordinateY needs to change
 
     }
   }
