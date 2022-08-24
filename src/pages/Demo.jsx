@@ -225,6 +225,7 @@ export default function Demo() {
         {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
           let current = comparableSelector[item]
           let parent = document.getElementById(current.target).getBoundingClientRect()
+          let verticalScroll = document.documentElement.scrollTop
           return <Miniview
       
             className={'comparison preview'}
@@ -241,7 +242,7 @@ export default function Demo() {
             absolutePositioning={true}
             preview={true}
             boxLeft={current.coordinateX}
-            boxTop={parent.y}
+            boxTop={parent.y + verticalScroll}
             boxWidth={current.boxWidth}
           />
         }))
