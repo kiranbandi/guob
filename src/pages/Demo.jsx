@@ -139,19 +139,21 @@ export default function Demo() {
       dispatch(removeComparison())
     }
     else{
+      let y = event.target.offsetTop
       dispatch(addComparison({
         key: testId,
         array: previewSelector.array,
         color: previewSelector.color,
         start: previewSelector.start,
-        end: previewSelector.end
+        end: previewSelector.end,
+        coordinateX: event.pageX,
+        coordinateY: y,
+        target: event.target.id,
+        boxWidth: previewSelector.boxWidth
       }))
-  
   
       setTestId(id => id + 1)
       setStartY(startY => startY + 50)
-
-      // TODO add a box for highlighting selected region
 
     }
   }
@@ -178,6 +180,10 @@ export default function Demo() {
     border: 1px solid black;
     background-color: whitesmoke;
     z-index: 10;
+    height: 1rem;
+}
+.comparison {
+  height: 3rem;
 }
 .Container{
     border: 2px solid grey;
@@ -206,21 +212,32 @@ export default function Demo() {
           color={previewSelector.color}
           id={previewSelector.id}
           absolutePositioning={true}
+          preview={true}
         />}
+
+        
         {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
+          let current = comparableSelector[item]
+          let parent = document.getElementById(current.target).getBoundingClientRect()
+          let verticalScroll = document.documentElement.scrollTop
           return <Miniview
-            className={'preview'}
+      
+            className={'comparison preview'}
             key={item}
-            array={comparableSelector[item].array}
-            color={comparableSelector[item].color}
+            array={current.array}
+            color={current.color}
             coordinateX={previewSelector.coordinateX}
             coordinateY={previewSelector.coordinateY + 18 * (index+1)}
             width={previewSelector.width}
             height={previewSelector.height}
             displayPreview={false}
-            beginning={comparableSelector[item].start}
-            fin={comparableSelector[item].end}
+            beginning={current.start}
+            fin={current.end}
             absolutePositioning={true}
+            preview={true}
+            boxLeft={current.coordinateX}
+            boxTop={parent.y + verticalScroll}
+            boxWidth={current.boxWidth}
           />
         }))
         }
@@ -238,6 +255,7 @@ export default function Demo() {
                   array={miniviewSelector[item].array}
                   color={miniviewSelector[item].color}
                   doSomething={takePreviewSnapshot}
+                  id={item}
                 />
               </Draggable>
             )
