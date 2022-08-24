@@ -63,22 +63,25 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
     function showPreview(event) {
 
         if (displayPreview) {
-            // Ternary operators for if the view is in a container or not
-            let horizontalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetLeft : event.target.offsetParent.offsetLeft
-            let verticalOffset = event.target.offsetParent.localName == 'body' ? event.target.offsetTop : event.target.offsetParent.offsetTop
 
+            let boundingBox = event.target.getBoundingClientRect()
+            let verticalScroll = document.documentElement.scrollTop
+
+
+            let westEnd = boundingBox.x
+            let eastEnd = boundingBox.x + boundingBox.width
+            
+            
             let coordinateX = event.pageX
+            let coordinateY = boundingBox.y + boundingBox.height + 5 + verticalScroll
 
-            let coordinateY = verticalOffset + event.target.clientHeight + 5
-
-            let eastEnd = event.target.clientWidth + horizontalOffset
 
             // Would give weird scaling if the array was movable
             let cap = Math.max(...array.map(d => d.end))
             let start = Math.min(...array.map(d => d.start))
 
 
-            let testScale = scaleLinear().domain([start, cap]).range([horizontalOffset, eastEnd])
+            let testScale = scaleLinear().domain([start, cap]).range([westEnd, eastEnd])
             let center = testScale.invert(coordinateX)
             let beginning = center - 50000
             let end = center + 50000
@@ -103,7 +106,7 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
                 dispatch(moveMiniview(
                     {
                         key: 'preview',
-                        coordinateX: Math.max(horizontalOffset, Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width / 2)),
+                        coordinateX: Math.max(westEnd, Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width / 2)),
                         coordinateY: coordinateY,
                     }))
                 dispatch(changeMiniviewVisibility(

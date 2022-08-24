@@ -223,25 +223,26 @@ export default function Demo() {
 
         
         {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
-          let parent = document.getElementById(comparableSelector[item].target).getBoundingClientRect()
+          let current = comparableSelector[item]
+          let parent = document.getElementById(current.target).getBoundingClientRect()
           return <Miniview
       
             className={'comparison preview'}
             key={item}
-            array={comparableSelector[item].array}
-            color={comparableSelector[item].color}
+            array={current.array}
+            color={current.color}
             coordinateX={previewSelector.coordinateX}
             coordinateY={previewSelector.coordinateY + 18 * (index+1)}
             width={previewSelector.width}
             height={previewSelector.height}
             displayPreview={false}
-            beginning={comparableSelector[item].start}
-            fin={comparableSelector[item].end}
+            beginning={current.start}
+            fin={current.end}
             absolutePositioning={true}
             preview={true}
-            boxLeft={comparableSelector[item].coordinateX}
+            boxLeft={current.coordinateX}
             boxTop={parent.y}
-            boxWidth={comparableSelector[item].boxWidth}
+            boxWidth={current.boxWidth}
           />
         }))
         }
