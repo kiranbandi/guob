@@ -14,8 +14,6 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['preview']
 
-    let testWidth = 0;
-
     useEffect(() => {
 
         if (array !== undefined) {
@@ -77,17 +75,22 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
 
 
             // Would give weird scaling if the array was movable
-            let cap = Math.max(...array.map(d => d.end))
-            let start = Math.min(...array.map(d => d.start))
+           let cap;
+            fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
+
+            let start;
+            beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
 
 
-            let testScale = scaleLinear().domain([start, cap]).range([westEnd, eastEnd])
-            let center = testScale.invert(coordinateX)
-            let beginning = center - 50000
+            let xScale = scaleLinear().domain([start, cap]).range([westEnd, eastEnd])
+            let widthScale = scaleLinear().domain([start,cap]).range([0, eastEnd-westEnd])
+
+            let center = xScale.invert(coordinateX)
+            let head = center - 50000
             let end = center + 50000
-            testWidth = (testScale(end - beginning))
-            let testArray = array.filter(item => {
-                return ((item.end >= beginning && item.start <= beginning) || (item.start >= beginning && item.end <= end) || (item.start <= end && item.end >= end))
+
+            let previewArray = array.filter(item => {
+                return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
             })
 
             // TODO these are placeholders + hacky fixes
@@ -98,10 +101,10 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
                 }))
                 dispatch(updateData({
                     key: 'preview',
-                    array: testArray,
-                    start: beginning,
+                    array: previewArray,
+                    start: head,
                     end: end,
-                    boxWidth: testScale(end - beginning),
+                    boxWidth: widthScale(end - head),
                 }))
                 dispatch(moveMiniview(
                     {
