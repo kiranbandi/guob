@@ -16,31 +16,31 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
 
     useEffect(() => {
 
-        if (array !== undefined) {
+        if (array == undefined) return
 
-            let cap;
-            fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
+        let cap;
+        fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
 
-            let start;
-            beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
+        let start;
+        beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
 
-            const ctx = canvasRef.current.getContext('2d')
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
-
-            let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
-            let widthScale = scaleLinear().domain([0, cap - start]).range([0, ctx.canvas.width])
-            ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
+        const ctx = canvasRef.current.getContext('2d')
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
 
-            array.forEach(gene => {
-                let x = xScale(gene.start)
-                let rectWidth = widthScale(gene.end - gene.start)
-                ctx.beginPath()
-                ctx.rect(x, 0, rectWidth, ctx.canvas.height)
-                ctx.fill()
-            })
-        }
+        let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
+        let widthScale = scaleLinear().domain([0, cap - start]).range([0, ctx.canvas.width])
+        ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
+
+
+        array.forEach(gene => {
+            let x = xScale(gene.start)
+            let rectWidth = widthScale(gene.end - gene.start)
+            ctx.beginPath()
+            ctx.rect(x, 0, rectWidth, ctx.canvas.height)
+            ctx.fill()
+        })
+
 
     }, [array, color])
 
@@ -60,66 +60,66 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
 
     function showPreview(event) {
 
-        if (displayPreview) {
+        if (!displayPreview) return
 
-            let boundingBox = event.target.getBoundingClientRect()
-            let verticalScroll = document.documentElement.scrollTop
-
-
-            let westEnd = boundingBox.x
-            let eastEnd = boundingBox.x + boundingBox.width
-            
-            
-            let coordinateX = event.pageX
-            let coordinateY = boundingBox.y + boundingBox.height + 5 + verticalScroll
+        let boundingBox = event.target.getBoundingClientRect()
+        let verticalScroll = document.documentElement.scrollTop
 
 
-            // Would give weird scaling if the array was movable
-           let cap;
-            fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
-
-            let start;
-            beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
+        let westEnd = boundingBox.x
+        let eastEnd = boundingBox.x + boundingBox.width
 
 
-            let xScale = scaleLinear().domain([start, cap]).range([westEnd, eastEnd])
-            let widthScale = scaleLinear().domain([start,cap]).range([0, eastEnd-westEnd])
+        let coordinateX = event.pageX
+        let coordinateY = boundingBox.y + boundingBox.height + 5 + verticalScroll
 
-            let center = xScale.invert(coordinateX)
-            let head = center - 50000
-            let end = center + 50000
 
-            let previewArray = array.filter(item => {
-                return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
-            })
+        // Would give weird scaling if the array was movable
+        let cap;
+        fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
 
-            // TODO these are placeholders + hacky fixes
-            if (!preview) {
-                dispatch(changeMiniviewColor({
-                    key: 'preview',
-                    color: color
-                }))
-                dispatch(updateData({
-                    key: 'preview',
-                    array: previewArray,
-                    start: head,
-                    end: end,
-                    boxWidth: widthScale(end - head),
-                }))
-                dispatch(moveMiniview(
-                    {
-                        key: 'preview',
-                        coordinateX: Math.max(westEnd, Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width / 2)),
-                        coordinateY: coordinateY,
-                    }))
-                dispatch(changeMiniviewVisibility(
-                    {
-                        key: 'preview',
-                        visible: true
-                    }))
+        let start;
+        beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
 
-            }
-        }
+
+        let xScale = scaleLinear().domain([start, cap]).range([westEnd, eastEnd])
+        let widthScale = scaleLinear().domain([start, cap]).range([0, eastEnd - westEnd])
+
+        let center = xScale.invert(coordinateX)
+        let head = center - 50000
+        let end = center + 50000
+
+        let previewArray = array.filter(item => {
+            return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
+        })
+
+        // TODO these are placeholders + hacky fixes
+        if (preview) return
+        dispatch(changeMiniviewColor({
+            key: 'preview',
+            color: color
+        }))
+        dispatch(updateData({
+            key: 'preview',
+            array: previewArray,
+            start: head,
+            end: end,
+            boxWidth: widthScale(end - head),
+        }))
+        dispatch(moveMiniview(
+            {
+                key: 'preview',
+                coordinateX: Math.max(westEnd, Math.min(eastEnd - previewSelector.width, coordinateX - previewSelector.width / 2)),
+                coordinateY: coordinateY,
+            }))
+        dispatch(changeMiniviewVisibility(
+            {
+                key: 'preview',
+                visible: true
+            }))
+
+
+
     }
 
     return (

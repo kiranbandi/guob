@@ -3,7 +3,8 @@ import update from 'immutability-helper'
 
 const initialState = {
     // currently a placeholder
-    draggables: ['zero', 'one', 'two']
+    draggables: ['zero', 'one', 'two'],
+    group: [],
 
 }
 
@@ -32,13 +33,25 @@ export const draggableSlice = createSlice({
             let startKey = action.payload.startKey
             state.draggables.splice(startIndex, 1)
             state.draggables.splice(switchIndex,0, startKey)
-        }
+        },
+        toggleGroup: (state, action) => {
+            let index = state.group.indexOf(action.payload.id);
+        
+            index > -1 ? state.group.splice(index, 1) : state.group.push(action.payload.id);
+
+        },
+        clearGroup: (state, action) => {
+            state.group.length = 0;
+        },
+
     }
 })
 
-export const { moveDraggable, addDraggable, removeDraggable, switchDraggable } = draggableSlice.actions
+export const { moveDraggable, addDraggable, removeDraggable, switchDraggable, toggleGroup, clearGroup } = draggableSlice.actions
 
 export const selectDraggables = (state) => state.draggable.draggables
+export const selectGroup = (state) => state.draggable.group
+
 
 
 export default draggableSlice.reducer

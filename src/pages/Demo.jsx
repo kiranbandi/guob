@@ -7,7 +7,7 @@ import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { selectDraggables } from '../features/draggable/draggableSlice';
+import { selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -27,6 +27,8 @@ export default function Demo() {
   const draggableSelector = useSelector(selectDraggables)
   const alternateDraggableSelector = useSelector(selectAlternateDraggables)
   const comparableSelector = useSelector(selectComparison)
+  const groupSelector = useSelector(selectGroup)
+
 
   const [testId, setTestId] = useState(5)
 
@@ -250,7 +252,7 @@ export default function Demo() {
         <DragContainer starting={draggableSelector}>
           {draggableSelector.map(item => {
             return (
-              <Draggable key={item}>
+              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} >
                 <Miniview
                   array={miniviewSelector[item].array}
                   color={miniviewSelector[item].color}
