@@ -17,7 +17,7 @@ import { Button, Stack, Divider } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
 import testing_array3 from '../data/testing_array3';
 import { Typography } from '@mui/material';
-import { index } from 'd3-array';
+import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 
 export default function Demo() {
 
@@ -168,6 +168,10 @@ export default function Demo() {
 .draggable {
     /* cursor: crosshair; */
     border: 1px solid grey;
+    margin-bottom: 1.5rem;
+    height: 3rem;
+    border:solid black 1px;
+    flex-direction: row;
 }
 .alternateDraggable{
   height: 50px;
@@ -248,7 +252,7 @@ export default function Demo() {
         <Typography variant={'h5'} sx={{
           WebkitUserSelect: 'none',
         }}>Draggable Container: Items re-order themselves</Typography>
-
+        <CustomDragLayer groupID={groupSelector}/>
         <DragContainer starting={draggableSelector}>
           {draggableSelector.map(item => {
             return (
@@ -293,7 +297,7 @@ export default function Demo() {
               "key": "at3g26110"
             }
           }
-          height={50}
+          height={70}
         />
 
         <Typography variant={'h5'} sx={{
