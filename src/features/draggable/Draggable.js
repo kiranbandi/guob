@@ -6,7 +6,7 @@ import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import './Draggable.css'
 import { useDispatch } from "react-redux"
-import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, selectGroup } from "./draggableSlice"
+import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup } from "./draggableSlice"
 import { IconButton, Button } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import { teal } from '@mui/material/colors';
@@ -71,6 +71,7 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
                         }
                     })
                 }
+                dispatch(sortGroup())
                 }
              // Need to change the item's index or it can't be placed back in the original position due to the conditional
             item.index = hoverIndex
@@ -82,7 +83,7 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
     const [{ isDragging }, drag, preview] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,
-            item: () => { return { id, index, grouped, groupID } },
+            item: () => { return { id, index, grouped, groupID, ref } },
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
@@ -94,7 +95,13 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
     const borderGroup = grouped ? "outset" : "none"
 
     drag(drop(ref))
-    drop(preview(secondRef))
+    // if(!grouped){
+        drop((secondRef))
+    // }
+    // else{
+    //     drop(secondRef)
+    // }
+    
 
 
     return (
@@ -122,6 +129,7 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
                      dispatch(toggleGroup({
                     id: id
                 }))
+                dispatch(sortGroup())
                 }
             }}
              onMouseDown={(e) =>{

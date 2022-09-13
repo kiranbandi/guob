@@ -173,6 +173,21 @@ export default function Demo() {
     border:solid black 1px;
     flex-direction: row;
 }
+.draggableItem {
+    height: 100%;
+    width: 98%;
+    float: left;
+    margin: 0px;
+    overflow: hidden;
+  }
+  .handle {
+    width: 2%;
+    float: left;
+    height: 100%;
+    margin: 0%;
+    padding: 0%;
+    cursor: grab;
+  }
 .alternateDraggable{
   height: 50px;
   width: 96%;

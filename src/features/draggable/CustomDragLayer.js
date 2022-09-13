@@ -1,6 +1,8 @@
 import { useDragLayer } from 'react-dnd'
 import { ItemTypes } from './ItemTypes.js'
 import { DragPreview } from './DragPreview.js'
+import { IoThermometer } from 'react-icons/io5'
+import { nanoid } from '@reduxjs/toolkit'
 
 
 const layerStyle = {
@@ -15,7 +17,7 @@ const layerStyle = {
 
 
 export const CustomDragLayer = (props) => {
-    const { isDragging, item,  itemType, initialOffset, currentOffset } = 
+    const { isDragging, item, itemType, initialOffset, currentOffset } =
         useDragLayer((monitor) => ({
             item: monitor.getItem(),
             itemType: monitor.getItemType(),
@@ -24,38 +26,73 @@ export const CustomDragLayer = (props) => {
             currentOffset: monitor.getSourceClientOffset(),
         }))
 
-        function renderItem() {
-            switch (itemType) {
-                case ItemTypes.BOUNDED:
-                    return <DragPreview item={item} groupID={props.groupID} />
-                default:
-                    return null
-            }
-        }
+    function renderItem() {
+        switch (itemType) {
+            case ItemTypes.BOUNDED:
+                {
+                    let original;
+                    const topRow = document.getElementById(props.groupID[0])
+                    topRow ? original = topRow.getBoundingClientRect() : original = document.getElementById(item.id).getBoundingClientRect()
+                    let adjustment = props.groupID.length > 1 ? document.getElementById(props.groupID[1]).getBoundingClientRect().y - original.y : 0
+   
+                    const above = original.top + original.height * 0.1
+                    const below = original.top + adjustment * (props.groupID.length - 1) - 10
 
-        function moveThePreview(currentOffset){
-            if(!currentOffset){
-                return{
-                    display:'none',
+                    if (props.groupID <= 1 || (currentOffset.y > above && currentOffset.y < below)) {
+                        // console.log(currentOffset.y)
+                        // console.log(above)
+                        // console.log(below)
+                        return <DragPreview item={item.id} groupID={props.groupID} height={original.height} width={original.width} />
+                    }
+                    return (
+                        props.groupID.map(item => {
+                            return <DragPreview item={item} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()}/>
+                        })
+
+                    )
+
                 }
-            }
-            let { x, y } = currentOffset
-            x -= document.getElementById(item.id).getBoundingClientRect().width
-            const transform = `translate(${x}px, ${y}px)`
-            return {
-                transform,
-                WebkitTransform: transform,
-            }
+            default:
+                return null
         }
+    }
 
-        if(!isDragging){
-            return null
+    function moveThePreview(currentOffset) {
+        if (!currentOffset) {
+            return {
+                display: 'none',
+            }
         }
-        return (
-            <div style={layerStyle}>
-                <div style={moveThePreview(currentOffset)}>
-                    {renderItem()}
-                </div>
+       
+        let { x, y } = currentOffset
+        x -= document.getElementById(item.id).getBoundingClientRect().width
+        let original;
+        const topRow = document.getElementById(props.groupID[0])
+        topRow ? original = topRow.getBoundingClientRect() : original = document.getElementById(item.id).getBoundingClientRect()
+        let adjustment = props.groupID.length > 1 ? document.getElementById(props.groupID[1]).getBoundingClientRect().y - original.y : 0
+   
+        
+        if (props.groupID.length > 1 && currentOffset.y > original.top + adjustment * (props.groupID.length - 1 )- 11) {
+
+                y -= ((Math.abs(adjustment)) * (props.groupID.length -1 ))
+            }
+        const transform = `translate(${x}px, ${y}px)`
+        return {
+            width: document.getElementById(item.id).getBoundingClientRect().width,
+            transform,
+            WebkitTransform: transform,
+        }
+    }
+
+
+    if (!isDragging) {
+        return null
+    }
+    return (
+        <div style={layerStyle}>
+            <div style={moveThePreview(currentOffset)}>
+                {renderItem()}
             </div>
-        )
+        </div>
+    )
 }

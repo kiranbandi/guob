@@ -2,36 +2,26 @@ import { memo } from 'react'
 import Miniview from 'features/miniview/Miniview.js'
 import { useSelector } from 'react-redux'
 import { selectMiniviews } from 'features/miniview/miniviewSlice'
+import { teal } from '@mui/material/colors';
+import DragHandleIcon from '@mui/icons-material/DragHandle';
+import { IconButton, Button } from "@mui/material"
+import { nanoid } from '@reduxjs/toolkit';
 
 
-export const DragPreview = memo(function DragPreview({ item, groupID }) {
+
+export const DragPreview = memo(function DragPreview({ item, groupID, width, height }) {
 
     const miniviewSelector = useSelector(selectMiniviews)
-    // TODO Preview the group when outside of it, just the track when inside
 
-    return (
+        return (
+            <div className='draggable' >
+                <Miniview
+                    array={miniviewSelector[item].array}
+                    color={miniviewSelector[item].color}
+                    id={nanoid()}
+                />
+            </div>
+        )
+    
 
-        <div className='dragPreview'>
-            {(groupID.map(item => {
-
-                return (
-           
-                    <div className='draggable'>
-                        <div className='draggableItem'>
-
-                            <Miniview
-                                height={50}
-                                array={miniviewSelector[item].array}
-                                color={miniviewSelector[item].color}
-                                id={item}
-                            />
-                        </div>
-                    </div>
-                )
-            })
-            )}
-        </div>
-
-
-    )
 })

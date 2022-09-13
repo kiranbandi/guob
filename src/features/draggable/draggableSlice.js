@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { group } from "d3-array";
 import update from 'immutability-helper'
 
 const initialState = {
@@ -33,12 +34,17 @@ export const draggableSlice = createSlice({
             let startKey = action.payload.startKey
             state.draggables.splice(startIndex, 1)
             state.draggables.splice(switchIndex,0, startKey)
+
+            if(state.group.length > 1){
+                state.group.sort((a,b)=> state.draggables.indexOf(a) - state.draggables.indexOf(b))
+            }
+
+
         },
         insertDraggable: (state, action) => {
-            let reference = state.draggables.indexOf(action.payload.startKey)
             let moving = state.draggables.indexOf(action.payload.id)
-            let index = action.payload.index
-            if( reference > moving ) index = index * -1
+            let reference = state.draggables.indexOf(action.payload.startKey)
+            let index = reference > moving ? -1 : action.payload.index
             state.draggables.splice(moving,1)
             state.draggables.splice(reference + index, 0, action.payload.id)
         }
@@ -47,16 +53,20 @@ export const draggableSlice = createSlice({
             let index = state.group.indexOf(action.payload.id);
         
             index > -1 ? state.group.splice(index, 1) : state.group.push(action.payload.id);
-
         },
         clearGroup: (state, action) => {
             state.group.length = 0;
         },
+        sortGroup: (state, action) => {
+            if(state.group.length > 1){
+                state.group.sort((a,b)=> state.draggables.indexOf(a) - state.draggables.indexOf(b))
+            }
+        }
 
     }
 })
 
-export const { moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup } = draggableSlice.actions
+export const { moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup } = draggableSlice.actions
 
 export const selectDraggables = (state) => state.draggable.draggables
 export const selectGroup = (state) => state.draggable.group
