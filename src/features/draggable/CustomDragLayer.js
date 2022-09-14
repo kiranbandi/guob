@@ -1,7 +1,6 @@
 import { useDragLayer } from 'react-dnd'
 import { ItemTypes } from './ItemTypes.js'
 import { DragPreview } from './DragPreview.js'
-import { IoThermometer } from 'react-icons/io5'
 import { nanoid } from '@reduxjs/toolkit'
 
 
@@ -36,21 +35,16 @@ export const CustomDragLayer = (props) => {
                     let adjustment = props.groupID.length > 1 ? document.getElementById(props.groupID[1]).getBoundingClientRect().y - original.y : 0
    
                     const above = original.top + original.height * 0.1
-                    const below = original.top + adjustment * (props.groupID.length - 1) - 10
+                    const below = original.top + adjustment * (props.groupID.length - 1) - 5
 
                     if (props.groupID <= 1 || (currentOffset.y > above && currentOffset.y < below)) {
-                        // console.log(currentOffset.y)
-                        // console.log(above)
-                        // console.log(below)
                         return <DragPreview item={item.id} groupID={props.groupID} height={original.height} width={original.width} />
                     }
                     return (
                         props.groupID.map(item => {
                             return <DragPreview item={item} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()}/>
                         })
-
                     )
-
                 }
             default:
                 return null
@@ -70,9 +64,8 @@ export const CustomDragLayer = (props) => {
         const topRow = document.getElementById(props.groupID[0])
         topRow ? original = topRow.getBoundingClientRect() : original = document.getElementById(item.id).getBoundingClientRect()
         let adjustment = props.groupID.length > 1 ? document.getElementById(props.groupID[1]).getBoundingClientRect().y - original.y : 0
-   
         
-        if (props.groupID.length > 1 && currentOffset.y > original.top + adjustment * (props.groupID.length - 1 )- 11) {
+        if (props.groupID.length > 1 && currentOffset.y > original.top + adjustment * (props.groupID.length - 1 )- 6) {
 
                 y -= ((Math.abs(adjustment)) * (props.groupID.length -1 ))
             }

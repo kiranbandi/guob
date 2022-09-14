@@ -95,13 +95,15 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
     const borderGroup = grouped ? "outset" : "none"
 
     drag(drop(ref))
-    // if(!grouped){
-        drop((secondRef))
-    // }
-    // else{
-    //     drop(secondRef)
-    // }
     
+
+    //#############################
+    // Used without CustomDragLayer
+    // drop(preview(secondRef))
+
+    // Used with CustomDragLayer
+    drop((secondRef))
+    //###################################
 
 
     return (

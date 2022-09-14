@@ -1,6 +1,7 @@
 # Demo of Components on this Branch
 
-![Demo](/documentation/preview_functionality.gif)
+![Demo](/documentation/Groupable_components.gif)
+
 
 ## Available Scripts
 

@@ -11,6 +11,7 @@ import { nanoid } from '@reduxjs/toolkit';
 
 export const DragPreview = memo(function DragPreview({ item, groupID, width, height }) {
 
+    
     const miniviewSelector = useSelector(selectMiniviews)
 
         return (
