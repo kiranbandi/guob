@@ -1,9 +1,4 @@
-.draggable {
-    margin-bottom: 1.5rem;
-    height: 3rem;
-    border:solid black 1px;
-    flex-direction: row;
-  }
+
   .handle {
     width: 2%;
     float: left;
@@ -24,11 +19,4 @@
       height: 100%;
     
    }
-  .draggableItem {
-    height: 100%;
-    width: 98%;
-    float: left;
-    margin: 0px;
-    overflow: hidden;
-  }
   

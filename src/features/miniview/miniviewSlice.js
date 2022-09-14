@@ -59,6 +59,7 @@ export const miniviewSlice = createSlice({
             state.miniviews[action.payload.key].coordinateY = action.payload.coordinateY
         },
         updateData: (state, action) => {
+            // TODO hmmmmmmm
             state.miniviews[action.payload.key].array = action.payload.array
             if(action.payload.start !== undefined){
                 state.miniviews[action.payload.key].start = action.payload.start

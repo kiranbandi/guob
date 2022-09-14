@@ -7,7 +7,7 @@ import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { selectDraggables } from '../features/draggable/draggableSlice';
+import { selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -17,7 +17,7 @@ import { Button, Stack, Divider } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
 import testing_array3 from '../data/testing_array3';
 import { Typography } from '@mui/material';
-import { index } from 'd3-array';
+import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 
 export default function Demo() {
 
@@ -27,6 +27,8 @@ export default function Demo() {
   const draggableSelector = useSelector(selectDraggables)
   const alternateDraggableSelector = useSelector(selectAlternateDraggables)
   const comparableSelector = useSelector(selectComparison)
+  const groupSelector = useSelector(selectGroup)
+
 
   const [testId, setTestId] = useState(5)
 
@@ -166,7 +168,26 @@ export default function Demo() {
 .draggable {
     /* cursor: crosshair; */
     border: 1px solid grey;
+    margin-bottom: 1.5rem;
+    height: 3rem;
+    border:solid black 1px;
+    flex-direction: row;
 }
+.draggableItem {
+    height: 100%;
+    width: 98%;
+    float: left;
+    margin: 0px;
+    overflow: hidden;
+  }
+  .handle {
+    width: 2%;
+    float: left;
+    height: 100%;
+    margin: 0%;
+    padding: 0%;
+    cursor: grab;
+  }
 .alternateDraggable{
   height: 50px;
   width: 96%;
@@ -246,11 +267,11 @@ export default function Demo() {
         <Typography variant={'h5'} sx={{
           WebkitUserSelect: 'none',
         }}>Draggable Container: Items re-order themselves</Typography>
-
+        <CustomDragLayer groupID={groupSelector}/>
         <DragContainer starting={draggableSelector}>
           {draggableSelector.map(item => {
             return (
-              <Draggable key={item}>
+              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} >
                 <Miniview
                   array={miniviewSelector[item].array}
                   color={miniviewSelector[item].color}
@@ -291,7 +312,7 @@ export default function Demo() {
               "key": "at3g26110"
             }
           }
-          height={50}
+          height={70}
         />
 
         <Typography variant={'h5'} sx={{
