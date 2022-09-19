@@ -91,7 +91,7 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
     )
 
     const opacity = isDragging ? 0.6 : 1
-    const highlightGroup = grouped ? "5px solid" + teal[500] : undefined
+    const highlightGroup = grouped ? ".25rem solid" + teal[500] : undefined
     const borderGroup = grouped ? "outset" : "none"
 
     drag(drop(ref))

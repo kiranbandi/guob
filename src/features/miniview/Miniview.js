@@ -7,7 +7,7 @@ import Window from "./Window"
 import { addMiniview, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from "./miniviewSlice"
 
 
-const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, ...props }) => {
+const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, grouped, ...props }) => {
 
     const canvasRef = useRef()
 
@@ -131,6 +131,7 @@ const Miniview = ({ array, color, doSomething, coordinateX, coordinateY, width, 
                 width={boxWidth}
                 preview={id == 'preview' ? false : true}
                 text={Math.round(beginning)}
+                grouped={grouped}
             />}
             <canvas
                 id={id}

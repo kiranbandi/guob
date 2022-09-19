@@ -142,6 +142,7 @@ export default function Demo() {
     }
     else{
       let y = event.target.offsetTop
+      console.log(event.target.id)
       dispatch(addComparison({
         key: testId,
         array: previewSelector.array,
@@ -206,6 +207,9 @@ export default function Demo() {
 .comparison {
   height: 3rem;
 }
+.groupedComparison {
+  height : 2.5rem;
+}
 .Container{
     border: 2px solid grey;
     margin-bottom: 1ch;
@@ -241,6 +245,7 @@ export default function Demo() {
           let current = comparableSelector[item]
           let parent = document.getElementById(current.target).getBoundingClientRect()
           let verticalScroll = document.documentElement.scrollTop
+          console.log(comparableSelector[item].target)
           return <Miniview
       
             className={'comparison preview'}
@@ -259,6 +264,7 @@ export default function Demo() {
             boxLeft={current.coordinateX}
             boxTop={parent.y + verticalScroll}
             boxWidth={current.boxWidth}
+            grouped={groupSelector.includes(comparableSelector[item].target)}
           />
         }))
         }
