@@ -245,7 +245,6 @@ export default function Demo() {
           let current = comparableSelector[item]
           let parent = document.getElementById(current.target).getBoundingClientRect()
           let verticalScroll = document.documentElement.scrollTop
-          console.log(comparableSelector[item].target)
           return <Miniview
       
             className={'comparison preview'}

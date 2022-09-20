@@ -52,7 +52,7 @@ export const CustomDragLayer = (props) => {
     }
 
     function moveThePreview(currentOffset) {
-        if (!currentOffset) {
+        if (!currentOffset || itemType !== ItemTypes.BOUNDED) {
             return {
                 display: 'none',
             }
