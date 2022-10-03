@@ -1,5 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import testing_array from '../../data/testing_array';
+import testing_array_dh1 from '../../data/testing_array_dh1';
+import testing_array_dh2 from '../../data/testing_array_dh2';
+import testing_array_dh3 from '../../data/testing_array_dh3';
 import testing_array2 from '../../data/testing_array2';
 import testing_array3 from '../../data/testing_array3';
 
@@ -27,6 +30,18 @@ const initialState = {
              array: testing_array3,
              color: 250
          },
+         'dh1':{
+            array: testing_array_dh1,
+            color: 50
+        },
+        'dh2':{
+            array: testing_array_dh2,
+            color: 150
+        },
+        'dh3':{
+            array: testing_array_dh3,
+            color: 250
+        },
          'test':{
              array: testing_array2,
              color: 200

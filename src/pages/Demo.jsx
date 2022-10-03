@@ -185,7 +185,7 @@ export default function Demo() {
 }`)
 
   return (
-    <>
+    <div css={{ minHeight: '50vw' }}>
       <div css={styling}>
         <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
           <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
@@ -282,7 +282,7 @@ export default function Demo() {
         Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</Typography>
 
       </div>
-    </>
+    </div>
   );
 }
 

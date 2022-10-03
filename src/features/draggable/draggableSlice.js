@@ -3,7 +3,7 @@ import update from 'immutability-helper'
 
 const initialState = {
     // currently a placeholder
-    draggables: ['zero', 'one', 'two']
+    draggables: ['dh1', 'dh2', 'dh3']
 
 }
 
