@@ -14,7 +14,7 @@ import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { useSelector } from "react-redux"
 import { GroupAddOutlined } from "@mui/icons-material"
 
-const Draggable = ({ children, id, index, grouped, groupID }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
@@ -83,7 +83,7 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
     const [{ isDragging }, drag, preview] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,
-            item: () => { return { id, index, grouped, groupID, ref } },
+            item: () => { return { id, index, grouped, groupID, ref, className } },
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
@@ -107,7 +107,7 @@ const Draggable = ({ children, id, index, grouped, groupID }) => {
 
 
     return (
-        <div ref={secondRef} className='draggable'>
+        <div ref={secondRef} className={className}>
             <div className='draggableItem' style=
                 {{
                     opacity: opacity,

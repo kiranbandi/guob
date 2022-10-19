@@ -1,10 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { group } from "d3-array";
-import update from 'immutability-helper'
 
 const initialState = {
     // currently a placeholder
-    draggables: ['zero', 'one', 'two'],
+    draggables: ['zero', 'one', 'two', 'test', 'secondTest'],
     group: [],
 
 }

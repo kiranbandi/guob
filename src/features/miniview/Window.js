@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react';
 
 function Window({ coordinateX, coordinateY, width, height, preview, text, grouped }) {
 
         let className = grouped ? 'groupedComparison' : 'comparison'
+        // useEffect(()=>{
 
+        // },[width])
         return (
             <>
 

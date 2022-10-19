@@ -35,6 +35,7 @@ function Footer() {
                                 fontWeight: 500,
                                 color: 'gray',
                                 textDecoration: 'none',
+                                WebkitUserSelect: 'none',
 
                             }}>
                             Developed by the HCI Lab at the University of Saskatchewan

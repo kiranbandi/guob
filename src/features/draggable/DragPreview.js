@@ -6,20 +6,26 @@ import { teal } from '@mui/material/colors';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { IconButton, Button } from "@mui/material"
 import { nanoid } from '@reduxjs/toolkit';
+import BasicTrack from 'components/tracks/BasicTrack';
+import { selectBasicTracks } from 'components/tracks/basicTrackSlice';
 
 
 
-export const DragPreview = memo(function DragPreview({ item, groupID, width, height }) {
+export const DragPreview = memo(function DragPreview({ item, groupID, width, height, className }) {
 
     
-    const miniviewSelector = useSelector(selectMiniviews)
+    const basicTrackSelector = useSelector(selectBasicTracks)
 
         return (
-            <div className='draggable' >
-                <Miniview
-                    array={miniviewSelector[item].array}
-                    color={miniviewSelector[item].color}
+            <div className={className} >
+                <BasicTrack
+                    array={basicTrackSelector[item].array}
+                    color={basicTrackSelector[item].color}
                     id={nanoid()}
+                    zoom={basicTrackSelector[item].zoom}
+                    pastZoom={basicTrackSelector[item].pastZoom}
+                    offset={basicTrackSelector[item].offset}
+
                 />
             </div>
         )

@@ -13,11 +13,13 @@ import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
 import { addAlternateDraggable, removeAlternateDraggable } from '../features/draggable/alternateDraggableSlice';
 import { addMiniview, removeMiniview, selectComparison, removeComparison } from '../features/miniview/miniviewSlice';
-import { Button, Stack, Divider } from '@mui/material'
+import { Switch, Button, Stack, Divider, FormControl, FormControlLabel } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
 import testing_array3 from '../data/testing_array3';
 import { Typography } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
+import BasicTrack from 'components/tracks/BasicTrack';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack } from 'components/tracks/basicTrackSlice';
 
 export default function Demo() {
 
@@ -28,6 +30,7 @@ export default function Demo() {
   const alternateDraggableSelector = useSelector(selectAlternateDraggables)
   const comparableSelector = useSelector(selectComparison)
   const groupSelector = useSelector(selectGroup)
+  const basicTrackSelector = useSelector(selectBasicTracks)
 
 
   const [testId, setTestId] = useState(5)
@@ -35,6 +38,7 @@ export default function Demo() {
   const [startY, setStartY] = useState(900)
 
   const [comparisonSpacing, setComparisonSpacing] = useState(1)
+  const [draggableSpacing, setDraggableSpacing] = useState("draggable")
 
   const dispatch = useDispatch()
 
@@ -42,11 +46,10 @@ export default function Demo() {
   function addNewDraggable() {
     let data = determineRandomArray()
     let color = Math.floor((Math.random() * 360))
-    addNewMiniview(testId, data, color)
+    addNewBasicTrack(testId, data, color)
     dispatch(addDraggable({
       key: testId
     }))
-
     setTestId(id => id + 1)
     setStartY(startY => startY + 85)
     Object.entries(alternateDraggableSelector).forEach(item => {
@@ -61,7 +64,7 @@ export default function Demo() {
   function addNewAlternateDraggable() {
     let data = determineRandomArray()
     let color = Math.floor((Math.random() * 360))
-    addNewMiniview(testId, data, color)
+    addNewBasicTrack(testId, data, color)
     dispatch(addAlternateDraggable({
       key: testId,
       coordinateY: startY
@@ -88,14 +91,17 @@ export default function Demo() {
     return chosenArray
   }
 
-  function addNewMiniview(id, data, color, start, end) {
+  function addNewBasicTrack(id, data, color, start, end) {
 
-    dispatch(addMiniview({
+    dispatch(addBasicTrack({
       key: id,
       array: data,
       color: color,
       start: start,
-      end: end
+      end: end,
+      zoom: 1.0,
+      pastZoom: 1.0,
+      offset: 0,
     }))
   }
 
@@ -103,7 +109,7 @@ export default function Demo() {
     let keys = draggableSelector
     let choice = keys[Math.floor((Math.random() * keys.length))]
     if (keys.length > 0) {
-      dispatch(removeMiniview({
+      dispatch(removeBasicTrack({
         key: choice
       }))
     }
@@ -120,11 +126,15 @@ export default function Demo() {
 
   }
 
+  function changeMargins(e) {
+    e.target.checked ? setDraggableSpacing("noMarginDraggable ") : setDraggableSpacing('draggable')
+  }
+
   function removeAnAlternateDraggable() {
     let keys = Object.keys(alternateDraggableSelector)
     let choice = keys[Math.floor((Math.random() * keys.length))]
     if (keys.length > 0) {
-      dispatch(removeMiniview({
+      dispatch(removeBasicTrack({
         key: choice
       }))
     }
@@ -136,13 +146,15 @@ export default function Demo() {
   }
 
   // TODO - navigation?
-  function takePreviewSnapshot(event) {
+  function handleClick(event) {
+    if(event.type=== 'contextmenu'){
+      return
+    }
     if(event.ctrlKey){
       dispatch(removeComparison())
     }
     else{
       let y = event.target.offsetTop
-      console.log(event.target.id)
       dispatch(addComparison({
         key: testId,
         array: previewSelector.array,
@@ -170,7 +182,15 @@ export default function Demo() {
     /* cursor: crosshair; */
     border: 1px solid grey;
     margin-bottom: 1.5rem;
-    height: 3rem;
+    height: 6rem;
+    border:solid black 1px;
+    flex-direction: row;
+}
+.noMarginDraggable {
+      /* cursor: crosshair; */
+      border: 1px solid grey;
+    margin-bottom: 0;
+    height: 6rem;
     border:solid black 1px;
     flex-direction: row;
 }
@@ -201,11 +221,11 @@ export default function Demo() {
 .preview {
     border: 1px solid black;
     background-color: whitesmoke;
-    z-index: 10;
+    z-index: 99999;
     height: 1rem;
 }
 .comparison {
-  height: 3rem;
+  height: 4.5rem;
 }
 .groupedComparison {
   height : 2.5rem;
@@ -220,9 +240,10 @@ export default function Demo() {
       <div css={styling}>
         <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
           <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
-          <Button variant='outlined' onClick={addNewAlternateDraggable}>Add an Alternate Draggable</Button>
+          {/* <Button variant='outlined' onClick={addNewAlternateDraggable}>Add an Alternate Draggable</Button> */}
           <Button variant='outlined' onClick={removeADraggable}>Remove a Draggable</Button>
-          <Button variant='outlined' onClick={removeAnAlternateDraggable}>Remove an Alternate Draggable</Button>
+         <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"}/>
+         
         </Stack>
 
         {previewSelector.visible && <Miniview
@@ -276,55 +297,43 @@ export default function Demo() {
         <DragContainer starting={draggableSelector}>
           {draggableSelector.map(item => {
             return (
-              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} >
-                <Miniview
-                  array={miniviewSelector[item].array}
-                  color={miniviewSelector[item].color}
-                  doSomething={takePreviewSnapshot}
+              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
+                <BasicTrack
+                  array={basicTrackSelector[item].array}
+                  color={basicTrackSelector[item].color}
+                  doSomething={handleClick}
                   id={item}
+                  zoom={basicTrackSelector[item].zoom}
+                  pastZoom={basicTrackSelector[item].pastZoom}
+                  offset={basicTrackSelector[item].offset}
                 />
               </Draggable>
             )
           })}
         </DragContainer>
 
-        <Typography variant={'h5'} sx={{
-          WebkitUserSelect: 'none',
-        }}>Miniview Component:</Typography>
-
-        {Object.entries(alternateDraggableSelector).map(item => {
-          return (<AlternateDraggable initialY={item[1].coordinateY} id={item[0]} key={item[0]}>
-            <Miniview
-              key={item[0]}
-              array={miniviewSelector[item[0]].array}
-              color={miniviewSelector[item[0]].color}
-              displayPreview={false}
-              beginning={miniviewSelector[item[0]].start}
-              fin={miniviewSelector[item[0]].end}
-            />
-          </AlternateDraggable>)
-        })}
-
-        <Miniview
-          array={testing_array}
-          color={350}
-          id={5}
-          chosen={
-            {
-              "chromosome": "at3",
-              "start": "9541483",
-              "end": "9542114",
-              "key": "at3g26110"
-            }
-          }
-          height={70}
-        />
-
-        <Typography variant={'h5'} sx={{
+        {/* <Typography variant={'h5'} sx={{
           WebkitUserSelect: 'none',
         }}>
-        Alternate Draggable - Absolute positioning with the nearest Y-coordinate multiple:</Typography>
-
+        Comparing Chromosomes:</Typography> */}
+        {/* <DragContainer starting={draggableSelector}>
+          {draggableSelector.map(item => {
+            return (
+              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
+                <BasicTrack
+                title={item}
+                  array={basicTrackSelector[item].array}
+                  color={basicTrackSelector[item].color}
+                  doSomething={handleClick}
+                  id={item}
+                  zoom={basicTrackSelector[item].zoom}
+                  pastZoom={basicTrackSelector[item].pastZoom}
+                  offset={basicTrackSelector[item].offset}
+                />
+              </Draggable>
+            )
+          })}
+        </DragContainer> */}
       </div>
     </>
   );

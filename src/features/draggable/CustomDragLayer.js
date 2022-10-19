@@ -29,6 +29,7 @@ export const CustomDragLayer = (props) => {
         switch (itemType) {
             case ItemTypes.BOUNDED:
                 {
+                    
                     let original;
                     const topRow = document.getElementById(props.groupID[0])
                     topRow ? original = topRow.getBoundingClientRect() : original = document.getElementById(item.id).getBoundingClientRect()
@@ -38,11 +39,13 @@ export const CustomDragLayer = (props) => {
                     const below = original.top + adjustment * (props.groupID.length - 1) - 5
 
                     if (props.groupID <= 1 || (currentOffset.y > above && currentOffset.y < below)) {
-                        return <DragPreview item={item.id} groupID={props.groupID} height={original.height} width={original.width} />
+                        return <DragPreview item={item.id} groupID={props.groupID} height={original.height} width={original.width} className={item.className}/>
                     }
+                    console.log(item)
+                    console.log(item.className)
                     return (
-                        props.groupID.map(item => {
-                            return <DragPreview item={item} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()}/>
+                        props.groupID.map(x => {
+                            return <DragPreview item={x} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()}  className={item.className}/>
                         })
                     )
                 }
