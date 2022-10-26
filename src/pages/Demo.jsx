@@ -163,8 +163,12 @@ export default function Demo() {
         end: previewSelector.end,
         coordinateX: event.pageX,
         coordinateY: y,
+        head: previewSelector.start + (previewSelector.end -previewSelector.start)/2,
         target: event.target.id,
-        boxWidth: previewSelector.boxWidth
+        offset: basicTrackSelector[event.target.id].offset,
+        boxWidth: previewSelector.boxWidth,
+        beginning: Math.min(...basicTrackSelector[event.target.id].array.map(d => d.start)),
+        fin:Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
       }))
   
       setTestId(id => id + 1)
@@ -218,10 +222,13 @@ export default function Demo() {
   left: 2%;
   
 }
+${'' /* .dragPreview{
+  height: 2rem;
+} */}
 .preview {
     border: 1px solid black;
     background-color: whitesmoke;
-    z-index: 99999;
+    z-index: 2;
     height: 1rem;
 }
 .comparison {
@@ -306,6 +313,7 @@ export default function Demo() {
                   zoom={basicTrackSelector[item].zoom}
                   pastZoom={basicTrackSelector[item].pastZoom}
                   offset={basicTrackSelector[item].offset}
+                  selection={basicTrackSelector[item].selection}
                 />
               </Draggable>
             )

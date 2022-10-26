@@ -77,6 +77,7 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
                 text={Math.max(Math.round(beginning), 0)}
                 grouped={grouped}
             />
+            
                 <Window
                     className={"test"}
                     coordinateX={previewSelector.viewFinderX}

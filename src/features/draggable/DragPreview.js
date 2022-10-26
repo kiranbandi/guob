@@ -17,7 +17,7 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
     const basicTrackSelector = useSelector(selectBasicTracks)
 
         return (
-            <div className={className} >
+            <div className={className}>
                 <BasicTrack
                     array={basicTrackSelector[item].array}
                     color={basicTrackSelector[item].color}
@@ -25,6 +25,8 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
                     zoom={basicTrackSelector[item].zoom}
                     pastZoom={basicTrackSelector[item].pastZoom}
                     offset={basicTrackSelector[item].offset}
+                    height={height/2}
+                    noScale={true}
 
                 />
             </div>

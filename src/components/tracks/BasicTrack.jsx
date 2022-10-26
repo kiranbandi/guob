@@ -3,25 +3,34 @@ import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
 import Window from "features/miniview/Window";
 import { Typography, Stack } from '@mui/material';
+import { gene } from './gene.js'
+import { updateComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from 'features/miniview/miniviewSlice.js'
+import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
+import { Tooltip } from "@mui/material";
 
-import { addMiniview, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from 'features/miniview/miniviewSlice.js'
-import { increaseZoom, decreaseZoom, pan } from "./basicTrackSlice";
 
 
 
-
-const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, ...props }) => {
+const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, ...props }) => {
 
     const canvasRef = useRef(null)
 
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['preview']
 
-    const [ endCap, setEndCap ] = useState(0)
-    const [ startOfTrack, setStartOfTrack ] = useState(0)
+    const [endCap, setEndCap] = useState(0)
+    const [startOfTrack, setStartOfTrack] = useState(0)
     const [dragging, setDragging] = useState(false)
-    const [ clickLocation, setClickLocation ] = useState()
-    const [ normalizer, setNormalizer ] = useState([1,1])
+    const [clickLocation, setClickLocation] = useState()
+    const [normalizer, setNormalizer] = useState([1, 1])
+    const [drawnGenes, setDrawnGenes] = useState([])
+
+    const [hovered, setHovered] = useState()
+
+
+
+    //! Needed for syncing multiple tracks
+    const trackSelector = useSelector(selectBasicTracks)
 
     const magicWidth = 2000;
 
@@ -38,30 +47,54 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         const ctx = canvasRef.current.getContext('2d')
         ctx.clearRect(0, 0, magicWidth, ctx.canvas.height)
 
-        let xScale = scaleLinear().domain([0, cap]).range([0, magicWidth*zoom])
+        let xScale = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
 
-       
-      
+
+
         // TODO center the text, and leave a small buffer on each end
-        let basePairUnits = (cap/1000000) > 0 ? [1000000, 'Mb'] : [1000, 'Kb']
-  
+        let basePairUnits = (cap / 1000000) > 0 ? [1000000, 'Mb'] : [1000, 'Kb']
+
         setNormalizer(basePairUnits)
 
-        let scalingIncrements = scaleLinear().domain([0, cap]).range([0, magicWidth*zoom])
-        setStartOfTrack(Math.max(0,scalingIncrements.invert(0 - offset))) 
-        setEndCap(Math.min(scalingIncrements.invert(magicWidth-offset), cap))
+        let scalingIncrements = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
+        setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
+        setEndCap(Math.min(scalingIncrements.invert(magicWidth - offset), cap))
 
-        let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth*zoom])
+        let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth * zoom])
         ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
 
-        array.forEach(gene => {
-            let x = ((xScale(gene.start)) + offset)
-            let rectWidth = widthScale(gene.end - gene.start)
-            ctx.beginPath()
-            ctx.rect(x, 0, rectWidth, ctx.canvas.height)
-            ctx.fill()
-        })
-    }, [array, color, zoom, offset])
+
+        let holding = []
+        if (drawnGenes.length == 0) {
+
+            array.forEach(dataPoint => {
+                let x = ((xScale(dataPoint.start)) + offset)
+                let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                let drawGene = new gene(dataPoint, color)
+                drawGene.create(ctx, x, 0, rectWidth, ctx.canvas.height)
+                holding.push(drawGene)
+            })
+            setDrawnGenes(holding)
+        }
+        else {
+            drawnGenes.forEach(drawGene => {
+                let x = ((xScale(drawGene.start)) + offset)
+                let rectWidth = widthScale(drawGene.end - drawGene.start)
+
+                if (drawGene.key == selection) {
+                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 0)
+                }
+                else if (drawGene == hovered) {
+                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                }
+                else {
+                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
+                }
+
+            })
+        }
+
+    }, [array, color, zoom, offset, drawnGenes, hovered])
 
     let style = {
         position: 'relative',
@@ -69,55 +102,72 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         left: coordinateX,
         width: width,
         height: height,
-        margin: 0
+        paddingLeft: '0.5rem',
+        paddingRight: '0.5rem',
     }
 
     // TODO -> does this need to be here?
     const dispatch = useDispatch()
 
-    function handleScroll(e){
-        
-        let normalizedLocation = (e.clientX/e.target.offsetWidth) * magicWidth
+    function handleScroll(e) {
 
-        let scaleChange = zoom - pastZoom;
-        if(e.deltaY < 0){
-            dispatch(increaseZoom({
-                key: id,
-            }))
-            dispatch(pan({
-                key: id,
-                offset: Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset - normalizedLocation*scaleChange, 0))
-            }))
+        let factor = 0.9
+        if (e.deltaY < 0) {
+            factor = 1 / factor
         }
-        else{
-            if( zoom > 1.0){
-                 dispatch(decreaseZoom({
-                key: id,
-            }))
+
+        let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+        // let normalizedLocation = (e.clientX - e.target.offsetLeft)
+
+        if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
+            factor = 1.0
         }
-            if( zoom == 1.1){
-                dispatch(pan({
-                    key: id,
-                    offset: 0
-                }))
-                return
-            }  
-            // TODO I really don't like the magic-ness of this
-            scaleChange = (zoom/1.1 - zoom)
-             dispatch(pan({
-                key: id,
-                offset: Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset - normalizedLocation*scaleChange, 0))
-            }))
-        }
+
+        dispatch(changeZoom({
+            key: id,
+            zoom: Math.max(zoom * factor, 1.0)
+        }))
+
+        let dx = ((normalizedLocation - offset) * (factor - 1))
+        let offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
+        if (Math.max(zoom * factor, 1.0) == 1.0) offsetX = 0
+
+        dispatch(pan({
+            key: id,
+            offset: offsetX
+        }))
+
+        //! Magic, BUT WHY????
+        let meh = (normalizedLocation - offset) * (e.target.clientWidth / magicWidth)
+        dispatch(updateComparison({
+            key: id,
+            zoom: factor,
+            offset: offsetX,
+        }))
+
+        showPreview(e)
+
     }
 
-    function handlePan(e){
-       dispatch(pan({
-            key:id, 
-            offset: Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset + e.movementX, 0))
+    function handlePan(e) {
+
+        let offsetX = Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset + e.movementX, 0))
+        dispatch(pan({
+            key: id,
+            offset: offsetX,
         }))
- 
-       
+
+        //! Little off due to rounding error
+        let dx = e.movementX * (e.target.clientWidth / magicWidth)
+
+
+        dispatch(updateComparison({
+            key: id,
+            offset: dx,
+            zoom: 1.0,
+        }))
+
+
     }
 
     function showPreview(event) {
@@ -129,7 +179,7 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         let eastEnd = boundingBox.x + boundingBox.width
 
 
-        let changedX = event.pageX
+        let changedX = Math.min(Math.max(event.pageX, westEnd), eastEnd)
         let changedY = boundingBox.y + boundingBox.height + 5 + verticalScroll
 
         // Would give weird scaling if the array was movable
@@ -141,17 +191,27 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
 
         let xScale = scaleLinear().domain([startOfTrack, endCap]).range([westEnd, eastEnd])
-        let widthScale = scaleLinear().domain([0, endCap- startOfTrack]).range([0, eastEnd - westEnd])
+        let widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, eastEnd - westEnd])
 
         let center = xScale.invert(changedX)
-        let head = center - 50000
-        let end = center + 50000
+        let head = Math.max(center - 50000, startOfTrack)
+        let end = Math.min(center + 50000, endCap)
+        if (head == startOfTrack) {
+            changedX = xScale(startOfTrack + 50000)
+            end = startOfTrack + 100000
+        }
+        else if (end == endCap) {
+            changedX = xScale(endCap - 50000)
+            head = endCap - 100000
+        }
+
+        let width = widthScale(end - head)
 
         let previewArray = array.filter(item => {
             return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
         })
 
-        // TODO these are placeholders + hacky fixes
+        // TODO This is a lot of events, no?
         dispatch(changeMiniviewColor({
             key: 'preview',
             color: color
@@ -161,7 +221,7 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             array: previewArray,
             start: head,
             end: end,
-            boxWidth: widthScale(end - head),
+            boxWidth: width,
         }))
         dispatch(moveMiniview(
             {
@@ -182,38 +242,111 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
     }
 
 
-    function handleClick(e){
-        if(e.type =='mousedown'){
+    function handleClick(e) {
+        if (e.type == 'mousedown') {
             setDragging(true)
-            setClickLocation(e.clientX)
+            setClickLocation(e.clientX - e.target.offsetLeft)
         }
-        if(e.type == 'mouseup'){
+        if (e.type == 'mouseup') {
             setDragging(false)
-            if(e.clientX == clickLocation) doSomething(e)
+            if (e.clientX - e.target.offsetLeft == clickLocation) {
+                if (e.altKey == true) {
+                    doSomething(e)
+                    setClickLocation(null)
+                    return
+                }
+                let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+
+                let found = false
+                drawnGenes.forEach(x => {
+                    if (x.hovering(normalizedLocation)) {
+                        setSelection(x)
+                        dispatch(setSelection({
+                            key: id,
+                            selection: x.key,
+                        }))
+                        //! Proof of concept following gene
+                        let index;
+                        let trackID;
+                        let details;
+                        let chromosome;
+                        if (x.siblings != 0 && x.siblings.length > 0) {
+
+                            for (const [key, value] of Object.entries(trackSelector)) {
+                                index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
+                                details = value.array[index]
+                                chromosome = value.array
+                                trackID = key
+                                found = true
+                                break  // just finding the first ortholog as a proof of concept  
+                            }
+
+                            if (found == true && index > -1) {
+
+                                let cap = Math.max(...chromosome.map(d => d.end))
+
+                                let ratio = details.start / cap
+
+                                // Should almost certainly use a web worker for this
+                                let relatedWidthScale = scaleLinear().domain([0, cap]).range([0, magicWidth])
+                                let calculatedZoom = x.width / relatedWidthScale(details.end - details.start) //the size of the ortholog
+
+
+                                // Aligning related tracks with the selected block
+                                dispatch(changeZoom({
+                                    key: trackID,
+                                    zoom: calculatedZoom
+                                }))
+                                dispatch(setSelection({
+                                    key: trackID,
+                                    selection: details.key
+                                }))
+                                dispatch(pan({
+                                    key: trackID,
+                                    offset: -(ratio * magicWidth * calculatedZoom) + x.coordinateX
+                                }))
+                            }
+
+                        }
+                    }
+                })
+                if (found == false) {
+                    dispatch(clearSelection({
+                        key: id,
+                    }))
+                }
+
+            }
             setClickLocation(null)
         }
     }
-    
+
     let cap;
     fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
 
 
-    //! Changing length of text changes the location of ticks
+    //! TODO Changing length of text changes the location of ticks
     return (
-        <div className="test" style={{width: '100%', height: '100%'}}>
-        {title && 
-        <Typography
-            className={"title"}
-            style={{position: 'relative',
-            top: 0,
-            left: 0, 
-            width: '0%', 
-            height: '0%',
-            zIndex: 2,
-            pointerEvents: 'none',}}
-        >{title}</Typography>}
+        <div className="test" style={{ width: '100%', height: '100%' }}>
+            {title &&
+                <Typography
+                    className={"title"}
+                    style={{
+                        position: 'relative',
+                        top: 0,
+                        left: 0,
+                        width: '0%',
+                        height: '0%',
+                        zIndex: 2,
+                        pointerEvents: 'none',
+                    }}
+                >{title}</Typography>}
+                {/* <Tooltip
+                title={'hovered.key'}
+                arrow
+                placement='top'> */}
             <canvas
-            tabIndex={-1}
+                tabIndex={-1}
                 id={id}
                 ref={canvasRef}
                 className='miniview'
@@ -224,10 +357,27 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                 onMouseDown={(e) => handleClick(e)}
                 onMouseUp={(e) => handleClick(e)}
                 onMouseMove={(e) => {
-                    if(dragging) handlePan(e)
-                    canvasRef.current.focus()
-                    showPreview(e)
-                    }}
+                    if (dragging) {
+                        handlePan(e)
+                    }
+                    else {
+                        let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+
+                        let found = false
+                        drawnGenes.forEach(x => {
+                            if (x.hovering(normalizedLocation)) {
+                                setHovered(x)
+                                found = true
+                            }
+                        })
+                        if (found == false) {
+                            setHovered()
+                        }
+                        canvasRef.current.focus()
+                        showPreview(e)
+                    }
+
+                }}
                 onMouseLeave={() => dispatch(
                     changeMiniviewVisibility({
                         key: 'preview',
@@ -236,18 +386,20 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                 )}
                 onWheel={(e) => handleScroll(e)}
                 {...props} />
-            <div className='scale'>
-                <div width='2000' style={{ border: 'solid black 1px', marginTop: -8 }} />
+            {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
+                <div width='2000' style={{ border: 'solid black 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">
-                    <div id={'findme'} style={{ borderLeft: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(startOfTrack/ normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap-startOfTrack) / 5+startOfTrack)/ normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round((2 * (endCap-startOfTrack) / 5+startOfTrack)/ normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15, textAlign: 'right' }} >{Math.round((3 * (endCap-startOfTrack) / 5+startOfTrack)/ normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15, textAlign:'left' }} >{Math.round((4 * (endCap-startOfTrack) / 5+startOfTrack)/ normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap-startOfTrack)+startOfTrack)/ normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderLeft: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
             </div>
-
+            }
+          {/* </Tooltip> */}
+            
         </div>
     )
 }

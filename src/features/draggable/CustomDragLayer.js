@@ -7,7 +7,7 @@ import { nanoid } from '@reduxjs/toolkit'
 const layerStyle = {
     position: 'fixed',
     pointerEvents: 'none',
-    zIndex: 100,
+    zIndex: 3,
     left: 0,
     top: 0,
     height: '100%',
@@ -34,18 +34,15 @@ export const CustomDragLayer = (props) => {
                     const topRow = document.getElementById(props.groupID[0])
                     topRow ? original = topRow.getBoundingClientRect() : original = document.getElementById(item.id).getBoundingClientRect()
                     let adjustment = props.groupID.length > 1 ? document.getElementById(props.groupID[1]).getBoundingClientRect().y - original.y : 0
-   
                     const above = original.top + original.height * 0.1
                     const below = original.top + adjustment * (props.groupID.length - 1) - 5
 
                     if (props.groupID <= 1 || (currentOffset.y > above && currentOffset.y < below)) {
-                        return <DragPreview item={item.id} groupID={props.groupID} height={original.height} width={original.width} className={item.className}/>
+                        return <DragPreview item={item.id} groupID={props.groupID} height={original.height} width={original.width} className={'dragPreview'}/>
                     }
-                    console.log(item)
-                    console.log(item.className)
                     return (
                         props.groupID.map(x => {
-                            return <DragPreview item={x} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()}  className={item.className}/>
+                            return <DragPreview item={x} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()}  className={'dragPreview'}/>
                         })
                     )
                 }
@@ -67,7 +64,8 @@ export const CustomDragLayer = (props) => {
         const topRow = document.getElementById(props.groupID[0])
         topRow ? original = topRow.getBoundingClientRect() : original = document.getElementById(item.id).getBoundingClientRect()
         let adjustment = props.groupID.length > 1 ? document.getElementById(props.groupID[1]).getBoundingClientRect().y - original.y : 0
-        
+        adjustment = adjustment/2
+        // If the drag is below the group
         if (props.groupID.length > 1 && currentOffset.y > original.top + adjustment * (props.groupID.length - 1 )- 6) {
 
                 y -= ((Math.abs(adjustment)) * (props.groupID.length -1 ))
