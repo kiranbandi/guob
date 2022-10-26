@@ -137,8 +137,7 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             offset: offsetX
         }))
 
-        //! Magic, BUT WHY????
-        let meh = (normalizedLocation - offset) * (e.target.clientWidth / magicWidth)
+
         dispatch(updateComparison({
             key: id,
             zoom: factor,
