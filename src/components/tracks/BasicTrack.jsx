@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux"
 import Window from "features/miniview/Window";
 import { Typography, Stack } from '@mui/material';
 import { gene } from './gene.js'
-import { updateComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from 'features/miniview/miniviewSlice.js'
+import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from 'features/miniview/miniviewSlice.js'
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
 import { Tooltip } from "@mui/material";
 
@@ -80,7 +80,9 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             drawnGenes.forEach(drawGene => {
                 let x = ((xScale(drawGene.start)) + offset)
                 let rectWidth = widthScale(drawGene.end - drawGene.start)
-
+                if(x+ rectWidth < 0 || x > magicWidth){
+                    return
+                }
                 if (drawGene.key == selection) {
                     drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 0)
                 }
@@ -115,9 +117,10 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         if (e.deltaY < 0) {
             factor = 1 / factor
         }
-
+        let feck = e.target.getBoundingClientRect()
+        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
         let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
-        // let normalizedLocation = (e.clientX - e.target.offsetLeft)
+        // let normalizedLocation = (e.clientX - (feck.left +padding))
 
         if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
             factor = 1.0
@@ -137,36 +140,63 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             offset: offsetX
         }))
 
-
-        dispatch(updateComparison({
+        // offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
+        console.log(offsetX)
+        // dispatch(panComparison({
+        //     key: id,
+        //     offset: offsetX,
+        //     zoom:  (Math.max(zoom * factor, 1.0) == 1.0),
+        //     width: magicWidth,
+        //     ratio: magicWidth/e.target.clientWidth,
+        //     left: feck.left + padding,
+        //     realWidth: feck.width - (2*padding),
+        //     factor: factor
+        // }))
+        dispatch(panComparison({
             key: id,
-            zoom: factor,
             offset: offsetX,
+            zoom: Math.max(zoom * factor, 1.0),
+            width: magicWidth,
+            ratio: magicWidth / e.target.clientWidth,
+            left: feck.left + padding,
+            realWidth: feck.width - (2 * padding),
+            factor: factor
         }))
-
         showPreview(e)
-
     }
 
     function handlePan(e) {
 
-        let offsetX = Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset + e.movementX, 0))
+        //! Little off due to rounding error
+        let feck = e.target.getBoundingClientRect()
+        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
+        let dx = e.movementX * (magicWidth / e.target.clientWidth)
+        let offsetX = Math.max(Math.min(offset + e.movementX, 0), -((magicWidth * zoom) - magicWidth))
+
+
+
         dispatch(pan({
             key: id,
             offset: offsetX,
         }))
+        dx = (e.movementX / magicWidth) * feck.width
+        offsetX = Math.max(Math.min(offset + dx, 0), -((magicWidth * zoom) - magicWidth))
 
-        //! Little off due to rounding error
-        let dx = e.movementX * (e.target.clientWidth / magicWidth)
 
-
-        dispatch(updateComparison({
+        // ! THis is going weird
+        // Going to need to find the padding
+        let testOffset = Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset - dx, 0))
+        console.log(offsetX)
+        dispatch(panComparison({
             key: id,
-            offset: dx,
-            zoom: 1.0,
+            offset: offsetX,
+            zoom: Math.max(zoom, 1.0),
+            width: magicWidth,
+            ratio: magicWidth / e.target.clientWidth,
+            left: feck.left + padding,
+            realWidth: feck.width - (2 * padding),
+            factor: 1.0
         }))
-
-
     }
 
     function showPreview(event) {
@@ -333,14 +363,15 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                     style={{
                         position: 'relative',
                         top: 0,
-                        left: 0,
+                        left: 10,
                         width: '0%',
                         height: '0%',
                         zIndex: 2,
                         pointerEvents: 'none',
+                        background: 'red',
                     }}
                 >{title}</Typography>}
-                {/* <Tooltip
+            {/* <Tooltip
                 title={'hovered.key'}
                 arrow
                 placement='top'> */}
@@ -397,8 +428,8 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                 </Stack>
             </div>
             }
-          {/* </Tooltip> */}
-            
+            {/* </Tooltip> */}
+
         </div>
     )
 }

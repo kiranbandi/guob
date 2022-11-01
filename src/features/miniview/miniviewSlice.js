@@ -65,37 +65,32 @@ export const miniviewSlice = createSlice({
         removeComparison: (state, action) => {
             let popped = state.comparison.pop()
         },
-        updateComparison: (state, action) => {
-
-            // !ORRRRR
-            
+        panComparison: (state, action) => {
             for (const [key, value] of Object.entries(state.comparison)) {
                 if (value.target == action.payload.key) {
 
-                    let location = scaleLinear().domain([+value.beginning, +value.fin]).range([0, 2000 * +value.zoom])
-                    let test = scaleLinear().domain([0,5]).range([2,7])
-                    console.log(test(3))
-                    console.log(location(+value.head))
-                    console.log(value.head)
-                    console.log(value.beginning)
-                    console.log(value.fin)
-                    value.coordinateX = location(value.head) + action.payload.offset
+                    // The offset is throwing it off? It shouldn't though.
+                    // Original box width
                     
-                    
-                    // value.coordinateX += action.payload.offset 
-                    // value.boxWidth *= action.payload.zoom
-                    
+                    // console.log(value.coordinateX)
+                    // console.log(action.payload.offset)
+                    // When zooming at 1.0, it's actually less than it should be
+                    //  ! Close - off by a little
+                    value.boxWidth *= action.payload.factor
+                    let location = scaleLinear().domain([0, +value.fin]).range([0,(action.payload.realWidth * action.payload.zoom)])
+                    value.coordinateX = location(value.start) + (action.payload.left + action.payload.offset) * action.payload.realWidth/action.payload.width
+                    // console.log(location(value.start))
                 }
             }
         },
         zoomComparison: (state, action) =>{
             
-         // })
+         // })//
+         // Zooming correctly, offset is wrong - also shoots down to zero when moved to a different track?
          for (const [key, value] of Object.entries(state.comparison)) {
             if (value.target == action.payload.key) {
 
-                value.coordinateX += action.payload.offset+ action.payload.offset
-                value.boxWidth *= action.payload.zoom
+                value.boxWidth *= action.payload.factor
                 
             }
         }
@@ -103,7 +98,7 @@ export const miniviewSlice = createSlice({
     }
 })
 
-export const { addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility, addComparison, removeComparison, increaseZoom, decreaseZoom, pan, updateComparison } = miniviewSlice.actions;
+export const { addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility, addComparison, removeComparison, increaseZoom, decreaseZoom, pan, panComparison, zoomComparison } = miniviewSlice.actions;
 
 export const selectMiniviews = (state) => state.miniview.miniviews
 export const selectComparison = (state) => state.miniview.comparison

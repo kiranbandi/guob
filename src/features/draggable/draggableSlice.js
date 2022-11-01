@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     // currently a placeholder
-    draggables: ['zero', 'one', 'two', 'test', 'secondTest'],
+    draggables: [],
     group: [],
 
 }
@@ -59,12 +59,16 @@ export const draggableSlice = createSlice({
             if(state.group.length > 1){
                 state.group.sort((a,b)=> state.draggables.indexOf(a) - state.draggables.indexOf(b))
             }
-        }
+        },
+        deleteAllDraggables: (state, action) => {
+            state.draggables.length = 0
+            state.group.length = 0
+        },
 
     }
 })
 
-export const { moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup } = draggableSlice.actions
+export const { deleteAllDraggables, moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup } = draggableSlice.actions
 
 export const selectDraggables = (state) => state.draggable.draggables
 export const selectGroup = (state) => state.draggable.group

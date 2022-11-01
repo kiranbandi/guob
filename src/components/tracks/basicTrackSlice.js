@@ -7,41 +7,41 @@ import testing_array3 from '../../data/testing_array3';
 const initialState = {
     // Currently just a placeholder 
     BasicTracks: {
-         'zero':{
-             array: testing_array,
-             color: 50,
-             zoom: 1.0,
-             pastZoom: 1.0,
-             offset: 0,
-         },
-         'one':{
-             array: testing_array2,
-             color: 150,
-             zoom: 1.0,
-             pastZoom: 1.0,
-             offset: 0,
-         },
-         'two':{
-             array: testing_array3,
-             color: 250,
-             zoom: 1.0,
-             pastZoom: 1.0,
-             offset: 0,
-         },
-         'test':{
-             array: testing_array2,
-             color: 200,
-             zoom: 1.0,
-             pastZoom: 1.0,
-             offset: 0,
-         },
-         'secondTest':{
-             array: testing_array3,
-             color: 300,
-             zoom: 1.0,
-             pastZoom: 1.0,
-             offset: 0,
-         },
+        //  'zero':{
+        //      array: testing_array,
+        //      color: 50,
+        //      zoom: 1.0,
+        //      pastZoom: 1.0,
+        //      offset: 0,
+        //  },
+        //  'one':{
+        //      array: testing_array2,
+        //      color: 150,
+        //      zoom: 1.0,
+        //      pastZoom: 1.0,
+        //      offset: 0,
+        //  },
+        //  'two':{
+        //      array: testing_array3,
+        //      color: 250,
+        //      zoom: 1.0,
+        //      pastZoom: 1.0,
+        //      offset: 0,
+        //  },
+        //  'test':{
+        //      array: testing_array2,
+        //      color: 200,
+        //      zoom: 1.0,
+        //      pastZoom: 1.0,
+        //      offset: 0,
+        //  },
+        //  'secondTest':{
+        //      array: testing_array3,
+        //      color: 300,
+        //      zoom: 1.0,
+        //      pastZoom: 1.0,
+        //      offset: 0,
+        //  },
      },
 }
 
@@ -93,10 +93,13 @@ export const basicTrackSlice = createSlice({
         clearSelection: (state, action) => {
             state.BasicTracks[action.payload.key].selection = undefined
         },
+        deleteAllBasicTracks: (state, action) => {
+            state.BasicTracks = {}
+        }
     }
 })
 
-export const {addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
+export const {deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
 
 
 export const selectBasicTracks = (state) => state.basictrack.BasicTracks

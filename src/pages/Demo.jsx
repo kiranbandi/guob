@@ -21,7 +21,7 @@ import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
 import { selectBasicTracks, addBasicTrack, removeBasicTrack } from 'components/tracks/basicTrackSlice';
 
-export default function Demo() {
+export default function Demo({isDark}) {
 
   // Demo of redux miniview
   const previewSelector = useSelector(selectMiniviews)['preview']
@@ -33,12 +33,12 @@ export default function Demo() {
   const basicTrackSelector = useSelector(selectBasicTracks)
 
 
-  const [testId, setTestId] = useState(5)
+  const [ testId, setTestId ] = useState(5)
 
-  const [startY, setStartY] = useState(900)
+  const [ startY, setStartY ] = useState(900)
 
-  const [comparisonSpacing, setComparisonSpacing] = useState(1)
-  const [draggableSpacing, setDraggableSpacing] = useState("draggable")
+  const [ comparisonSpacing, setComparisonSpacing ] = useState(1)
+  const [ draggableSpacing, setDraggableSpacing ] = useState("draggable")
 
   const dispatch = useDispatch()
 
@@ -47,9 +47,11 @@ export default function Demo() {
     let data = determineRandomArray()
     let color = Math.floor((Math.random() * 360))
     addNewBasicTrack(testId, data, color)
+    
     dispatch(addDraggable({
       key: testId
     }))
+
     setTestId(id => id + 1)
     setStartY(startY => startY + 85)
     Object.entries(alternateDraggableSelector).forEach(item => {
@@ -159,14 +161,15 @@ export default function Demo() {
         key: testId,
         array: previewSelector.array,
         color: previewSelector.color,
-        start: previewSelector.start,
-        end: previewSelector.end,
+        start: Math.round(previewSelector.start),
+        end: Math.round(previewSelector.end),
         coordinateX: event.pageX,
         coordinateY: y,
-        head: previewSelector.start + (previewSelector.end -previewSelector.start)/2,
+        head: Math.round(previewSelector.start + (previewSelector.end -previewSelector.start)/2),
         target: event.target.id,
         offset: basicTrackSelector[event.target.id].offset,
         boxWidth: previewSelector.boxWidth,
+        originalBoxWidth: previewSelector.boxWidth,
         beginning: Math.min(...basicTrackSelector[event.target.id].array.map(d => d.start)),
         fin:Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
       }))
@@ -189,6 +192,9 @@ export default function Demo() {
     height: 6rem;
     border:solid black 1px;
     flex-direction: row;
+}
+.demo {
+  backgroundColor: red;
 }
 .noMarginDraggable {
       /* cursor: crosshair; */
@@ -222,9 +228,10 @@ export default function Demo() {
   left: 2%;
   
 }
-${'' /* .dragPreview{
-  height: 2rem;
-} */}
+.title{
+  backgroundColor: black;
+  background: black;
+}
 .preview {
     border: 1px solid black;
     background-color: whitesmoke;
@@ -245,6 +252,11 @@ ${'' /* .dragPreview{
   return (
     <>
       <div css={styling}>
+      <div className={'demo'} sx={{
+        backgroundColor:'black',
+        color: 'black',
+        background: 'black',}}>
+
         <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
           <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
           {/* <Button variant='outlined' onClick={addNewAlternateDraggable}>Add an Alternate Draggable</Button> */}
@@ -342,6 +354,7 @@ ${'' /* .dragPreview{
             )
           })}
         </DragContainer> */}
+      </div>
       </div>
     </>
   );

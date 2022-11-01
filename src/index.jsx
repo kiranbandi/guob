@@ -6,13 +6,22 @@ import { store } from './redux/store';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { Dashboard, Demo, Documentation, Home, NotFound } from './pages';
+import { Dashboard, Demo, Documentation, Home, NotFound, AgricultureDemo } from './pages';
 import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { selectTheme } from 'themeSlice';
+import { useSelector } from 'react-redux';
+import App from 'App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
+
+
 root.render(
-  <React.StrictMode>
+  <>
+  <App/>
+  {/* // <React.StrictMode> */}
+  {/* <ThemeProvider theme={darkTheme}>
     <CssBaseline />
     <Provider store={store}>
       <DndProvider backend={HTML5Backend}>
@@ -21,11 +30,12 @@ root.render(
             <Route path="/" element={<Container />}>
               <Route index element={<Home />} />
               {/* uncessary syntatic sugar since react-router v6 doesnt support optional path params */}
-              <Route path="dashboard">
+              {/* <Route path="dashboard">
                 <Route index element={<Dashboard />} />
                 <Route path=":dataID" element={<Dashboard />} />
               </Route>
               <Route path="demo" element={<Demo />} />
+              <Route path="agriculture%20demo" element={<AgricultureDemo />} />
               <Route path="documentation" element={<Documentation />} />
               <Route path="*" element={<NotFound />}
               />
@@ -34,5 +44,7 @@ root.render(
         </HashRouter>
       </DndProvider>
     </Provider>
-  </React.StrictMode>
+  </ThemeProvider> */} 
+  {/* // </React.StrictMode> */}
+  </>
 );
