@@ -11,7 +11,7 @@ import { Tooltip } from "@mui/material";
 
 
 
-const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, ...props }) => {
+const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
 
     const canvasRef = useRef(null)
 
@@ -65,7 +65,7 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
 
         let holding = []
-        let hoverModifier = props.isDark ? 50 : -50
+        let hoverModifier = isDark ? 50 : -50
         if (drawnGenes.length == 0) {
 
             array.forEach(dataPoint => {
