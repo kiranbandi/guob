@@ -5,14 +5,16 @@ import Footer from './Footer';
 import { Container } from "@mui/material";
 
 
-export default function ContainerWrapper() {
+export default function ContainerWrapper({toggleTheme, isDark}) {
+
   return (
     <div>
-      <NavBar />
+      <NavBar toggleTheme={toggleTheme}/>
       <Container maxWidth="xl">
         <Outlet /> 
-        <Footer />
+        <Footer isDark={isDark}/>
       </Container>
+
      
     </div>
   );

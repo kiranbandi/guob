@@ -2,14 +2,17 @@ import React from "react";
 import { AppBar, Toolbar, Typography, Container, Box, IconButton, Menu, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
 import ViewTimelineIcon from '@mui/icons-material/ViewTimeline';
+import Brightness4 from '@mui/icons-material/Brightness4'
 import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import { teal } from '@mui/material/colors';
 
-const pages = ['dashboard', 'documentation', 'demo'];
+const pages = ['dashboard', 'documentation', 'demo', 'agriculture demo'];
 
 
-function Navbar() {
+function Navbar({toggleTheme, ...props}) {
+
+
 
   const [anchorElNav, setAnchorElNav] = React.useState(null);
 
@@ -122,9 +125,20 @@ font-weight: bold;
               </StyledLink>
             ))}
           </Box>
+          <IconButton color={'inherit'} onClick={toggleTheme}>
+          <Brightness4 />
+        </IconButton>
         </Toolbar>
+        
       </Container>
     </AppBar>
   );
 }
+
+
+Navbar.defaultProps ={
+  toggleTheme: () => alert("There are no other themes set up."),
+  isDark: false,
+}
+
 export default Navbar;
