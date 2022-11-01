@@ -2,9 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     // currently a placeholder
-    draggables: [],
+    draggables: ['dh1', 'dh2', 'dh3'],
     group: [],
-
 }
 
 export const draggableSlice = createSlice({

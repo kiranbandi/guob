@@ -252,7 +252,7 @@ export default function Demo({isDark}) {
 }`)
 
   return (
-    <>
+    <div css={{ minHeight: '50vw' }}>
       <div css={styling}>
       <div className={'demo'} sx={{
         backgroundColor:'black',
@@ -337,7 +337,7 @@ export default function Demo({isDark}) {
         </DragContainer>
       </div>
       </div>
-    </>
+    </div>
   );
 }
 

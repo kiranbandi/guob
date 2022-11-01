@@ -2,6 +2,7 @@ import { OfflineShareTwoTone } from '@mui/icons-material';
 import { createSlice } from '@reduxjs/toolkit';
 import { scaleLinear } from 'd3-scale';
 
+
 const initialState = {
     // Currently just a placeholder 
     miniviews: {
