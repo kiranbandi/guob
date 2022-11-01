@@ -229,9 +229,6 @@ export default function AgricultureDemo({isDark}) {
   left: 2%;
   
 }
-${'' /* .dragPreview{
-  height: 2rem;
-} */}
 .preview {
     border: 1px solid black;
     background-color: ${previewBackground};
@@ -249,6 +246,7 @@ ${'' /* .dragPreview{
     margin-bottom: 1ch;
 }`)
 
+// TODO move this to a dedicated parser file
   let [loading, setLoading] = useState(true)
     useEffect(() => {
         setLoading(true)
@@ -256,7 +254,6 @@ ${'' /* .dragPreview{
         dispatch(deleteAllDraggables({}))
         text(demoFile, (error, data) => {
 
-            console.log("???")
             let temporary = data.split(/\n/)
             let dataset = {}
             temporary.forEach(d => {
@@ -322,9 +319,6 @@ ${'' /* .dragPreview{
             let color = 360 / chromosomalData.length
             let tick = -1
             chromosomalData.forEach(point => {
-                // console.log(draggableSelector.includes(point.key.chromosome))
-                // console.log(hackyFix)
-                // console.log(point.key.chromosome)
                 tick += 1
                 addNewDraggable(point.key.chromosome, point.data, color * tick)
     
@@ -332,15 +326,6 @@ ${'' /* .dragPreview{
         setLoading(false)
     })
 }, [demoFile])
-
-
-// const isComponentMounted = useRef(true);
-
-// const { data, loading, error } = useFetch("", isComponentMounted, false);
-
-// if (error) {
-//   console.log(error);
-// }
 
 
 return (

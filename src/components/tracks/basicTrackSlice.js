@@ -2,46 +2,26 @@ import { createSlice } from '@reduxjs/toolkit';
 import testing_array from '../../data/testing_array';
 import testing_array2 from '../../data/testing_array2';
 import testing_array3 from '../../data/testing_array3';
+import testing_array_dh1 from '../../data/testing_array_dh1';
+import testing_array_dh2 from '../../data/testing_array_dh2';
+import testing_array_dh3 from '../../data/testing_array_dh3';
 
 
 const initialState = {
     // Currently just a placeholder 
     BasicTracks: {
-        //  'zero':{
-        //      array: testing_array,
-        //      color: 50,
-        //      zoom: 1.0,
-        //      pastZoom: 1.0,
-        //      offset: 0,
-        //  },
-        //  'one':{
-        //      array: testing_array2,
-        //      color: 150,
-        //      zoom: 1.0,
-        //      pastZoom: 1.0,
-        //      offset: 0,
-        //  },
-        //  'two':{
-        //      array: testing_array3,
-        //      color: 250,
-        //      zoom: 1.0,
-        //      pastZoom: 1.0,
-        //      offset: 0,
-        //  },
-        //  'test':{
-        //      array: testing_array2,
-        //      color: 200,
-        //      zoom: 1.0,
-        //      pastZoom: 1.0,
-        //      offset: 0,
-        //  },
-        //  'secondTest':{
-        //      array: testing_array3,
-        //      color: 300,
-        //      zoom: 1.0,
-        //      pastZoom: 1.0,
-        //      offset: 0,
-        //  },
+        'dh1':{
+            array: testing_array_dh1,
+            color: 50
+        },
+        'dh2':{
+            array: testing_array_dh2,
+            color: 150
+        },
+        'dh3':{
+            array: testing_array_dh3,
+            color: 250
+        },
      },
 }
 
