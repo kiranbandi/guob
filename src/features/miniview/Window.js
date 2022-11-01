@@ -10,7 +10,7 @@ function Window({ coordinateX, coordinateY, width, height, preview, text, groupe
         return (
             <>
 
-           { preview && <div className={className} style={{position: 'absolute', border: 'solid black 2px', top: coordinateY - 1, left: coordinateX-(+width/2), width: width, zIndex: 2, pointerEvents: 'none' }}>
+           { preview && <div className={className} style={{position: 'absolute', borderStyle: 'solid', borderColor: 'inherit', borderWidth: 2, top: coordinateY - 1, left: coordinateX-(+width/2), width: width, zIndex: 2, pointerEvents: 'none' }}>
             </div>} 
             </>
         )

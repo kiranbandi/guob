@@ -65,6 +65,7 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
 
         let holding = []
+        let hoverModifier = props.isDark ? 50 : -50
         if (drawnGenes.length == 0) {
 
             array.forEach(dataPoint => {
@@ -84,10 +85,16 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                     return
                 }
                 if (drawGene.key == selection) {
-                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 0)
+                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
                 }
                 else if (drawGene == hovered) {
-                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                    if(hoverModifier < 0) {
+                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                    }
+                    else{
+                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
+                    }
+                    
                 }
                 else {
                     drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
@@ -139,19 +146,6 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             key: id,
             offset: offsetX
         }))
-
-        // offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
-        console.log(offsetX)
-        // dispatch(panComparison({
-        //     key: id,
-        //     offset: offsetX,
-        //     zoom:  (Math.max(zoom * factor, 1.0) == 1.0),
-        //     width: magicWidth,
-        //     ratio: magicWidth/e.target.clientWidth,
-        //     left: feck.left + padding,
-        //     realWidth: feck.width - (2*padding),
-        //     factor: factor
-        // }))
         dispatch(panComparison({
             key: id,
             offset: offsetX,
@@ -182,11 +176,9 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         dx = (e.movementX / magicWidth) * feck.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((magicWidth * zoom) - magicWidth))
 
-
-        // ! THis is going weird
         // Going to need to find the padding
         let testOffset = Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset - dx, 0))
-        console.log(offsetX)
+
         dispatch(panComparison({
             key: id,
             offset: offsetX,
@@ -290,27 +282,30 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                 drawnGenes.forEach(x => {
                     if (x.hovering(normalizedLocation)) {
                         setSelection(x)
+                        console.log(x.key)
+                        console.log(id)
                         dispatch(setSelection({
                             key: id,
                             selection: x.key,
                         }))
+                        found = true;
                         //! Proof of concept following gene
                         let index;
                         let trackID;
                         let details;
                         let chromosome;
+                        let matched;
                         if (x.siblings != 0 && x.siblings.length > 0) {
-
                             for (const [key, value] of Object.entries(trackSelector)) {
                                 index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
                                 details = value.array[index]
                                 chromosome = value.array
                                 trackID = key
-                                found = true
+                                matched = true
                                 break  // just finding the first ortholog as a proof of concept  
                             }
 
-                            if (found == true && index > -1) {
+                            if (matched == true && index > -1) {
 
                                 let cap = Math.max(...chromosome.map(d => d.end))
 
@@ -417,14 +412,14 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                 onWheel={(e) => handleScroll(e)}
                 {...props} />
             {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
-                <div width='2000' style={{ border: 'solid black 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />
+                <div width='2000' style={{ border: 'solid 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">
-                    <div style={{ borderLeft: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid black 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderLeft: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
             </div>
             }

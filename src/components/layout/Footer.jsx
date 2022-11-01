@@ -1,13 +1,17 @@
 import React from 'react'
 import { AppBar, Toolbar, Stack, Typography, Box, IconButton, Link, CardMedia, Card } from '@mui/material'
-import labLogo from "data/usask_p2irc_colour.png"
+import lightLabLogo from "data/usask_p2irc_colour.png"
+import darkLabLogo from "data/usask_p2irc_colour_reverse.png"
 import uniLogo from "data/usask_usask_colour.png"
 import { teal } from '@mui/material/colors';
 
 
 
 
-function Footer() {
+function Footer({isDark}) {
+   
+    let hoverColor = isDark ? teal[500] : teal[50]
+    
     return (
         <>
             <footer>
@@ -17,9 +21,10 @@ function Footer() {
                     sx={{
                         bottom: 0,
                         mt: '100px',
-                        backgroundColor: 'transparent',
+                        backgroundColor: 'inherit',
                         borderTop: '2px solid ' + teal[800],
-                        boxShadow: 'none'
+                        boxShadow: 'none',
+                        backgroundImage: 'none',
                     }} >
                     <Toolbar sx={{
                         justifyContent: 'space-between',
@@ -44,7 +49,7 @@ function Footer() {
                             borderRadius: 3,
                             m: 0,
                             '&:hover': {
-                                backgroundColor: teal[50]
+                                backgroundColor: hoverColor
                             }
                         }}>
                             <Link
@@ -54,7 +59,7 @@ function Footer() {
                                     color: 'inherit',
                                 }}>
                                 <img
-                                    src={labLogo}
+                                    src={isDark ? darkLabLogo : lightLabLogo}
                                     height="60px" />
                             </Link>
                         </IconButton>

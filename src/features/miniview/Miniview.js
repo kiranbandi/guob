@@ -53,15 +53,16 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
         left: coordinateX,
         width: width,
         height: height,
-        margin: 0
+        margin: 0,
     }
 
+    let scaleBackground = props.isDark ? 'grey' : "whitesmoke"
     let scaleStyle = {
         position: position,
         top: coordinateY,
         height: height + 5,
         margin: 0, 
-        background: 'white',
+        background: scaleBackground,
         zIndex: 100,
     }
 

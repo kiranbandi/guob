@@ -22,12 +22,15 @@ import BasicTrack from 'components/tracks/BasicTrack';
 import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
+import { useFetch } from '../hooks/useFetch';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 // import './canola.gff'
 
 // import 'canola.gff';
 
-export default function AgricultureDemo() {
+export default function AgricultureDemo({isDark}) {
 
 
     // Demo of redux miniview
@@ -178,6 +181,9 @@ export default function AgricultureDemo() {
         }
     }
 
+
+    let previewBackground = isDark ? 'grey' : 'whitesmoke'
+
     let styling = css(css`.example {
     width: 500px;
     height: 700px;
@@ -228,7 +234,7 @@ ${'' /* .dragPreview{
 } */}
 .preview {
     border: 1px solid black;
-    background-color: whitesmoke;
+    background-color: ${previewBackground};
     z-index: 2;
     height: 1rem;
 }
@@ -243,10 +249,9 @@ ${'' /* .dragPreview{
     margin-bottom: 1ch;
 }`)
 
-    // let parserTest;
-    // pullInfo("./data/canola.gff").then(x => parserTest = x)
-
+  let [loading, setLoading] = useState(true)
     useEffect(() => {
+        setLoading(true)
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
         text(demoFile, (error, data) => {
@@ -314,7 +319,6 @@ ${'' /* .dragPreview{
                 chromosomalData.push(temp)
             })
 
-            // console.log(chromosomalData)
             let color = 360 / chromosomalData.length
             let tick = -1
             chromosomalData.forEach(point => {
@@ -323,17 +327,26 @@ ${'' /* .dragPreview{
                 // console.log(point.key.chromosome)
                 tick += 1
                 addNewDraggable(point.key.chromosome, point.data, color * tick)
-            
-
+    
         })
-
+        setLoading(false)
     })
 }, [demoFile])
+
+
+// const isComponentMounted = useRef(true);
+
+// const { data, loading, error } = useFetch("", isComponentMounted, false);
+
+// if (error) {
+//   console.log(error);
+// }
 
 
 return (
     <>
         <div css={styling}>
+        
             <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                 <Button variant='outlined' onClick={() => {
                 setDemoFile("files/at_coordinate.gff")
@@ -347,7 +360,7 @@ return (
                 <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
 
             </Stack>
-
+      
             {previewSelector.visible && <Miniview
                 className={'preview'}
                 array={previewSelector.array}
@@ -361,6 +374,7 @@ return (
                 id={previewSelector.id}
                 absolutePositioning={true}
                 preview={true}
+                isDark={isDark}
             />}
 
 
@@ -387,11 +401,16 @@ return (
                     boxTop={parent.y + verticalScroll}
                     boxWidth={current.boxWidth}
                     grouped={groupSelector.includes(comparableSelector[item].target)}
+                    isDark={isDark}
                 />
             }))
             }
 
-
+  {
+            loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+          <CircularProgress size={75} />
+        </Box> :
+        <>
             <Typography variant={'h5'} sx={{
                 WebkitUserSelect: 'none',
             }}>{titleState}</Typography>
@@ -410,11 +429,14 @@ return (
                                 pastZoom={basicTrackSelector[item].pastZoom}
                                 offset={basicTrackSelector[item].offset}
                                 selection={basicTrackSelector[item].selection}
+                                isDark={isDark}
                             />
                         </Draggable>
                     )
                 })}
             </DragContainer>
+        </>
+        }
         </div>
     </>
 );

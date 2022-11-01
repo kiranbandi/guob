@@ -46,15 +46,15 @@ export default function App() {
   <DndProvider backend={HTML5Backend}>
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Container toggleTheme={() => setIsDark(!isDark)} />}>
+        <Route path="/" element={<Container toggleTheme={() => setIsDark(!isDark)} isDark={isDark}/>}>
           <Route index element={<Home />} />
           {/* uncessary syntatic sugar since react-router v6 doesnt support optional path params */}
           <Route path="dashboard">
             <Route index element={<Dashboard />} />
             <Route path=":dataID" element={<Dashboard />} />
           </Route>
-          <Route path="demo" element={<Demo />} />
-          <Route path="agriculture%20demo" element={<AgricultureDemo />} />
+          <Route path="demo" element={<Demo isDark={isDark}/>} />
+          <Route path="agriculture%20demo" element={<AgricultureDemo isDark={isDark} />} />
           <Route path="documentation" element={<Documentation />} />
           <Route path="*" element={<NotFound />}
           />

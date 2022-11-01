@@ -2,6 +2,10 @@
 import { text } from "d3-request"
 
 
+/**
+ * These functions are pulled from the previous gene density maps, need to be updated for the GUTB
+ */
+ 
 let info,  temporary, savedDensityData
 
 // Pulls collinearity info and makes links

@@ -180,6 +180,8 @@ export default function Demo({isDark}) {
     }
   }
 
+  let previewBackground = isDark ? 'grey' : 'whitesmoke'
+
   let styling = css(css`.example {
     width: 500px;
     height: 700px;
@@ -234,7 +236,7 @@ export default function Demo({isDark}) {
 }
 .preview {
     border: 1px solid black;
-    background-color: whitesmoke;
+    background-color: ${previewBackground};
     z-index: 2;
     height: 1rem;
 }
@@ -259,7 +261,6 @@ export default function Demo({isDark}) {
 
         <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
           <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
-          {/* <Button variant='outlined' onClick={addNewAlternateDraggable}>Add an Alternate Draggable</Button> */}
           <Button variant='outlined' onClick={removeADraggable}>Remove a Draggable</Button>
          <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"}/>
          
@@ -278,6 +279,7 @@ export default function Demo({isDark}) {
           id={previewSelector.id}
           absolutePositioning={true}
           preview={true}
+          isDark={isDark}
         />}
 
         
@@ -304,6 +306,7 @@ export default function Demo({isDark}) {
             boxTop={parent.y + verticalScroll}
             boxWidth={current.boxWidth}
             grouped={groupSelector.includes(comparableSelector[item].target)}
+            isDark={isDark}
           />
         }))
         }
@@ -326,34 +329,12 @@ export default function Demo({isDark}) {
                   pastZoom={basicTrackSelector[item].pastZoom}
                   offset={basicTrackSelector[item].offset}
                   selection={basicTrackSelector[item].selection}
+                  isDark={isDark}
                 />
               </Draggable>
             )
           })}
         </DragContainer>
-
-        {/* <Typography variant={'h5'} sx={{
-          WebkitUserSelect: 'none',
-        }}>
-        Comparing Chromosomes:</Typography> */}
-        {/* <DragContainer starting={draggableSelector}>
-          {draggableSelector.map(item => {
-            return (
-              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
-                <BasicTrack
-                title={item}
-                  array={basicTrackSelector[item].array}
-                  color={basicTrackSelector[item].color}
-                  doSomething={handleClick}
-                  id={item}
-                  zoom={basicTrackSelector[item].zoom}
-                  pastZoom={basicTrackSelector[item].pastZoom}
-                  offset={basicTrackSelector[item].offset}
-                />
-              </Draggable>
-            )
-          })}
-        </DragContainer> */}
       </div>
       </div>
     </>
