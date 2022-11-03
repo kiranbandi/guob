@@ -3,6 +3,7 @@ import { AppBar, Toolbar, Typography, Container, Box, IconButton, Menu, MenuItem
 import { Link } from "react-router-dom";
 import ViewTimelineIcon from '@mui/icons-material/ViewTimeline';
 import Brightness4 from '@mui/icons-material/Brightness4'
+import Brightness7 from '@mui/icons-material/Brightness7'
 import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import { teal } from '@mui/material/colors';
@@ -10,7 +11,7 @@ import { teal } from '@mui/material/colors';
 const pages = ['dashboard', 'documentation', 'demo', 'agriculture demo'];
 
 
-function Navbar({toggleTheme, ...props}) {
+function Navbar({toggleTheme, isDark, ...props}) {
 
 
 
@@ -126,7 +127,7 @@ font-weight: bold;
             ))}
           </Box>
           <IconButton color={'inherit'} onClick={toggleTheme}>
-          <Brightness4 />
+          {isDark ? <Brightness4 /> : <Brightness7 />}
         </IconButton>
         </Toolbar>
         

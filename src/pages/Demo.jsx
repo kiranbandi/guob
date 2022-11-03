@@ -230,10 +230,10 @@ export default function Demo({isDark}) {
   left: 2%;
   
 }
-.title{
+${'' /* .title{
   backgroundColor: black;
   background: black;
-}
+} */}
 .preview {
     border: 1px solid black;
     background-color: ${previewBackground};
@@ -325,6 +325,7 @@ export default function Demo({isDark}) {
                   color={basicTrackSelector[item].color}
                   doSomething={handleClick}
                   id={item}
+                  title={item}
                   zoom={basicTrackSelector[item].zoom}
                   pastZoom={basicTrackSelector[item].pastZoom}
                   offset={basicTrackSelector[item].offset}

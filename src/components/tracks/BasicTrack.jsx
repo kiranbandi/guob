@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, focus } from "react"
+
 import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
 import Window from "features/miniview/Window";
@@ -14,7 +15,6 @@ import { Tooltip } from "@mui/material";
 const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
 
     const canvasRef = useRef(null)
-
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['preview']
 
@@ -49,8 +49,6 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
         let xScale = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
 
-
-
         // TODO center the text, and leave a small buffer on each end
         let basePairUnits = (cap / 1000000) > 0 ? [1000000, 'Mb'] : [1000, 'Kb']
 
@@ -61,49 +59,84 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         setEndCap(Math.min(scalingIncrements.invert(magicWidth - offset), cap))
 
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth * zoom])
+        let lightnessScale = scaleLinear().domain([0, 100]).range([10, 90])
         ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
 
 
-        let holding = []
-        let hoverModifier = isDark ? 50 : -50
-        if (drawnGenes.length == 0) {
+        let holding = [];
+        let hoverModifier = isDark ? 50 : -50;
+        let density = array[0].value !== undefined
+
+
+        if (drawnGenes.length === 0) {
 
             array.forEach(dataPoint => {
                 let x = ((xScale(dataPoint.start)) + offset)
                 let rectWidth = widthScale(dataPoint.end - dataPoint.start)
-                let drawGene = new gene(dataPoint, color)
+                let lightness = density ? lightnessScale(+dataPoint.value) : 50
+                let drawGene = new gene(dataPoint, color, +lightness)
                 drawGene.create(ctx, x, 0, rectWidth, ctx.canvas.height)
                 holding.push(drawGene)
             })
             setDrawnGenes(holding)
         }
         else {
-            drawnGenes.forEach(drawGene => {
-                let x = ((xScale(drawGene.start)) + offset)
-                let rectWidth = widthScale(drawGene.end - drawGene.start)
-                if(x+ rectWidth < 0 || x > magicWidth){
-                    return
-                }
-                if (drawGene.key == selection) {
-                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
-                }
-                else if (drawGene == hovered) {
-                    if(hoverModifier < 0) {
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
-                    }
-                    else{
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
-                    }
-                    
-                }
-                else {
-                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
-                }
+            if (!density) {
 
-            })
+                drawnGenes.forEach(drawGene => {
+                    let x = ((xScale(drawGene.start)) + offset)
+                    let rectWidth = widthScale(drawGene.end - drawGene.start)
+                    if (x + rectWidth < 0 || x > magicWidth) {
+                        return
+                    }
+                    if (drawGene.key == selection) {
+                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
+                    }
+                    else if (drawGene == hovered) {
+                        if (hoverModifier < 0) {
+                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                        }
+                        else {
+                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
+                        }
+
+                    }
+                    else {
+                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
+                    }
+
+                })
+            }
+            else {
+
+                //TODO change color when checking density
+                drawnGenes.forEach(drawGene => {
+                    let x = ((xScale(drawGene.start)) + offset)
+                    let rectWidth = widthScale(drawGene.end - drawGene.start)
+                    if (x + rectWidth < 0 || x > magicWidth) {
+                        return
+                    }
+                    if (drawGene.key == selection) {
+                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
+                    }
+                    else if (drawGene == hovered) {
+                        if (hoverModifier < 0) {
+                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                        }
+                        else {
+                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
+                        }
+
+                    }
+                    else {
+                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
+                    }
+
+                })
+            }
         }
 
-    }, [array, color, zoom, offset, drawnGenes, hovered])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark])
 
     let style = {
         position: 'relative',
@@ -119,15 +152,16 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
     const dispatch = useDispatch()
 
     function handleScroll(e) {
-
+        // e.preventDefault();
+        // e.stopPropagation();
         let factor = 0.9
         if (e.deltaY < 0) {
             factor = 1 / factor
         }
-        let feck = e.target.getBoundingClientRect()
+        let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
         let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
-        // let normalizedLocation = (e.clientX - (feck.left +padding))
+        // let normalizedLocation = (e.clientX - (trackBoundingRectangle.left +padding))
 
         if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
             factor = 1.0
@@ -152,8 +186,8 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             zoom: Math.max(zoom * factor, 1.0),
             width: magicWidth,
             ratio: magicWidth / e.target.clientWidth,
-            left: feck.left + padding,
-            realWidth: feck.width - (2 * padding),
+            left: trackBoundingRectangle.left + padding,
+            realWidth: trackBoundingRectangle.width - (2 * padding),
             factor: factor
         }))
         showPreview(e)
@@ -162,18 +196,27 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
     function handlePan(e) {
 
         //! Little off due to rounding error
-        let feck = e.target.getBoundingClientRect()
+        let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
         let dx = e.movementX * (magicWidth / e.target.clientWidth)
         let offsetX = Math.max(Math.min(offset + e.movementX, 0), -((magicWidth * zoom) - magicWidth))
 
-
+        let westEnd = trackBoundingRectangle.x
+        let eastEnd = trackBoundingRectangle.width + westEnd
 
         dispatch(pan({
             key: id,
             offset: offsetX,
         }))
-        dx = (e.movementX / magicWidth) * feck.width
+        dispatch(moveMiniview(
+            {
+                key: 'preview',
+                coordinateX: Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, e.clientX - previewSelector.width / 2)),
+                coordinateY: trackBoundingRectangle.y + trackBoundingRectangle.height + 5,
+                // viewFinderY: boundingBox.y + verticalScroll,
+                viewFinderX: e.clientX
+            }))
+        dx = (e.movementX / magicWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((magicWidth * zoom) - magicWidth))
 
         // Going to need to find the padding
@@ -185,8 +228,8 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             zoom: Math.max(zoom, 1.0),
             width: magicWidth,
             ratio: magicWidth / e.target.clientWidth,
-            left: feck.left + padding,
-            realWidth: feck.width - (2 * padding),
+            left: trackBoundingRectangle.left + padding,
+            realWidth: trackBoundingRectangle.width - (2 * padding),
             factor: 1.0
         }))
     }
@@ -282,8 +325,7 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                 drawnGenes.forEach(x => {
                     if (x.hovering(normalizedLocation)) {
                         setSelection(x)
-                        console.log(x.key)
-                        console.log(id)
+                        console.log(x)
                         dispatch(setSelection({
                             key: id,
                             selection: x.key,
@@ -348,34 +390,39 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
     let cap;
     fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
 
+    // debugger
+
 
     //! TODO Changing length of text changes the location of ticks
     return (
         <div className="test" style={{ width: '100%', height: '100%' }}>
+            {/* <Tooltip
+                title={'hovered.key'}
+                arrow
+                placement='top'> */}
+                {/*TODO  Calculate the actual width here*/}
             {title &&
                 <Typography
                     className={"title"}
                     style={{
                         position: 'relative',
                         top: 0,
-                        left: 10,
-                        width: '0%',
+                        // left: 0,
+                        marginLeft: 'auto',
+                        marginRight: 0,
+                        width: 40,
                         height: '0%',
                         zIndex: 2,
                         pointerEvents: 'none',
                         background: 'red',
                     }}
                 >{title}</Typography>}
-            {/* <Tooltip
-                title={'hovered.key'}
-                arrow
-                placement='top'> */}
             <canvas
                 tabIndex={-1}
                 id={id}
                 ref={canvasRef}
                 className='miniview'
-                width='2000'
+                width={magicWidth}
                 height='1000'
                 style={style}
                 onContextMenu={doSomething}
@@ -403,23 +450,26 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                     }
 
                 }}
-                onMouseLeave={() => dispatch(
-                    changeMiniviewVisibility({
+                onMouseLeave={() => {
+                    dispatch(changeMiniviewVisibility({
                         key: 'preview',
                         visible: false
                     })
-                )}
-                onWheel={(e) => handleScroll(e)}
+                    )
+                    setHovered()
+                }
+                }
+                onWheelCapture={(e) => handleScroll(e)}
                 {...props} />
             {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">
-                    <div style={{ borderLeft: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
             </div>
             }

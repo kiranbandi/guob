@@ -2,7 +2,7 @@
 
 
 export class gene{
-    constructor(geneInfo, colour) {
+    constructor(geneInfo, colour, lightness) {
         this.start = geneInfo.start;
         this.end = geneInfo.end;
         this.chromosome = geneInfo.chromosome;
@@ -10,6 +10,7 @@ export class gene{
         this.color = colour
         this.hover = false
         this.siblings = geneInfo.siblings
+        this.lightness = lightness
         //! Just for finding/testing
         if(this.siblings != undefined && this.siblings.length > 0){
             this.color += 20
@@ -21,7 +22,7 @@ export class gene{
         this.coordinateY = coordinateY
         this.width = width
         this.height = height
-        context.fillStyle = 'hsl(' + this.color + ', 70%, 50%)'
+        context.fillStyle = 'hsl(' + this.color + ', 70%, ' + this.lightness +'%)'
         context.beginPath()
         context.rect(coordinateX, coordinateY, width, height)
         context.fill()
@@ -40,11 +41,11 @@ export class gene{
 
     hovering(mouseX){
         if(mouseX >= this.coordinateX && mouseX <= this.coordinateX + this.width){
-                this.lightness = 0
+                // this.lightness = 0
                 return true
              }
              else{
-                 this.lightness = 50
+                //  this.lightness = 50
                  return false
              }
     }

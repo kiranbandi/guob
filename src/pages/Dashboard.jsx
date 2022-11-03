@@ -11,6 +11,8 @@ import { addComparison, selectMiniviews } from '../features/miniview/miniviewSli
 import { selectDraggables } from '../features/draggable/draggableSlice';
 import { useState } from 'react';
 import {selectComparison, removeComparison } from '../features/miniview/miniviewSlice';
+import { selectBasicTracks } from 'components/tracks/basicTrackSlice';
+import  BasicTrack  from 'components/tracks/BasicTrack.jsx'
 
 export default function Dashboard() {
 
@@ -24,7 +26,7 @@ export default function Dashboard() {
 
   // Demo of redux miniview
   const previewSelector = useSelector(selectMiniviews)['preview']
-  const miniviewSelector = useSelector(selectMiniviews)
+  const miniviewSelector = useSelector(selectBasicTracks)
   const draggableSelector = useSelector(selectDraggables)
 
   const comparableSelector = useSelector(selectComparison)
@@ -126,7 +128,7 @@ export default function Dashboard() {
             {draggableSelector.map(item => {
               return (
                 <Draggable key={item}>
-                  <Miniview
+                  <BasicTrack
                     array={miniviewSelector[item].array}
                     color={miniviewSelector[item].color}
                     doSomething={takePreviewSnapshot}
