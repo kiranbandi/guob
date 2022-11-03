@@ -9,6 +9,7 @@ export class gene {
         this.lightness = geneInfo.lightness;
         this.hover = false
         this.siblings = geneInfo.siblings
+        this.lightness = geneInfo.lightness
         //! Just for finding/testing
         if (this.siblings != undefined && this.siblings.length > 0) {
             this.color += 20

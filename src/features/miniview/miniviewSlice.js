@@ -95,11 +95,14 @@ export const miniviewSlice = createSlice({
                 
             }
         }
+        },
+        clearComparisons: (state, action) =>{
+            state.comparison.length = 0;
         }
     }
 })
 
-export const { addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility, addComparison, removeComparison, increaseZoom, decreaseZoom, pan, panComparison, zoomComparison } = miniviewSlice.actions;
+export const { addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility, addComparison, removeComparison, increaseZoom, decreaseZoom, pan, panComparison, zoomComparison, clearComparisons } = miniviewSlice.actions;
 
 export const selectMiniviews = (state) => state.miniview.miniviews
 export const selectComparison = (state) => state.miniview.comparison

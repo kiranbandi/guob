@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, focus } from "react"
+
 import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
 import Window from "features/miniview/Window";
@@ -14,7 +15,6 @@ import { Tooltip } from "@mui/material";
 const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
 
     const canvasRef = useRef(null)
-
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['preview']
 
@@ -38,8 +38,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         let cap = normalizedLength ? normalizedLength : Math.max(...array.map(d => d.end))
 
-        let start;
-        beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
+        let start = Math.min(...array.map(d => d.start))
 
         const ctx = canvasRef.current.getContext('2d')
 
@@ -102,10 +101,60 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50)
                 }
 
-            })
+                // drawnGenes.forEach(drawGene => {
+                //     let x = ((xScale(drawGene.start)) + offset)
+                //     let rectWidth = widthScale(drawGene.end - drawGene.start)
+                //     if (x + rectWidth < 0 || x > magicWidth) {
+                //         return
+                //     }
+                //     if (drawGene.key == selection) {
+                //         drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
+                //     }
+                //     else if (drawGene == hovered) {
+                //         if (hoverModifier < 0) {
+                //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                //         }
+                //         else {
+                //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
+                //         }
+
+                //     }
+                //     else {
+                //         drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
+                //     }
+
+                })
+            // }
+            // else {
+
+            //     //TODO change color when checking density
+            //     drawnGenes.forEach(drawGene => {
+            //         let x = ((xScale(drawGene.start)) + offset)
+            //         let rectWidth = widthScale(drawGene.end - drawGene.start)
+            //         if (x + rectWidth < 0 || x > magicWidth) {
+            //             return
+            //         }
+            //         if (drawGene.key == selection) {
+            //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
+            //         }
+            //         else if (drawGene == hovered) {
+            //             if (hoverModifier < 0) {
+            //                 drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+            //             }
+            //             else {
+            //                 drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
+            //             }
+
+            //         }
+            //         else {
+            //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
+            //         }
+
+            //     })
+            // }
         }
 
-    }, [array, color, zoom, offset, drawnGenes, hovered])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark])
 
     let style = {
         position: 'relative',
@@ -123,8 +172,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     function handleScroll(e) {
 
         // TODO - Event not being prevented from bubbling
-        e.preventDefault();
-        e.stopPropagation()
+        // e.preventDefault();
+        // e.stopPropagation()
 
 
         if (e.altKey == true) {
@@ -171,18 +220,27 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     function handlePan(e) {
 
         //! Little off due to rounding error
-        let feck = e.target.getBoundingClientRect()
+        let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
         let dx = e.movementX * (magicWidth / e.target.clientWidth)
         let offsetX = Math.max(Math.min(offset + e.movementX, 0), -((magicWidth * zoom) - magicWidth))
 
-
+        let westEnd = trackBoundingRectangle.x
+        let eastEnd = trackBoundingRectangle.width + westEnd
 
         dispatch(pan({
             key: id,
             offset: offsetX,
         }))
-        dx = (e.movementX / magicWidth) * feck.width
+        dispatch(moveMiniview(
+            {
+                key: 'preview',
+                coordinateX: Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, e.clientX - previewSelector.width / 2)),
+                coordinateY: trackBoundingRectangle.y + trackBoundingRectangle.height + 5,
+                // viewFinderY: boundingBox.y + verticalScroll,
+                viewFinderX: e.clientX
+            }))
+        dx = (e.movementX / magicWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((magicWidth * zoom) - magicWidth))
 
         // Going to need to find the padding
@@ -194,8 +252,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             zoom: Math.max(zoom, 1.0),
             width: magicWidth,
             ratio: magicWidth / e.target.clientWidth,
-            left: feck.left + padding,
-            realWidth: feck.width - (2 * padding),
+            left: trackBoundingRectangle.left + padding,
+            realWidth: trackBoundingRectangle.width - (2 * padding),
             factor: 1.0
         }))
     }
@@ -291,8 +349,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 drawnGenes.forEach(x => {
                     if (x.hovering(normalizedLocation)) {
                         setSelection(x)
-                        console.log(x.key)
-                        console.log(id)
+                        console.log(x)
                         dispatch(setSelection({
                             key: id,
                             selection: x.key,
@@ -357,34 +414,39 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     let cap;
     fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
 
+    // debugger
+
 
     //! TODO Changing length of text changes the location of ticks
     return (
         <div className="test" style={{ width: '100%', height: '100%' }}>
+            {/* <Tooltip
+                title={'hovered.key'}
+                arrow
+                placement='top'> */}
+                {/*TODO  Calculate the actual width here*/}
             {title &&
                 <Typography
                     className={"title"}
                     style={{
                         position: 'relative',
                         top: 0,
-                        left: 10,
-                        width: '0%',
+                        // left: 0,
+                        marginLeft: 'auto',
+                        marginRight: 0,
+                        width: 40,
                         height: '0%',
                         zIndex: 2,
                         pointerEvents: 'none',
                         background: 'red',
                     }}
                 >{title}</Typography>}
-            {/* <Tooltip
-                title={'hovered.key'}
-                arrow
-                placement='top'> */}
             <canvas
                 tabIndex={-1}
                 id={id}
                 ref={canvasRef}
                 className='miniview'
-                width='2000'
+                width={magicWidth}
                 height='1000'
                 style={style}
                 onContextMenu={doSomething}
@@ -412,23 +474,24 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     }
 
                 }}
-                onMouseLeave={() => dispatch(
-                    changeMiniviewVisibility({
+                onMouseLeave={() => {
+                    dispatch(changeMiniviewVisibility({
                         key: 'preview',
                         visible: false
                     })
                 )}
+                }
                 onWheel={handleScroll}
                 {...props} />
             {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">
-                    <div style={{ borderLeft: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 15 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
             </div>
             }

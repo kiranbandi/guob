@@ -8,7 +8,7 @@ import { Typography} from '@mui/material';
 import { selectMiniviews } from "./miniviewSlice"
 
 
-const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, grouped, ...props }) => {
+const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, grouped, isDark, ...props }) => {
 
     const canvasRef = useRef()
 
@@ -56,7 +56,7 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
         margin: 0,
     }
 
-    let scaleBackground = props.isDark ? 'grey' : "whitesmoke"
+    let scaleBackground = isDark ? 'grey' : "whitesmoke"
     let scaleStyle = {
         position: position,
         top: coordinateY,

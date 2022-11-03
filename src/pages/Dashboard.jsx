@@ -239,6 +239,27 @@ export default function Dashboard({ isDark }) {
     margin-bottom: 1ch;
 }`)
 
+// useEffect(() => {
+//   setLoading(true)
+//   dispatch(deleteAllBasicTracks({}))
+//   dispatch(deleteAllDraggables({}))
+//   let test = parseGFF(demoFile)
+//   test.then(chromosomalData => {
+//       let color = 360 / chromosomalData.length
+//       let tick = -1
+//       chromosomalData.forEach(point => {
+//           tick += 1
+//           addNewDraggable(point.key.chromosome, point.data, color * tick)
+
+//       })
+//       dispatch(addDraggable({
+//           key: 'links'
+//       }))
+//   })
+// // })
+// setLoading(false)
+// }, [demoFile])
+
     // TODO move this to a dedicated parser file
     let [loading, setLoading] = useState(true)
     useEffect(() => {
