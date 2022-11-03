@@ -11,7 +11,7 @@ import { Tooltip } from "@mui/material";
 
 
 
-const BasicTrack = ({ array, color, trackType = 'default', doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
+const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
 
     const canvasRef = useRef(null)
 
@@ -36,8 +36,7 @@ const BasicTrack = ({ array, color, trackType = 'default', doSomething, coordina
 
         if (array == undefined) return
 
-        let cap;
-        fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
+        let cap = normalizedLength ? normalizedLength : Math.max(...array.map(d => d.end))
 
         let start;
         beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
@@ -123,43 +122,50 @@ const BasicTrack = ({ array, color, trackType = 'default', doSomething, coordina
 
     function handleScroll(e) {
 
-        let factor = 0.9
-        if (e.deltaY < 0) {
-            factor = 1 / factor
+        // TODO - Event not being prevented from bubbling
+        e.preventDefault();
+        e.stopPropagation()
+
+
+        if (e.altKey == true) {
+            let factor = 0.9
+            if (e.deltaY < 0) {
+                factor = 1 / factor
+            }
+            let feck = e.target.getBoundingClientRect()
+            let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
+            let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+            // let normalizedLocation = (e.clientX - (feck.left +padding))
+
+            if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
+                factor = 1.0
+            }
+
+            dispatch(changeZoom({
+                key: id,
+                zoom: Math.max(zoom * factor, 1.0)
+            }))
+
+            let dx = ((normalizedLocation - offset) * (factor - 1))
+            let offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
+            if (Math.max(zoom * factor, 1.0) == 1.0) offsetX = 0
+
+            dispatch(pan({
+                key: id,
+                offset: offsetX
+            }))
+            dispatch(panComparison({
+                key: id,
+                offset: offsetX,
+                zoom: Math.max(zoom * factor, 1.0),
+                width: magicWidth,
+                ratio: magicWidth / e.target.clientWidth,
+                left: feck.left + padding,
+                realWidth: feck.width - (2 * padding),
+                factor: factor
+            }))
+            showPreview(e)
         }
-        let feck = e.target.getBoundingClientRect()
-        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-        let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
-        // let normalizedLocation = (e.clientX - (feck.left +padding))
-
-        if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
-            factor = 1.0
-        }
-
-        dispatch(changeZoom({
-            key: id,
-            zoom: Math.max(zoom * factor, 1.0)
-        }))
-
-        let dx = ((normalizedLocation - offset) * (factor - 1))
-        let offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
-        if (Math.max(zoom * factor, 1.0) == 1.0) offsetX = 0
-
-        dispatch(pan({
-            key: id,
-            offset: offsetX
-        }))
-        dispatch(panComparison({
-            key: id,
-            offset: offsetX,
-            zoom: Math.max(zoom * factor, 1.0),
-            width: magicWidth,
-            ratio: magicWidth / e.target.clientWidth,
-            left: feck.left + padding,
-            realWidth: feck.width - (2 * padding),
-            factor: factor
-        }))
-        showPreview(e)
     }
 
     function handlePan(e) {
@@ -412,7 +418,7 @@ const BasicTrack = ({ array, color, trackType = 'default', doSomething, coordina
                         visible: false
                     })
                 )}
-                onWheel={(e) => handleScroll(e)}
+                onWheel={handleScroll}
                 {...props} />
             {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />

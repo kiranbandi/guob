@@ -26,6 +26,7 @@ import { useEffect, useRef } from "react"
 import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
+import _ from 'lodash';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -51,12 +52,13 @@ export default function Dashboard({ isDark }) {
 
     const [comparisonSpacing, setComparisonSpacing] = useState(1)
     const [draggableSpacing, setDraggableSpacing] = useState("draggable")
+    const [normalize, setNormalize] = useState(false)
 
     const dispatch = useDispatch()
 
     // 85 px
-    function addNewDraggable(key, trackType, data, color) {
-        addNewBasicTrack(key, trackType, data, color)
+    function addNewDraggable(key, trackType, data, normalizedLength, color) {
+        addNewBasicTrack(key, trackType, data, normalizedLength, color)
 
         dispatch(addDraggable({
             key: key
@@ -80,15 +82,16 @@ export default function Dashboard({ isDark }) {
         return chosenArray
     }
 
-    function addNewBasicTrack(id, trackType, data, color, start, end) {
+    function addNewBasicTrack(id, trackType, data, normalizedLength, color, start, end) {
 
         dispatch(addBasicTrack({
             key: id,
             trackType,
             array: data,
-            color: color,
-            start: start,
-            end: end,
+            normalizedLength,
+            color,
+            start,
+            end,
             zoom: 1.0,
             pastZoom: 1.0,
             offset: 0,
@@ -119,6 +122,8 @@ export default function Dashboard({ isDark }) {
     function changeMargins(e) {
         e.target.checked ? setDraggableSpacing("noMarginDraggable ") : setDraggableSpacing('draggable')
     }
+
+    function changeNormalize(e) { setNormalize(e.target.checked) }
 
     function removeAnAlternateDraggable() {
         let keys = Object.keys(alternateDraggableSelector)
@@ -330,7 +335,7 @@ export default function Dashboard({ isDark }) {
             })
 
 
-            let color, tick;
+            let color, tick, normalizedLength = 0;
             if (trackType === 'default') {
                 color = 360 / chromosomalData.length
                 tick = -1
@@ -340,14 +345,18 @@ export default function Dashboard({ isDark }) {
                 tick = 1;
             }
 
+            if (normalize) {
+                normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+            }
+
             chromosomalData.forEach(point => {
                 tick += 1
-                addNewDraggable(point.key.chromosome, trackType, point.data, color * tick)
+                addNewDraggable(point.key.chromosome, trackType, point.data, normalizedLength, color * tick)
 
             })
             setLoading(false)
         })
-    }, [demoFile])
+    }, [demoFile, normalize])
 
 
     return (
@@ -374,6 +383,7 @@ export default function Dashboard({ isDark }) {
                     setTitleState("Triticum aestivum")
                 }}>Triticum aestivum</Button>
                 <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
+                <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
 
             </Stack>
 
@@ -439,6 +449,7 @@ export default function Dashboard({ isDark }) {
                                         <BasicTrack
                                             array={basicTrackSelector[item].array}
                                             color={basicTrackSelector[item].color}
+                                            normalizedLength={basicTrackSelector[item].normalizedLength}
                                             trackType={basicTrackSelector[item].trackType}
                                             title={item}
                                             doSomething={handleClick}
