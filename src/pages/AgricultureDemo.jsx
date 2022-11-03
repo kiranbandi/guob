@@ -27,6 +27,8 @@ import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import TrackLinks from 'components/tracks/TrackLinks'
+import parseGFF from 'features/parsers/testParser';
+import { CopyAll } from '@mui/icons-material';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -184,7 +186,7 @@ export default function AgricultureDemo({ isDark }) {
 
 
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
-    let [ sliderHeight, setSliderHeight ] = useState(50);
+    let [sliderHeight, setSliderHeight] = useState(50);
 
     //TODO fix some hacky stuff in here
 
@@ -200,6 +202,10 @@ export default function AgricultureDemo({ isDark }) {
     height: ${sliderHeight + 'px'};
     border:solid black 1px;
     flex-direction: row;
+    overflow: hidden;
+}
+.body {
+    overflow: hidden;
 }
 .noMarginDraggable {
       /* cursor: crosshair; */
@@ -245,107 +251,19 @@ export default function AgricultureDemo({ isDark }) {
 .groupedComparison {
   height : 2.5rem;
 }
-.linkContainer{
-    
-}
 .Container{
     border: 2px solid grey;
     margin-bottom: 1ch;
 }`)
 
-    // TODO move this to a dedicated parser file
     let [loading, setLoading] = useState(true)
+
     useEffect(() => {
         setLoading(true)
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
-        text(demoFile, (error, data) => {
-            
-            let temporary = data.split(/\n/)
-            let dataset = {}
-            if(demoFile.indexOf(".bed") > -1){
-                temporary.forEach(d => {
-                    let info = d.split('\t')
-                    if (info.length > 1) {
-                        let key = info[1] + info[2] + info[3]
-                        var stats = {
-                            chromosome: info[0],
-                            start: info[1],
-                            end: info[2],
-                            key: key,
-                            ortholog: false,
-                            siblings: [],
-                            value: +info[3]
-                        }
-                        dataset[key] = stats
-                    }
-    
-                })
-            }
-            else{
-                
-                temporary.forEach(d => {
-                    let info = d.split('\t')
-                    if (info.length > 1) {
-                        let key = info[1].toLowerCase()
-                        var stats = {
-                            chromosome: info[0],
-                            start: info[2],
-                            end: info[3],
-                            key: key,
-                            ortholog: false,
-                            siblings: [],
-                        }
-    
-                        dataset[key] = stats
-                    }
-    
-                })
-            }
-
-
-
-            // Building up the different chromosomes
-            let chromosomeNameList = []
-            let chromosomalData = []
-            let ignore = "Scaffold"
-            for (let item in dataset) {
-                // this.dataset.forEach((item) => {
-                if (!chromosomeNameList.some((x) => x.chromosome == dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
-                    var check = item
-                    var temp = {
-                        chromosome: dataset[item].chromosome,
-                        designation: check.slice(0, check.indexOf('g'))
-                    }
-                    // Building a list of the chromosome names, used for later finding information on that dataset
-                    chromosomeNameList.push(temp)
-                }
-            }
-            // )
-
-            // Changing the default lexicographical order, since chromosome11 should come after chromosome2 
-            // additional logic so that all chromosomes from the same line should be grouped   
-            chromosomeNameList.sort((a, b) => {
-                if (a.chromosome[0].localeCompare(b.chromosome[0]) == 0) {
-                    return a.chromosome.length - b.chromosome.length
-                }
-                else {
-                    return a.chromosome[0].localeCompare(b.chromosome[0])
-                }
-            })
-
-            chromosomeNameList.forEach((chr) => {
-                var subset = Object.entries(dataset).filter(d => {
-                    return d[1].chromosome == chr.chromosome
-                }).map(x => x[1])
-
-                var temp = {
-                    key: chr,
-                    data: subset,
-                }
-                chromosomalData.push(temp)
-            })
-
+        let test = parseGFF(demoFile)
+        test.then(chromosomalData => {
             let color = 360 / chromosomalData.length
             let tick = -1
             chromosomalData.forEach(point => {
@@ -356,148 +274,149 @@ export default function AgricultureDemo({ isDark }) {
             dispatch(addDraggable({
                 key: 'links'
             }))
-            setLoading(false)
         })
-    }, [demoFile])
+    // })
+    setLoading(false)
+}, [demoFile])
 
-    function clearComparisonTracks(){
-        dispatch(clearComparisons({
+function clearComparisonTracks() {
+    dispatch(clearComparisons({
 
-        }))
+    }))
+}
+
+const handleSlider = (event, newValue) => {
+    if (typeof newValue === 'number') {
+
+        setSliderHeight(newValue)
     }
+}
 
-    const handleSlider = (event, newValue) =>{
-        if(typeof newValue === 'number'){
+return (
+    <>
+        <div css={styling}>
 
-            setSliderHeight(newValue)
-        }
-    }
-
-    return (
-        <>
-            <div css={styling}>
-
-                <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+            <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                 <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/bn_methylation.bed")
-                        setTitleState("Methylation test")
-                    }}>Methylation Test</Button>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/at_coordinate.gff")
-                        setTitleState("Aradopsis thaliana")
-                    }}>Aradopsis thaliana</Button>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/bn_coordinate.gff")
-                        setTitleState("Brassica napus")
-                    }}>Brassica napus</Button>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/ta_hb_coordinate.gff")
-                        setTitleState("Triticum aestivum")
-                    }}>Triticum aestivum</Button>
-                    <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
-                </Stack>
-                <Slider 
-                    step={1} 
-                    min={35} 
-                    max={200}
-                    valueLabelDisplay={"auto"}
-                    onChange={handleSlider}
+                    clearComparisonTracks()
+                    setDemoFile("files/bn_methylation.bed")
+                    setTitleState("Methylation test")
+                }}>Methylation Test</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/at_coordinate.gff")
+                    setTitleState("Aradopsis thaliana")
+                }}>Aradopsis thaliana</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/bn_coordinate.gff")
+                    setTitleState("Brassica napus")
+                }}>Brassica napus</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/ta_hb_coordinate.gff")
+                    setTitleState("Triticum aestivum")
+                }}>Triticum aestivum</Button>
+                <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
+            </Stack>
+            <Slider
+                step={1}
+                min={35}
+                max={200}
+                valueLabelDisplay={"auto"}
+                onChange={handleSlider}
 
-                    />
+            />
 
-                {previewSelector.visible && <Miniview
-                    className={'preview'}
-                    array={previewSelector.array}
+            {previewSelector.visible && <Miniview
+                className={'preview'}
+                array={previewSelector.array}
+                coordinateX={previewSelector.coordinateX}
+                coordinateY={previewSelector.coordinateY}
+                width={previewSelector.width}
+                height={previewSelector.height}
+                beginning={previewSelector.start}
+                fin={previewSelector.end}
+                color={previewSelector.color}
+                id={previewSelector.id}
+                absolutePositioning={true}
+                preview={true}
+                isDark={isDark}
+            />}
+
+
+            {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
+                let current = comparableSelector[item]
+                let parent = document.getElementById(current.target).getBoundingClientRect()
+                let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
+                let verticalScroll = document.documentElement.scrollTop
+                let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
+                return <Miniview
+
+                    className={'comparison preview'}
+                    key={item}
+                    array={current.array}
+                    color={current.color}
                     coordinateX={previewSelector.coordinateX}
-                    coordinateY={previewSelector.coordinateY}
+                    coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
                     width={previewSelector.width}
                     height={previewSelector.height}
-                    beginning={previewSelector.start}
-                    fin={previewSelector.end}
-                    color={previewSelector.color}
-                    id={previewSelector.id}
+                    displayPreview={false}
+                    beginning={current.start}
+                    fin={current.end}
                     absolutePositioning={true}
                     preview={true}
+                    boxLeft={what}
+                    boxTop={parent.y + verticalScroll}
+                    boxWidth={current.boxWidth}
+                    grouped={groupSelector.includes(comparableSelector[item].target)}
                     isDark={isDark}
-                />}
+                />
+            }))
+            }
 
+            {
+                loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                    <CircularProgress size={75} />
+                </Box> :
+                    <>
+                        <Typography variant={'h5'} sx={{
+                            WebkitUserSelect: 'none',
+                        }}>{titleState}</Typography>
+                        <CustomDragLayer groupID={groupSelector} />
+                        <DragContainer starting={draggableSelector}>
+                            {draggableSelector.map(item => {
+                                console.log()
+                                return (
+                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
+                                        {item !== 'links' && <BasicTrack
+                                            array={basicTrackSelector[item].array}
+                                            color={basicTrackSelector[item].color}
+                                            title={item}
+                                            doSomething={handleClick}
+                                            id={item}
+                                            zoom={basicTrackSelector[item].zoom}
+                                            pastZoom={basicTrackSelector[item].pastZoom}
+                                            offset={basicTrackSelector[item].offset}
+                                            selection={basicTrackSelector[item].selection}
+                                            isDark={isDark}
+                                        />}
+                                        {item === 'links' && <TrackLinks key={item} id={item} index={draggableSelector.indexOf(item)}></TrackLinks>}
+                                    </Draggable>
 
-                {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
-                    let current = comparableSelector[item]
-                    let parent = document.getElementById(current.target).getBoundingClientRect()
-                    let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
-                    let verticalScroll = document.documentElement.scrollTop
-                    let what = current.coordinateX - current.boxWidth/2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth/2< parent.x + parent.width - padding ? current.coordinateX : -1000
-                    return <Miniview
-
-                        className={'comparison preview'}
-                        key={item}
-                        array={current.array}
-                        color={current.color}
-                        coordinateX={previewSelector.coordinateX}
-                        coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
-                        width={previewSelector.width}
-                        height={previewSelector.height}
-                        displayPreview={false}
-                        beginning={current.start}
-                        fin={current.end}
-                        absolutePositioning={true}
-                        preview={true}
-                        boxLeft={what}
-                        boxTop={parent.y + verticalScroll}
-                        boxWidth={current.boxWidth}
-                        grouped={groupSelector.includes(comparableSelector[item].target)}
-                        isDark={isDark}
-                    />
-                }))
-                }
-
-                {
-                    loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
-                        <CircularProgress size={75} />
-                    </Box> :
-                        <>
-                            <Typography variant={'h5'} sx={{
-                                WebkitUserSelect: 'none',
-                            }}>{titleState}</Typography>
-                            <CustomDragLayer groupID={groupSelector} />
-                            <DragContainer starting={draggableSelector}>
-                                {draggableSelector.map(item => {
-                                    console.log()
-                                    return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
-                                       { item !== 'links' && <BasicTrack
-                                                array={basicTrackSelector[item].array}
-                                                color={basicTrackSelector[item].color}
-                                                title={item}
-                                                doSomething={handleClick}
-                                                id={item}
-                                                zoom={basicTrackSelector[item].zoom}
-                                                pastZoom={basicTrackSelector[item].pastZoom}
-                                                offset={basicTrackSelector[item].offset}
-                                                selection={basicTrackSelector[item].selection}
-                                                isDark={isDark}
-                                            />}
-                                            {item === 'links' && <TrackLinks key={item} id={item} index={draggableSelector.indexOf(item)}></TrackLinks>}
-                                        </Draggable>
-                                       
-                                    )
-                                })}
-                                {/* <Draggable>
+                                )
+                            })}
+                            {/* <Draggable>
                                     <TrackLinks>
 
                                     </TrackLinks>
                                 </Draggable> */}
-                            </DragContainer>
+                        </DragContainer>
                         {/* <TrackLinks/> */}
-                        </>
-                }
-            </div>
-        </>
-    );
+                    </>
+            }
+        </div>
+    </>
+);
 }
 

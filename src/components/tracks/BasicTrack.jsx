@@ -38,11 +38,9 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
         if (array == undefined) return
 
-        let cap;
-        fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
+        let cap = Math.max(...array.map(d => d.end))
 
-        let start;
-        beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
+        let start = Math.min(...array.map(d => d.start))
 
         const ctx = canvasRef.current.getContext('2d')
         ctx.clearRect(0, 0, magicWidth, ctx.canvas.height)
@@ -459,7 +457,7 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                     setHovered()
                 }
                 }
-                onWheelCapture={(e) => handleScroll(e)}
+                onWheelCapture={handleScroll}
                 {...props} />
             {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />

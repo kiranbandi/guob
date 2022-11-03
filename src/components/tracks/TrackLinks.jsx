@@ -12,7 +12,8 @@ const TrackLinks = ({index, id,...props}) =>{
     let aboveArray = trackSelector[indexSelector[index - 1]] ? trackSelector[indexSelector[index - 1]].array : []
     let belowArray =  trackSelector[indexSelector[index + 1]] ? trackSelector[indexSelector[index + 1]].array : []
 
- 
+    // debugger
+
     let aboveLength = aboveArray.length 
     let aboveCap = aboveLength > 0 ?  Math.max(...aboveArray.map(d=> d.end)) : 0
 
