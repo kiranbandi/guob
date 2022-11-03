@@ -12,7 +12,7 @@ import { Tooltip } from "@mui/material";
 
 
 
-const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
+const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -27,8 +27,6 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
     const [hovered, setHovered] = useState()
 
-
-
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
 
@@ -38,12 +36,15 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
         if (array == undefined) return
 
-        let cap = Math.max(...array.map(d => d.end))
+        let cap = normalizedLength ? normalizedLength : Math.max(...array.map(d => d.end))
 
         let start = Math.min(...array.map(d => d.start))
 
         const ctx = canvasRef.current.getContext('2d')
-        ctx.clearRect(0, 0, magicWidth, ctx.canvas.height)
+
+        const maxHeight = ctx.canvas.height;
+
+        ctx.clearRect(0, 0, magicWidth, maxHeight)
 
         let xScale = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
 
@@ -57,81 +58,100 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         setEndCap(Math.min(scalingIncrements.invert(magicWidth - offset), cap))
 
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth * zoom])
-        let lightnessScale = scaleLinear().domain([0, 100]).range([10, 90])
-        ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
 
+        let minValue = 0, maxValue = 100;
+        let dynamicColorScale = (trackType === 'heatmap' || trackType === 'histogram') ? scaleLinear().domain([minValue, maxValue]).range([0, 100]) : false;
 
-        let holding = [];
-        let hoverModifier = isDark ? 50 : -50;
-        let density = array[0].value !== undefined
+        let yScale = (trackType === 'histogram') ? scaleLinear().domain([0, maxValue]).range([0, maxHeight]) : () => maxHeight;
 
+        let holding = []
+        let hoverModifier = isDark ? 50 : -50
 
         if (drawnGenes.length === 0) {
-
             array.forEach(dataPoint => {
                 let x = ((xScale(dataPoint.start)) + offset)
+                let lightness = dynamicColorScale ? dynamicColorScale(dataPoint.value) : '50'
                 let rectWidth = widthScale(dataPoint.end - dataPoint.start)
-                let lightness = density ? lightnessScale(+dataPoint.value) : 50
-                let drawGene = new gene(dataPoint, color, +lightness)
-                drawGene.create(ctx, x, 0, rectWidth, ctx.canvas.height)
+                let drawGene = new gene({ ...dataPoint, lightness }, color)
+                drawGene.create(ctx, x, maxHeight - yScale(dataPoint.value), rectWidth, yScale(dataPoint.value))
                 holding.push(drawGene)
             })
             setDrawnGenes(holding)
         }
         else {
-            if (!density) {
-
-                drawnGenes.forEach(drawGene => {
-                    let x = ((xScale(drawGene.start)) + offset)
-                    let rectWidth = widthScale(drawGene.end - drawGene.start)
-                    if (x + rectWidth < 0 || x > magicWidth) {
-                        return
-                    }
-                    if (drawGene.key == selection) {
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
-                    }
-                    else if (drawGene == hovered) {
-                        if (hoverModifier < 0) {
-                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
-                        }
-                        else {
-                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
-                        }
-
+            drawnGenes.forEach(drawGene => {
+                let x = ((xScale(drawGene.start)) + offset)
+                let rectWidth = widthScale(drawGene.end - drawGene.start)
+                if (x + rectWidth < 0 || x > magicWidth) {
+                    return
+                }
+                if (drawGene.key == selection) {
+                    drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50 + hoverModifier)
+                }
+                else if (drawGene == hovered) {
+                    if (hoverModifier < 0) {
+                        drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 20)
                     }
                     else {
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
+                        drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 70)
                     }
+
+                }
+                else {
+                    drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50)
+                }
+
+                // drawnGenes.forEach(drawGene => {
+                //     let x = ((xScale(drawGene.start)) + offset)
+                //     let rectWidth = widthScale(drawGene.end - drawGene.start)
+                //     if (x + rectWidth < 0 || x > magicWidth) {
+                //         return
+                //     }
+                //     if (drawGene.key == selection) {
+                //         drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
+                //     }
+                //     else if (drawGene == hovered) {
+                //         if (hoverModifier < 0) {
+                //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                //         }
+                //         else {
+                //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
+                //         }
+
+                //     }
+                //     else {
+                //         drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
+                //     }
 
                 })
-            }
-            else {
+            // }
+            // else {
 
-                //TODO change color when checking density
-                drawnGenes.forEach(drawGene => {
-                    let x = ((xScale(drawGene.start)) + offset)
-                    let rectWidth = widthScale(drawGene.end - drawGene.start)
-                    if (x + rectWidth < 0 || x > magicWidth) {
-                        return
-                    }
-                    if (drawGene.key == selection) {
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
-                    }
-                    else if (drawGene == hovered) {
-                        if (hoverModifier < 0) {
-                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
-                        }
-                        else {
-                            drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
-                        }
+            //     //TODO change color when checking density
+            //     drawnGenes.forEach(drawGene => {
+            //         let x = ((xScale(drawGene.start)) + offset)
+            //         let rectWidth = widthScale(drawGene.end - drawGene.start)
+            //         if (x + rectWidth < 0 || x > magicWidth) {
+            //             return
+            //         }
+            //         if (drawGene.key == selection) {
+            //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
+            //         }
+            //         else if (drawGene == hovered) {
+            //             if (hoverModifier < 0) {
+            //                 drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+            //             }
+            //             else {
+            //                 drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
+            //             }
 
-                    }
-                    else {
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
-                    }
+            //         }
+            //         else {
+            //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
+            //         }
 
-                })
-            }
+            //     })
+            // }
         }
 
     }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark])
@@ -150,45 +170,51 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
     const dispatch = useDispatch()
 
     function handleScroll(e) {
+
+        // TODO - Event not being prevented from bubbling
         // e.preventDefault();
-        // e.stopPropagation();
-        let factor = 0.9
-        if (e.deltaY < 0) {
-            factor = 1 / factor
+        // e.stopPropagation()
+
+
+        if (e.altKey == true) {
+            let factor = 0.9
+            if (e.deltaY < 0) {
+                factor = 1 / factor
+            }
+            let feck = e.target.getBoundingClientRect()
+            let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
+            let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+            // let normalizedLocation = (e.clientX - (feck.left +padding))
+
+            if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
+                factor = 1.0
+            }
+
+            dispatch(changeZoom({
+                key: id,
+                zoom: Math.max(zoom * factor, 1.0)
+            }))
+
+            let dx = ((normalizedLocation - offset) * (factor - 1))
+            let offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
+            if (Math.max(zoom * factor, 1.0) == 1.0) offsetX = 0
+
+            dispatch(pan({
+                key: id,
+                offset: offsetX
+            }))
+            dispatch(panComparison({
+                key: id,
+                offset: offsetX,
+                zoom: Math.max(zoom * factor, 1.0),
+                width: magicWidth,
+                ratio: magicWidth / e.target.clientWidth,
+                left: feck.left + padding,
+                realWidth: feck.width - (2 * padding),
+                factor: factor
+            }))
+            showPreview(e)
         }
-        let trackBoundingRectangle = e.target.getBoundingClientRect()
-        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-        let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
-        // let normalizedLocation = (e.clientX - (trackBoundingRectangle.left +padding))
-
-        if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
-            factor = 1.0
-        }
-
-        dispatch(changeZoom({
-            key: id,
-            zoom: Math.max(zoom * factor, 1.0)
-        }))
-
-        let dx = ((normalizedLocation - offset) * (factor - 1))
-        let offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
-        if (Math.max(zoom * factor, 1.0) == 1.0) offsetX = 0
-
-        dispatch(pan({
-            key: id,
-            offset: offsetX
-        }))
-        dispatch(panComparison({
-            key: id,
-            offset: offsetX,
-            zoom: Math.max(zoom * factor, 1.0),
-            width: magicWidth,
-            ratio: magicWidth / e.target.clientWidth,
-            left: trackBoundingRectangle.left + padding,
-            realWidth: trackBoundingRectangle.width - (2 * padding),
-            factor: factor
-        }))
-        showPreview(e)
     }
 
     function handlePan(e) {
@@ -453,11 +479,9 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
                         key: 'preview',
                         visible: false
                     })
-                    )
-                    setHovered()
+                )}
                 }
-                }
-                onWheelCapture={handleScroll}
+                onWheel={handleScroll}
                 {...props} />
             {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />

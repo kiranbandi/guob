@@ -5,9 +5,9 @@ import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
-import { addComparison, selectMiniviews } from '../features/miniview/miniviewSlice';
+import { addComparison, selectMiniviews, clearComparisons } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -16,173 +16,181 @@ import { addMiniview, removeMiniview, selectComparison, removeComparison } from 
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
 import testing_array3 from '../data/testing_array3';
-import { Typography } from '@mui/material';
+import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
+// import { pullInfo } from 'features/parsers/gffParser'; 
+import { text } from "d3-request"
+import { useEffect, useRef } from "react"
+import { useFetch } from '../hooks/useFetch';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import TrackLinks from 'components/tracks/TrackLinks'
+import parseGFF from 'features/parsers/testParser';
+import { CopyAll } from '@mui/icons-material';
+// import './canola.gff'
 
-export default function Demo({isDark}) {
+// import 'canola.gff';
 
-  // Demo of redux miniview
-  const previewSelector = useSelector(selectMiniviews)['preview']
-  const miniviewSelector = useSelector(selectMiniviews)
-  const draggableSelector = useSelector(selectDraggables)
-  const alternateDraggableSelector = useSelector(selectAlternateDraggables)
-  const comparableSelector = useSelector(selectComparison)
-  const groupSelector = useSelector(selectGroup)
-  const basicTrackSelector = useSelector(selectBasicTracks)
+export default function Demo({ isDark }) {
 
 
-  const [ testId, setTestId ] = useState(5)
+    // Demo of redux miniview
+    const previewSelector = useSelector(selectMiniviews)['preview']
+    const miniviewSelector = useSelector(selectMiniviews)
+    const draggableSelector = useSelector(selectDraggables)
+    const alternateDraggableSelector = useSelector(selectAlternateDraggables)
+    const comparableSelector = useSelector(selectComparison)
+    const groupSelector = useSelector(selectGroup)
+    const basicTrackSelector = useSelector(selectBasicTracks)
 
-  const [ startY, setStartY ] = useState(900)
 
-  const [ comparisonSpacing, setComparisonSpacing ] = useState(1)
-  const [ draggableSpacing, setDraggableSpacing ] = useState("draggable")
+    const [testId, setTestId] = useState(5)
+    const [lock, setLock] = useState(false)
+    const [startY, setStartY] = useState(900)
 
-  const dispatch = useDispatch()
+    const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
+    const [titleState, setTitleState] = useState("Aradopsis thaliana")
 
-  // 85 px
-  function addNewDraggable() {
-    let data = determineRandomArray()
-    let color = Math.floor((Math.random() * 360))
-    addNewBasicTrack(testId, data, color)
-    
-    dispatch(addDraggable({
-      key: testId
-    }))
+    const [comparisonSpacing, setComparisonSpacing] = useState(1)
+    const [draggableSpacing, setDraggableSpacing] = useState("draggable")
 
-    setTestId(id => id + 1)
-    setStartY(startY => startY + 85)
-    Object.entries(alternateDraggableSelector).forEach(item => {
-      let adjustedLocation = item[1].coordinateY + 85
-      dispatch(moveAlternateDraggable({
-        key: item[0],
-        coordinateY: adjustedLocation
-      }))
-    })
-  }
+    const dispatch = useDispatch()
 
-  function addNewAlternateDraggable() {
-    let data = determineRandomArray()
-    let color = Math.floor((Math.random() * 360))
-    addNewBasicTrack(testId, data, color)
-    dispatch(addAlternateDraggable({
-      key: testId,
-      coordinateY: startY
-    }))
+    // 85 px
+    function addNewDraggable(key, data, color) {
+        addNewBasicTrack(key, data, color)
 
-    setTestId(id => id + 1)
-    setStartY(startY => startY + 50)
-  }
-
-  function determineRandomArray() {
-    let choice = Math.floor((Math.random() * 3))
-    let chosenArray;
-    switch (choice) {
-      case 1:
-        chosenArray = testing_array
-        break
-      case 2:
-        chosenArray = testing_array2
-        break
-      default:
-        chosenArray = testing_array3
+        dispatch(addDraggable({
+            key: key
+        }))
     }
 
-    return chosenArray
-  }
+    function addNewAlternateDraggable() {
+        let data = determineRandomArray()
+        let color = Math.floor((Math.random() * 360))
+        addNewBasicTrack(testId, data, color)
+        dispatch(addAlternateDraggable({
+            key: testId,
+            coordinateY: startY
+        }))
 
-  function addNewBasicTrack(id, data, color, start, end) {
-
-    dispatch(addBasicTrack({
-      key: id,
-      array: data,
-      color: color,
-      start: start,
-      end: end,
-      zoom: 1.0,
-      pastZoom: 1.0,
-      offset: 0,
-    }))
-  }
-
-  function removeADraggable() {
-    let keys = draggableSelector
-    let choice = keys[Math.floor((Math.random() * keys.length))]
-    if (keys.length > 0) {
-      dispatch(removeBasicTrack({
-        key: choice
-      }))
+        setTestId(id => id + 1)
+        setStartY(startY => startY + 50)
     }
-    dispatch(removeDraggable({
-      key: choice
-    }))
-    Object.entries(alternateDraggableSelector).forEach(item => {
-      let adjustedLocation = item[1].coordinateY - 85
-      dispatch(moveAlternateDraggable({
-        key: item[0],
-        coordinateY: adjustedLocation
-      }))
-    })
 
-  }
+    function determineRandomArray() {
+        let choice = Math.floor((Math.random() * 3))
+        let chosenArray;
+        switch (choice) {
+            case 1:
+                chosenArray = testing_array
+                break
+            case 2:
+                chosenArray = testing_array2
+                break
+            default:
+                chosenArray = testing_array3
+        }
 
-  function changeMargins(e) {
-    e.target.checked ? setDraggableSpacing("noMarginDraggable ") : setDraggableSpacing('draggable')
-  }
-
-  function removeAnAlternateDraggable() {
-    let keys = Object.keys(alternateDraggableSelector)
-    let choice = keys[Math.floor((Math.random() * keys.length))]
-    if (keys.length > 0) {
-      dispatch(removeBasicTrack({
-        key: choice
-      }))
+        return chosenArray
     }
-    dispatch(removeAlternateDraggable({
-      key: choice
-    }))
-    setStartY(startY => startY - 50)
 
-  }
+    function addNewBasicTrack(id, data, color, start, end) {
 
-  // TODO - navigation?
-  function handleClick(event) {
-    if(event.type=== 'contextmenu'){
-      return
+        dispatch(addBasicTrack({
+            key: id,
+            array: data,
+            color: color,
+            start: start,
+            end: end,
+            zoom: 1.0,
+            pastZoom: 1.0,
+            offset: 0,
+        }))
     }
-    if(event.ctrlKey){
-      dispatch(removeComparison())
-    }
-    else{
-      let y = event.target.offsetTop
-      dispatch(addComparison({
-        key: testId,
-        array: previewSelector.array,
-        color: previewSelector.color,
-        start: Math.round(previewSelector.start),
-        end: Math.round(previewSelector.end),
-        coordinateX: event.pageX,
-        coordinateY: y,
-        head: Math.round(previewSelector.start + (previewSelector.end -previewSelector.start)/2),
-        target: event.target.id,
-        offset: basicTrackSelector[event.target.id].offset,
-        boxWidth: previewSelector.boxWidth,
-        originalBoxWidth: previewSelector.boxWidth,
-        beginning: Math.min(...basicTrackSelector[event.target.id].array.map(d => d.start)),
-        fin:Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
-      }))
-  
-      setTestId(id => id + 1)
-      setStartY(startY => startY + 50)
+
+    function removeADraggable() {
+        let keys = draggableSelector
+        let choice = keys[Math.floor((Math.random() * keys.length))]
+        if (keys.length > 0) {
+            dispatch(removeBasicTrack({
+                key: choice
+            }))
+        }
+        dispatch(removeDraggable({
+            key: choice
+        }))
+        Object.entries(alternateDraggableSelector).forEach(item => {
+            let adjustedLocation = item[1].coordinateY - 85
+            dispatch(moveAlternateDraggable({
+                key: item[0],
+                coordinateY: adjustedLocation
+            }))
+        })
 
     }
-  }
 
-  let previewBackground = isDark ? 'grey' : 'whitesmoke'
+    function changeMargins(e) {
+        e.target.checked ? setDraggableSpacing("noMarginDraggable ") : setDraggableSpacing('draggable')
+    }
 
-  let styling = css(css`.example {
+    function removeAnAlternateDraggable() {
+        let keys = Object.keys(alternateDraggableSelector)
+        let choice = keys[Math.floor((Math.random() * keys.length))]
+        if (keys.length > 0) {
+            dispatch(removeBasicTrack({
+                key: choice
+            }))
+        }
+        dispatch(removeAlternateDraggable({
+            key: choice
+        }))
+        setStartY(startY => startY - 50)
+
+    }
+
+    // TODO - navigation?
+    function handleClick(event) {
+        if (event.type === 'contextmenu') {
+            return
+        }
+        if (event.ctrlKey) {
+            dispatch(removeComparison())
+        }
+        else {
+            let y = event.target.offsetTop
+            dispatch(addComparison({
+                key: testId,
+                array: previewSelector.array,
+                color: previewSelector.color,
+                start: Math.round(previewSelector.start),
+                end: Math.round(previewSelector.end),
+                coordinateX: event.pageX,
+                coordinateY: y,
+                head: Math.round(previewSelector.start + (previewSelector.end - previewSelector.start) / 2),
+                target: event.target.id,
+                offset: basicTrackSelector[event.target.id].offset,
+                boxWidth: previewSelector.boxWidth,
+                originalBoxWidth: previewSelector.boxWidth,
+                beginning: Math.min(...basicTrackSelector[event.target.id].array.map(d => d.start)),
+                fin: Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
+            }))
+
+            setTestId(id => id + 1)
+            setStartY(startY => startY + 50)
+
+        }
+    }
+
+
+    let previewBackground = isDark ? 'grey' : 'whitesmoke'
+    let [sliderHeight, setSliderHeight] = useState(50);
+
+    //TODO fix some hacky stuff in here
+
+    let styling = css(css`.example {
     width: 500px;
     height: 700px;
     border: 1px solid black;
@@ -190,19 +198,20 @@ export default function Demo({isDark}) {
 .draggable {
     /* cursor: crosshair; */
     border: 1px solid grey;
-    margin-bottom: 1.5rem;
-    height: 6rem;
+    margin-bottom: .5rem;
+    height: ${sliderHeight + 'px'};
     border:solid black 1px;
     flex-direction: row;
+    overflow: hidden;
 }
-.demo {
-  backgroundColor: red;
+.body {
+    overflow: hidden;
 }
 .noMarginDraggable {
       /* cursor: crosshair; */
       border: 1px solid grey;
     margin-bottom: 0;
-    height: 6rem;
+    height: ${sliderHeight + 'px'};
     border:solid black 1px;
     flex-direction: row;
 }
@@ -230,18 +239,14 @@ export default function Demo({isDark}) {
   left: 2%;
   
 }
-${'' /* .title{
-  backgroundColor: black;
-  background: black;
-} */}
 .preview {
     border: 1px solid black;
     background-color: ${previewBackground};
     z-index: 2;
-    height: 1rem;
+    height: .5rem;
 }
 .comparison {
-  height: 4.5rem;
+    height: ${sliderHeight + 'px'};
 }
 .groupedComparison {
   height : 2.5rem;
@@ -251,94 +256,165 @@ ${'' /* .title{
     margin-bottom: 1ch;
 }`)
 
-  return (
-    <div css={{ minHeight: '50vw' }}>
-      <div css={styling}>
-      <div className={'demo'} sx={{
-        backgroundColor:'black',
-        color: 'black',
-        background: 'black',}}>
+    let [loading, setLoading] = useState(true)
 
-        <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-          <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
-          <Button variant='outlined' onClick={removeADraggable}>Remove a Draggable</Button>
-         <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"}/>
-         
-        </Stack>
+    useEffect(() => {
+        setLoading(true)
+        dispatch(deleteAllBasicTracks({}))
+        dispatch(deleteAllDraggables({}))
+        let test = parseGFF(demoFile)
+        test.then(chromosomalData => {
+            let color = 360 / chromosomalData.length
+            let tick = -1
+            chromosomalData.forEach(point => {
+                tick += 1
+                addNewDraggable(point.key.chromosome, point.data, color * tick)
 
-        {previewSelector.visible && <Miniview
-          className={'preview'}
-          array={previewSelector.array}
-          coordinateX={previewSelector.coordinateX}
-          coordinateY={previewSelector.coordinateY}
-          width={previewSelector.width}
-          height={previewSelector.height}
-          beginning={previewSelector.start}
-          fin={previewSelector.end}
-          color={previewSelector.color}
-          id={previewSelector.id}
-          absolutePositioning={true}
-          preview={true}
-          isDark={isDark}
-        />}
+            })
+            dispatch(addDraggable({
+                key: 'links'
+            }))
+        })
+    // })
+    setLoading(false)
+}, [demoFile])
 
-        
-        {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
-          let current = comparableSelector[item]
-          let parent = document.getElementById(current.target).getBoundingClientRect()
-          let verticalScroll = document.documentElement.scrollTop
-          return <Miniview
-      
-            className={'comparison preview'}
-            key={item}
-            array={current.array}
-            color={current.color}
-            coordinateX={previewSelector.coordinateX}
-            coordinateY={previewSelector.coordinateY + 18 * (index+1)}
-            width={previewSelector.width}
-            height={previewSelector.height}
-            displayPreview={false}
-            beginning={current.start}
-            fin={current.end}
-            absolutePositioning={true}
-            preview={true}
-            boxLeft={current.coordinateX}
-            boxTop={parent.y + verticalScroll}
-            boxWidth={current.boxWidth}
-            grouped={groupSelector.includes(comparableSelector[item].target)}
-            isDark={isDark}
-          />
-        }))
-        }
+function clearComparisonTracks() {
+    dispatch(clearComparisons({
 
-
-        <Typography variant={'h5'} sx={{
-          WebkitUserSelect: 'none',
-        }}>Draggable Container: Items re-order themselves</Typography>
-        <CustomDragLayer groupID={groupSelector}/>
-        <DragContainer starting={draggableSelector}>
-          {draggableSelector.map(item => {
-            return (
-              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
-                <BasicTrack
-                  array={basicTrackSelector[item].array}
-                  color={basicTrackSelector[item].color}
-                  doSomething={handleClick}
-                  id={item}
-                  title={item}
-                  zoom={basicTrackSelector[item].zoom}
-                  pastZoom={basicTrackSelector[item].pastZoom}
-                  offset={basicTrackSelector[item].offset}
-                  selection={basicTrackSelector[item].selection}
-                  isDark={isDark}
-                />
-              </Draggable>
-            )
-          })}
-        </DragContainer>
-      </div>
-      </div>
-    </div>
-  );
+    }))
 }
 
+const handleSlider = (event, newValue) => {
+    if (typeof newValue === 'number') {
+
+        setSliderHeight(newValue)
+    }
+}
+
+return (
+    <>
+        <div css={styling}>
+
+            <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/bn_methylation.bed")
+                    setTitleState("Methylation test")
+                }}>Methylation Test</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/at_coordinate.gff")
+                    setTitleState("Aradopsis thaliana")
+                }}>Aradopsis thaliana</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/bn_coordinate.gff")
+                    setTitleState("Brassica napus")
+                }}>Brassica napus</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/ta_hb_coordinate.gff")
+                    setTitleState("Triticum aestivum")
+                }}>Triticum aestivum</Button>
+                <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
+            </Stack>
+            <Slider
+                step={1}
+                min={35}
+                max={200}
+                valueLabelDisplay={"auto"}
+                onChange={handleSlider}
+
+            />
+
+            {previewSelector.visible && <Miniview
+                className={'preview'}
+                array={previewSelector.array}
+                coordinateX={previewSelector.coordinateX}
+                coordinateY={previewSelector.coordinateY}
+                width={previewSelector.width}
+                height={previewSelector.height}
+                beginning={previewSelector.start}
+                fin={previewSelector.end}
+                color={previewSelector.color}
+                id={previewSelector.id}
+                absolutePositioning={true}
+                preview={true}
+                isDark={isDark}
+            />}
+
+
+            {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
+                let current = comparableSelector[item]
+                let parent = document.getElementById(current.target).getBoundingClientRect()
+                let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
+                let verticalScroll = document.documentElement.scrollTop
+                let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
+                return <Miniview
+
+                    className={'comparison preview'}
+                    key={item}
+                    array={current.array}
+                    color={current.color}
+                    coordinateX={previewSelector.coordinateX}
+                    coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
+                    width={previewSelector.width}
+                    height={previewSelector.height}
+                    displayPreview={false}
+                    beginning={current.start}
+                    fin={current.end}
+                    absolutePositioning={true}
+                    preview={true}
+                    boxLeft={what}
+                    boxTop={parent.y + verticalScroll}
+                    boxWidth={current.boxWidth}
+                    grouped={groupSelector.includes(comparableSelector[item].target)}
+                    isDark={isDark}
+                />
+            }))
+            }
+
+            {
+                loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                    <CircularProgress size={75} />
+                </Box> :
+                    <>
+                        <Typography variant={'h5'} sx={{
+                            WebkitUserSelect: 'none',
+                        }}>{titleState}</Typography>
+                        <CustomDragLayer groupID={groupSelector} />
+                        <DragContainer starting={draggableSelector}>
+                            {draggableSelector.map(item => {
+                                console.log()
+                                return (
+                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
+                                        {item !== 'links' && <BasicTrack
+                                            array={basicTrackSelector[item].array}
+                                            color={basicTrackSelector[item].color}
+                                            title={item}
+                                            doSomething={handleClick}
+                                            id={item}
+                                            zoom={basicTrackSelector[item].zoom}
+                                            pastZoom={basicTrackSelector[item].pastZoom}
+                                            offset={basicTrackSelector[item].offset}
+                                            selection={basicTrackSelector[item].selection}
+                                            isDark={isDark}
+                                        />}
+                                        {item === 'links' && <TrackLinks key={item} id={item} index={draggableSelector.indexOf(item)}></TrackLinks>}
+                                    </Draggable>
+
+                                )
+                            })}
+                            {/* <Draggable>
+                                    <TrackLinks>
+                                    </TrackLinks>
+                                </Draggable> */}
+                        </DragContainer>
+                        {/* <TrackLinks/> */}
+                    </>
+            }
+        </div>
+    </>
+);
+}
