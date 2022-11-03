@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react"
-import './Miniview.css'
 import { scaleLinear } from "d3-scale"
 import { useSelector } from "react-redux"
 import Window from "./Window"
@@ -7,12 +6,14 @@ import { Typography} from '@mui/material';
 
 import { selectMiniviews } from "./miniviewSlice"
 
+/*
+This is the small preview that appears on mouse-over. 
+TODO make work with the histogram
+*/
 
 const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, grouped, isDark, ...props }) => {
 
     const canvasRef = useRef()
-
-    // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['preview']
 
     useEffect(() => {
@@ -31,7 +32,7 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
 
         let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width])
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, ctx.canvas.width])
-        ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
+        ctx.fillStyle = color
 
 
         array.forEach(gene => {
@@ -66,7 +67,7 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
         zIndex: 100,
     }
 
-
+    
     return (
         <>
             <Window

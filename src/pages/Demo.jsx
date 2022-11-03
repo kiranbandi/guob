@@ -22,13 +22,15 @@ import BasicTrack from 'components/tracks/BasicTrack';
 import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request"
+import { scaleOrdinal } from 'd3-scale';
 import { useEffect, useRef } from "react"
 import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import TrackLinks from 'components/tracks/TrackLinks'
-import parseGFF from 'features/parsers/testParser';
+import parseGFF from 'features/parsers/gffParser';
 import { CopyAll } from '@mui/icons-material';
+import _ from 'lodash'; 
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -47,25 +49,24 @@ export default function Demo({ isDark }) {
 
 
     const [testId, setTestId] = useState(5)
-    const [lock, setLock] = useState(false)
     const [startY, setStartY] = useState(900)
 
     const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
     const [titleState, setTitleState] = useState("Aradopsis thaliana")
+    const [normalize, setNormalize] = useState(false)
 
-    const [comparisonSpacing, setComparisonSpacing] = useState(1)
-    const [draggableSpacing, setDraggableSpacing] = useState("draggable")
+    const [draggableSpacing, setDraggableSpacing] = useState(true)
 
     const dispatch = useDispatch()
 
     // 85 px
-    function addNewDraggable(key, data, color) {
-        addNewBasicTrack(key, data, color)
+    function addNewDraggable(key, trackType, data, normalizedLength, color) {
+      addNewBasicTrack(key, trackType, data, normalizedLength, color)
 
-        dispatch(addDraggable({
-            key: key
-        }))
-    }
+      dispatch(addDraggable({
+          key: key
+      }))
+  }
 
     function addNewAlternateDraggable() {
         let data = determineRandomArray()
@@ -97,20 +98,21 @@ export default function Demo({ isDark }) {
         return chosenArray
     }
 
-    function addNewBasicTrack(id, data, color, start, end) {
+    function addNewBasicTrack(id, trackType, data, normalizedLength, color, start, end) {
 
-        dispatch(addBasicTrack({
-            key: id,
-            array: data,
-            color: color,
-            start: start,
-            end: end,
-            zoom: 1.0,
-            pastZoom: 1.0,
-            offset: 0,
-        }))
-    }
-
+      dispatch(addBasicTrack({
+          key: id,
+          trackType,
+          array: data,
+          normalizedLength,
+          color,
+          start,
+          end,
+          zoom: 1.0,
+          pastZoom: 1.0,
+          offset: 0,
+      }))
+  }
     function removeADraggable() {
         let keys = draggableSelector
         let choice = keys[Math.floor((Math.random() * keys.length))]
@@ -133,8 +135,8 @@ export default function Demo({ isDark }) {
     }
 
     function changeMargins(e) {
-        e.target.checked ? setDraggableSpacing("noMarginDraggable ") : setDraggableSpacing('draggable')
-    }
+        setDraggableSpacing(e.target.checked)   
+      }
 
     function removeAnAlternateDraggable() {
         let keys = Object.keys(alternateDraggableSelector)
@@ -198,22 +200,16 @@ export default function Demo({ isDark }) {
 .draggable {
     /* cursor: crosshair; */
     border: 1px solid grey;
-    margin-bottom: .5rem;
+    margin-bottom: ${draggableSpacing ? 0 : "1.5rem"};
     height: ${sliderHeight + 'px'};
     border:solid black 1px;
     flex-direction: row;
-    overflow: hidden;
 }
 .body {
     overflow: hidden;
 }
-.noMarginDraggable {
-      /* cursor: crosshair; */
-      border: 1px solid grey;
-    margin-bottom: 0;
-    height: ${sliderHeight + 'px'};
-    border:solid black 1px;
-    flex-direction: row;
+.miniview {
+  cursor: crosshair;
 }
 .draggableItem {
     height: 100%;
@@ -246,7 +242,7 @@ export default function Demo({ isDark }) {
     height: .5rem;
 }
 .comparison {
-    height: ${sliderHeight + 'px'};
+    height: ${sliderHeight*.75 + 'px'};
 }
 .groupedComparison {
   height : 2.5rem;
@@ -262,22 +258,35 @@ export default function Demo({ isDark }) {
         setLoading(true)
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
-        let test = parseGFF(demoFile)
-        test.then(chromosomalData => {
-            let color = 360 / chromosomalData.length
-            let tick = -1
-            chromosomalData.forEach(point => {
-                tick += 1
-                addNewDraggable(point.key.chromosome, point.data, color * tick)
+        parseGFF(demoFile).then(({chromosomalData, dataset}) => {
+          let  normalizedLength = 0;
+          let color;
+          let ColourScale = scaleOrdinal().domain([0,9])
+          .range(["#4e79a7","#f28e2c","#e15759","#76b7b2","#59a14f","#edc949","#af7aa1","#ff9da7","#9c755f","#bab0ab"])
+          
+          
+          normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+          chromosomalData.forEach((point, i) => {
+              if(point.trackType === 'default'){
+                color = ColourScale(i % 10)
+              }
+              else{
+                color = ColourScale(3)
+              }
+              
+              addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
 
-            })
+          })
             dispatch(addDraggable({
                 key: 'links'
             }))
+            setLoading(false)
         })
     // })
-    setLoading(false)
+    setLoading(true)
 }, [demoFile])
+
+function changeNormalize(e) { setNormalize(e.target.checked) }
 
 function clearComparisonTracks() {
     dispatch(clearComparisons({
@@ -318,6 +327,8 @@ return (
                     setTitleState("Triticum aestivum")
                 }}>Triticum aestivum</Button>
                 <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
+                <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
+
             </Stack>
             <Slider
                 step={1}
@@ -384,14 +395,16 @@ return (
                             WebkitUserSelect: 'none',
                         }}>{titleState}</Typography>
                         <CustomDragLayer groupID={groupSelector} />
-                        <DragContainer starting={draggableSelector}>
+                        <DragContainer startingList={draggableSelector}>
                             {draggableSelector.map(item => {
-                                console.log()
+                        
                                 return (
-                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
+                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
                                         {item !== 'links' && <BasicTrack
                                             array={basicTrackSelector[item].array}
                                             color={basicTrackSelector[item].color}
+                                            normalizedLength={basicTrackSelector[item].normalizedLength}
+                                            trackType={basicTrackSelector[item].trackType}
                                             title={item}
                                             doSomething={handleClick}
                                             id={item}
@@ -400,18 +413,15 @@ return (
                                             offset={basicTrackSelector[item].offset}
                                             selection={basicTrackSelector[item].selection}
                                             isDark={isDark}
+                                            normalize={normalize}
                                         />}
                                         {item === 'links' && <TrackLinks key={item} id={item} index={draggableSelector.indexOf(item)}></TrackLinks>}
                                     </Draggable>
 
                                 )
                             })}
-                            {/* <Draggable>
-                                    <TrackLinks>
-                                    </TrackLinks>
-                                </Draggable> */}
+
                         </DragContainer>
-                        {/* <TrackLinks/> */}
                     </>
             }
         </div>

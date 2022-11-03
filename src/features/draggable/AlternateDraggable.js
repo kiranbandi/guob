@@ -1,14 +1,13 @@
 import { useRef } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
-import './Draggable.css'
 import { useDispatch } from "react-redux"
 import { moveAlternateDraggable } from "./alternateDraggableSlice"
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { IconButton } from "@mui/material"
 import { teal } from '@mui/material/colors';
 
-
+//! This is currently unused
 const AlternateDraggable = ({ children,  initialY, id, index, spacing, top, width, ...props }) => {
     
     // Two refs needed - one for handle, one for preview

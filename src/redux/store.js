@@ -13,6 +13,5 @@ export const store = configureStore({
     alternateDraggable: alternateDraggableReducer,
     draggable: draggableReducer,
     basictrack : basicTrackReducer,
-
   },
 });

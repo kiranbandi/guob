@@ -11,8 +11,9 @@ import { Tooltip } from "@mui/material";
 
 
 
-
-const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
+/* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
+*/
+const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -36,7 +37,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         if (array == undefined) return
 
-        let cap = normalizedLength ? normalizedLength : Math.max(...array.map(d => d.end))
+        let cap = normalize ? normalizedLength : Math.max(...array.map(d => d.end))
 
         let start = Math.min(...array.map(d => d.start))
 
@@ -60,9 +61,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth * zoom])
 
         let minValue = 0, maxValue = 100;
-        let dynamicColorScale = (trackType === 'heatmap' || trackType === 'histogram') ? scaleLinear().domain([minValue, maxValue]).range([0, 100]) : false;
+        
+        let dynamicColorScale = (trackType === 'heatmap' || trackType === 'histogram') ? scaleLinear().domain([minValue, maxValue]).range(["#141414", color]) : false;
 
         let yScale = (trackType === 'histogram') ? scaleLinear().domain([0, maxValue]).range([0, maxHeight]) : () => maxHeight;
+
 
         let holding = []
         let hoverModifier = isDark ? 50 : -50
@@ -70,9 +73,9 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         if (drawnGenes.length === 0) {
             array.forEach(dataPoint => {
                 let x = ((xScale(dataPoint.start)) + offset)
-                let lightness = dynamicColorScale ? dynamicColorScale(dataPoint.value) : '50'
+                let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
                 let rectWidth = widthScale(dataPoint.end - dataPoint.start)
-                let drawGene = new gene({ ...dataPoint, lightness }, color)
+                let drawGene = new gene(dataPoint, adjustedColor)
                 drawGene.create(ctx, x, maxHeight - yScale(dataPoint.value), rectWidth, yScale(dataPoint.value))
                 holding.push(drawGene)
             })
@@ -100,61 +103,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 else {
                     drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50)
                 }
-
-                // drawnGenes.forEach(drawGene => {
-                //     let x = ((xScale(drawGene.start)) + offset)
-                //     let rectWidth = widthScale(drawGene.end - drawGene.start)
-                //     if (x + rectWidth < 0 || x > magicWidth) {
-                //         return
-                //     }
-                //     if (drawGene.key == selection) {
-                //         drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
-                //     }
-                //     else if (drawGene == hovered) {
-                //         if (hoverModifier < 0) {
-                //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
-                //         }
-                //         else {
-                //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
-                //         }
-
-                //     }
-                //     else {
-                //         drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
-                //     }
-
                 })
-            // }
-            // else {
-
-            //     //TODO change color when checking density
-            //     drawnGenes.forEach(drawGene => {
-            //         let x = ((xScale(drawGene.start)) + offset)
-            //         let rectWidth = widthScale(drawGene.end - drawGene.start)
-            //         if (x + rectWidth < 0 || x > magicWidth) {
-            //             return
-            //         }
-            //         if (drawGene.key == selection) {
-            //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
-            //         }
-            //         else if (drawGene == hovered) {
-            //             if (hoverModifier < 0) {
-            //                 drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
-            //             }
-            //             else {
-            //                 drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
-            //             }
-
-            //         }
-            //         else {
-            //             drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, drawGene.lightness)
-            //         }
-
-            //     })
-            // }
+         
         }
 
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark, normalize])
 
     let style = {
         position: 'relative',
@@ -166,7 +119,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         paddingRight: '0.5rem',
     }
 
-    // TODO -> does this need to be here?
     const dispatch = useDispatch()
 
     function handleScroll(e) {
@@ -175,17 +127,21 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         // e.preventDefault();
         // e.stopPropagation()
 
-
         if (e.altKey == true) {
             let factor = 0.9
             if (e.deltaY < 0) {
                 factor = 1 / factor
             }
-            let feck = e.target.getBoundingClientRect()
-            let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-            let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
-            // let normalizedLocation = (e.clientX - (feck.left +padding))
 
+             // Finding important markers of the track, since it's often in a container
+            let trackBoundingRectangle = e.target.getBoundingClientRect()
+            let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
+
+            // Finding the location of the mouse on the track, the rendered track is adjusted with css,
+            // so the mouse location needs to be normalized to the canvas
+            let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+
+            // Arbitrarily decided that if the preview window is 1/3 of the entire track, it's likely zoomed in enough
             if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
                 factor = 1.0
             }
@@ -195,6 +151,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 zoom: Math.max(zoom * factor, 1.0)
             }))
 
+            //  Needs to be panned so that the zoom location remains the same
             let dx = ((normalizedLocation - offset) * (factor - 1))
             let offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
             if (Math.max(zoom * factor, 1.0) == 1.0) offsetX = 0
@@ -209,25 +166,29 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 zoom: Math.max(zoom * factor, 1.0),
                 width: magicWidth,
                 ratio: magicWidth / e.target.clientWidth,
-                left: feck.left + padding,
-                realWidth: feck.width - (2 * padding),
+                left: trackBoundingRectangle.left + padding,
+                realWidth: trackBoundingRectangle.width - (2 * padding),
                 factor: factor
             }))
             showPreview(e)
         }
     }
 
+    //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
 
-        //! Little off due to rounding error
+        // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
+        
+        // Finding the offset
         let dx = e.movementX * (magicWidth / e.target.clientWidth)
         let offsetX = Math.max(Math.min(offset + e.movementX, 0), -((magicWidth * zoom) - magicWidth))
-
+        
+        // Either end of the track
         let westEnd = trackBoundingRectangle.x
         let eastEnd = trackBoundingRectangle.width + westEnd
-
+        
         dispatch(pan({
             key: id,
             offset: offsetX,
@@ -237,15 +198,17 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 key: 'preview',
                 coordinateX: Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, e.clientX - previewSelector.width / 2)),
                 coordinateY: trackBoundingRectangle.y + trackBoundingRectangle.height + 5,
-                // viewFinderY: boundingBox.y + verticalScroll,
                 viewFinderX: e.clientX
             }))
-        dx = (e.movementX / magicWidth) * trackBoundingRectangle.width
-        offsetX = Math.max(Math.min(offset + dx, 0), -((magicWidth * zoom) - magicWidth))
-
-        // Going to need to find the padding
-        let testOffset = Math.max(-(magicWidth * zoom - magicWidth), Math.min(offset - dx, 0))
-
+            
+            /* Re-declaring these, because the track is adjusted from 2000px to the screen by css,
+            but comparison windows use absolute values. So the dx and offset need to be adjust to whatever
+            the css has made the track, not the magicWidth that the rest of the track can use.
+            */ 
+           dx = (e.movementX / magicWidth) * trackBoundingRectangle.width
+           offsetX = Math.max(Math.min(offset + dx, 0), -((magicWidth * zoom) - magicWidth))
+           
+           //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
             offset: offsetX,
@@ -266,17 +229,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let westEnd = boundingBox.x
         let eastEnd = boundingBox.x + boundingBox.width
 
-
         let changedX = Math.min(Math.max(event.pageX, westEnd), eastEnd)
         let changedY = boundingBox.y + boundingBox.height + 5 + verticalScroll
-
-        // Would give weird scaling if the array was movable
-        let cap;
-        fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
-
-        let start;
-        beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
-
 
         let xScale = scaleLinear().domain([startOfTrack, endCap]).range([westEnd, eastEnd])
         let widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, eastEnd - westEnd])
@@ -358,14 +312,15 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         //! Proof of concept following gene
                         let index;
                         let trackID;
-                        let details;
-                        let chromosome;
+                        let orthologInformation;
+                        let orthologChromosome;
                         let matched;
+                        // Iterating through the tracks with an ortholog
                         if (x.siblings != 0 && x.siblings.length > 0) {
                             for (const [key, value] of Object.entries(trackSelector)) {
                                 index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
-                                details = value.array[index]
-                                chromosome = value.array
+                                orthologInformation = value.array[index]
+                                orthologChromosome = value.array
                                 trackID = key
                                 matched = true
                                 break  // just finding the first ortholog as a proof of concept  
@@ -373,14 +328,15 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
                             if (matched == true && index > -1) {
 
-                                let cap = Math.max(...chromosome.map(d => d.end))
+                            
+                                let orthologCap = Math.max(...orthologChromosome.map(d => d.end))
 
-                                let ratio = details.start / cap
-
+                                // Location of the ortholog 
+                                let ratio = orthologInformation.start / orthologCap
+                                
                                 // Should almost certainly use a web worker for this
-                                let relatedWidthScale = scaleLinear().domain([0, cap]).range([0, magicWidth])
-                                let calculatedZoom = x.width / relatedWidthScale(details.end - details.start) //the size of the ortholog
-
+                                let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, magicWidth])
+                                let calculatedZoom = x.width / relatedWidthScale(orthologInformation.end - orthologInformation.start) //the size of the ortholog
 
                                 // Aligning related tracks with the selected block
                                 dispatch(changeZoom({
@@ -389,14 +345,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                                 }))
                                 dispatch(setSelection({
                                     key: trackID,
-                                    selection: details.key
+                                    selection: orthologInformation.key
                                 }))
                                 dispatch(pan({
                                     key: trackID,
                                     offset: -(ratio * magicWidth * calculatedZoom) + x.coordinateX
                                 }))
                             }
-
                         }
                     }
                 })
@@ -405,17 +360,10 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         key: id,
                     }))
                 }
-
             }
             setClickLocation(null)
         }
     }
-
-    let cap;
-    fin ? cap = fin : cap = Math.max(...array.map(d => d.end))
-
-    // debugger
-
 
     //! TODO Changing length of text changes the location of ticks
     return (
@@ -431,7 +379,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     style={{
                         position: 'relative',
                         top: 0,
-                        // left: 0,
                         marginLeft: 'auto',
                         marginRight: 0,
                         width: 40,
