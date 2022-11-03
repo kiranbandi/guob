@@ -30,7 +30,8 @@ export const CustomDragLayer = (props) => {
         switch (itemType) {
             case ItemTypes.BOUNDED:
                 {
-                    //TODO this is an incredibly hacky way of doing this.
+                    //TODO this is an incredibly hacky way of doing this, but was a quick way of adding a link container
+                    // need to make an actual type
                     if(item.id != 'links'){
                         let original;
                         const topRow = document.getElementById(props.groupID[0])

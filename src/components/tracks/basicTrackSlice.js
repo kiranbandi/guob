@@ -68,8 +68,6 @@ export const basicTrackSlice = createSlice({
             state.BasicTracks[action.payload.key].offset = action.payload.offset
         },
         setSelection: (state, action) => {
-            console.log(state.BasicTracks[action.payload.key])
-            // console.log(state.BasicTracks["at1"].selection)
             state.BasicTracks[action.payload.key].selection = action.payload.selection
         },
         clearSelection: (state, action) => {

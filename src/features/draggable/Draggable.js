@@ -4,7 +4,6 @@ import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
-import './Draggable.css'
 import { useDispatch } from "react-redux"
 import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup } from "./draggableSlice"
 import { IconButton, Button } from "@mui/material"

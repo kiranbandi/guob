@@ -70,29 +70,18 @@ export const miniviewSlice = createSlice({
             for (const [key, value] of Object.entries(state.comparison)) {
                 if (value.target == action.payload.key) {
 
-                    // The offset is throwing it off? It shouldn't though.
-                    // Original box width
-                    
-                    // console.log(value.coordinateX)
-                    // console.log(action.payload.offset)
-                    // When zooming at 1.0, it's actually less than it should be
                     //  ! Close - off by a little
                     value.boxWidth *= action.payload.factor
                     let location = scaleLinear().domain([0, +value.fin]).range([0,(action.payload.realWidth * action.payload.zoom)])
                     value.coordinateX = location(value.start) + (action.payload.left + action.payload.offset) * action.payload.realWidth/action.payload.width
-                    // console.log(location(value.start))
                 }
             }
         },
         zoomComparison: (state, action) =>{
             
-         // })//
-         // Zooming correctly, offset is wrong - also shoots down to zero when moved to a different track?
          for (const [key, value] of Object.entries(state.comparison)) {
             if (value.target == action.payload.key) {
-
                 value.boxWidth *= action.payload.factor
-                
             }
         }
         },

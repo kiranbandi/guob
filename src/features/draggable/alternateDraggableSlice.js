@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+//! This is currently unused
 const initialState={
     // currently a placeholder
     draggables: {

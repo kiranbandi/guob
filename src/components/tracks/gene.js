@@ -1,3 +1,7 @@
+
+/*
+Should hold some basic information about the drawn box. Currently passing in more information than necessary
+*/
 export class gene {
     constructor(geneInfo, color) {
         this.start = geneInfo.start;
@@ -10,9 +14,9 @@ export class gene {
         this.hover = false
         this.siblings = geneInfo.siblings
         this.lightness = geneInfo.lightness
-        //! Just for finding/testing
+        //! Adjusting the color just to find orthologs as a proof of concept
         if (this.siblings != undefined && this.siblings.length > 0) {
-            this.color += 20
+            this.color = "#ff0000"
         }
     }
 
@@ -21,24 +25,25 @@ export class gene {
         this.coordinateY = coordinateY
         this.width = width
         this.height = height
-        context.fillStyle = 'hsl(' + this.color + ',70%, ' + this.lightness + '%)'
+        context.fillStyle = this.color
         context.beginPath()
         context.rect(coordinateX, coordinateY, width, height)
         context.fill()
     }
 
-    update(context, coordinateX, coordinateY, width, height, saturation) {
+    update(context, coordinateX, coordinateY, width, height) {
         this.coordinateX = coordinateX
         this.coordinateY = coordinateY
         this.width = width
         this.height = height
-        context.fillStyle = 'hsl(' + this.color + ',' + saturation + '%, ' + this.lightness + '%)'
+        context.fillStyle = this.color
         context.beginPath()
         context.rect(coordinateX, coordinateY, width, height)
         context.fill()
     }
 
     hovering(mouseX) {
+        // TODO update to RGB, this is currently not working
         if (mouseX >= this.coordinateX && mouseX <= this.coordinateX + this.width) {
             this.saturation = 0
             return true

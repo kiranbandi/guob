@@ -3,9 +3,9 @@ import React from 'react'
 
 
 
-function DragContainer({ children, starting }) {
+function DragContainer({ children, startingList }) {
 
-
+    
     const renderChild = (child, index, id) => {
         if(child != undefined){
         return (
@@ -21,7 +21,7 @@ function DragContainer({ children, starting }) {
     
     return(
         <div className='Container'>
-            {children !== undefined && starting.map((item, index) => {
+            {children !== undefined && startingList.map((item, index) => {
                 return renderChild(children[children.findIndex(child => child !== undefined && child.key == item)], index, item )
                 })}
         </div>
