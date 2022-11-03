@@ -11,7 +11,7 @@ import { Tooltip } from "@mui/material";
 
 
 
-const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
+const BasicTrack = ({ array, color, trackType = 'default', doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, ...props }) => {
 
     const canvasRef = useRef(null)
 
@@ -43,7 +43,10 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         beginning ? start = beginning : start = Math.min(...array.map(d => d.start))
 
         const ctx = canvasRef.current.getContext('2d')
-        ctx.clearRect(0, 0, magicWidth, ctx.canvas.height)
+
+        const maxHeight = ctx.canvas.height;
+
+        ctx.clearRect(0, 0, magicWidth, maxHeight)
 
         let xScale = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
 
@@ -57,23 +60,22 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
         setEndCap(Math.min(scalingIncrements.invert(magicWidth - offset), cap))
 
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth * zoom])
-        ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
-        
 
-        let dynamicColorScale = scaleLinear().domain([0,100]).range([0,255]);
+        let minValue = 0, maxValue = 100;
+        let dynamicColorScale = (trackType === 'heatmap' || trackType === 'histogram') ? scaleLinear().domain([minValue, maxValue]).range([0, 100]) : false;
+
+        let yScale = (trackType === 'histogram') ? scaleLinear().domain([0, maxValue]).range([0, maxHeight]) : () => maxHeight;
 
         let holding = []
         let hoverModifier = isDark ? 50 : -50
-        if (drawnGenes.length == 0) {
 
+        if (drawnGenes.length === 0) {
             array.forEach(dataPoint => {
-
-                ctx.fillStyle = 'rgb(' + dynamicColorScale(+dataPoint.value) + ', 0%, 0%)'
-
                 let x = ((xScale(dataPoint.start)) + offset)
+                let lightness = dynamicColorScale ? dynamicColorScale(dataPoint.value) : '50'
                 let rectWidth = widthScale(dataPoint.end - dataPoint.start)
-                let drawGene = new gene(dataPoint, +dataPoint.value)
-                drawGene.create(ctx, x, 0, rectWidth, ctx.canvas.height)
+                let drawGene = new gene({ ...dataPoint, lightness }, color)
+                drawGene.create(ctx, x, maxHeight - yScale(dataPoint.value), rectWidth, yScale(dataPoint.value))
                 holding.push(drawGene)
             })
             setDrawnGenes(holding)
@@ -82,23 +84,23 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
             drawnGenes.forEach(drawGene => {
                 let x = ((xScale(drawGene.start)) + offset)
                 let rectWidth = widthScale(drawGene.end - drawGene.start)
-                if(x+ rectWidth < 0 || x > magicWidth){
+                if (x + rectWidth < 0 || x > magicWidth) {
                     return
                 }
                 if (drawGene.key == selection) {
-                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50 + hoverModifier)
+                    drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50 + hoverModifier)
                 }
                 else if (drawGene == hovered) {
-                    if(hoverModifier < 0) {
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 20)
+                    if (hoverModifier < 0) {
+                        drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 20)
                     }
-                    else{
-                        drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 70)
+                    else {
+                        drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 70)
                     }
-                    
+
                 }
                 else {
-                    drawGene.update(ctx, x, 0, rectWidth, ctx.canvas.height, 50)
+                    drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50)
                 }
 
             })

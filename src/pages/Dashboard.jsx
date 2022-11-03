@@ -42,7 +42,6 @@ export default function Dashboard({ isDark }) {
     const groupSelector = useSelector(selectGroup)
     const basicTrackSelector = useSelector(selectBasicTracks)
 
-
     const [testId, setTestId] = useState(5)
     const [lock, setLock] = useState(false)
     const [startY, setStartY] = useState(900)
@@ -56,25 +55,12 @@ export default function Dashboard({ isDark }) {
     const dispatch = useDispatch()
 
     // 85 px
-    function addNewDraggable(key, data, color) {
-        addNewBasicTrack(key, data, color)
+    function addNewDraggable(key, trackType, data, color) {
+        addNewBasicTrack(key, trackType, data, color)
 
         dispatch(addDraggable({
             key: key
         }))
-    }
-
-    function addNewAlternateDraggable() {
-        let data = determineRandomArray()
-        let color = Math.floor((Math.random() * 360))
-        addNewBasicTrack(testId, data, color)
-        dispatch(addAlternateDraggable({
-            key: testId,
-            coordinateY: startY
-        }))
-
-        setTestId(id => id + 1)
-        setStartY(startY => startY + 50)
     }
 
     function determineRandomArray() {
@@ -94,10 +80,11 @@ export default function Dashboard({ isDark }) {
         return chosenArray
     }
 
-    function addNewBasicTrack(id, data, color, start, end) {
+    function addNewBasicTrack(id, trackType, data, color, start, end) {
 
         dispatch(addBasicTrack({
             key: id,
+            trackType,
             array: data,
             color: color,
             start: start,
@@ -257,18 +244,22 @@ export default function Dashboard({ isDark }) {
 
             let temporary = data.split(/\n/)
             let dataset = {}
+            let trackType = 'default'
 
             // BED file processor for methylation data
             if (demoFile.indexOf('.bed') > -1) {
+
+                trackType = 'histogram'
+
                 temporary.forEach(d => {
                     let info = d.split('\t')
                     if (info.length > 1) {
-                        let key = info[1].toLowerCase()
+                        let key = info[0] + "-" + info[1] + "-" + info[2]
                         var stats = {
                             chromosome: info[0],
                             start: info[1],
                             end: info[2],
-                            key: info[0] + "-" + info[1] + "-" + info[2],
+                            key,
                             ortholog: false,
                             siblings: [],
                             value: info[3]
@@ -302,6 +293,7 @@ export default function Dashboard({ isDark }) {
             let chromosomeNameList = []
             let chromosomalData = []
             let ignore = "Scaffold"
+
             for (let item in dataset) {
                 if (!chromosomeNameList.some((x) => x.chromosome == dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
                     var check = item
@@ -337,11 +329,20 @@ export default function Dashboard({ isDark }) {
                 chromosomalData.push(temp)
             })
 
-            let color = 360 / chromosomalData.length
-            let tick = -1
+
+            let color, tick;
+            if (trackType === 'default') {
+                color = 360 / chromosomalData.length
+                tick = -1
+            }
+            else {
+                color = 0;
+                tick = 1;
+            }
+
             chromosomalData.forEach(point => {
                 tick += 1
-                addNewDraggable(point.key.chromosome, point.data, color * tick)
+                addNewDraggable(point.key.chromosome, trackType, point.data, color * tick)
 
             })
             setLoading(false)
@@ -427,6 +428,7 @@ export default function Dashboard({ isDark }) {
                 </Box> :
                     <>
                         <Typography variant={'h5'} sx={{
+                            mb: 2,
                             WebkitUserSelect: 'none',
                         }}>{titleState}</Typography>
                         <CustomDragLayer groupID={groupSelector} />
@@ -437,6 +439,7 @@ export default function Dashboard({ isDark }) {
                                         <BasicTrack
                                             array={basicTrackSelector[item].array}
                                             color={basicTrackSelector[item].color}
+                                            trackType={basicTrackSelector[item].trackType}
                                             title={item}
                                             doSomething={handleClick}
                                             id={item}
