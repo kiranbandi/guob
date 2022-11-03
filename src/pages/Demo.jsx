@@ -21,7 +21,7 @@ import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
 import { selectBasicTracks, addBasicTrack, removeBasicTrack } from 'components/tracks/basicTrackSlice';
 
-export default function Demo({isDark}) {
+export default function Demo({ isDark }) {
 
   // Demo of redux miniview
   const previewSelector = useSelector(selectMiniviews)['preview']
@@ -33,12 +33,12 @@ export default function Demo({isDark}) {
   const basicTrackSelector = useSelector(selectBasicTracks)
 
 
-  const [ testId, setTestId ] = useState(5)
+  const [testId, setTestId] = useState(5)
 
-  const [ startY, setStartY ] = useState(900)
+  const [startY, setStartY] = useState(900)
 
-  const [ comparisonSpacing, setComparisonSpacing ] = useState(1)
-  const [ draggableSpacing, setDraggableSpacing ] = useState("draggable")
+  const [comparisonSpacing, setComparisonSpacing] = useState(1)
+  const [draggableSpacing, setDraggableSpacing] = useState("draggable")
 
   const dispatch = useDispatch()
 
@@ -47,7 +47,7 @@ export default function Demo({isDark}) {
     let data = determineRandomArray()
     let color = Math.floor((Math.random() * 360))
     addNewBasicTrack(testId, data, color)
-    
+
     dispatch(addDraggable({
       key: testId
     }))
@@ -149,13 +149,13 @@ export default function Demo({isDark}) {
 
   // TODO - navigation?
   function handleClick(event) {
-    if(event.type=== 'contextmenu'){
+    if (event.type === 'contextmenu') {
       return
     }
-    if(event.ctrlKey){
+    if (event.ctrlKey) {
       dispatch(removeComparison())
     }
-    else{
+    else {
       let y = event.target.offsetTop
       dispatch(addComparison({
         key: testId,
@@ -165,15 +165,15 @@ export default function Demo({isDark}) {
         end: Math.round(previewSelector.end),
         coordinateX: event.pageX,
         coordinateY: y,
-        head: Math.round(previewSelector.start + (previewSelector.end -previewSelector.start)/2),
+        head: Math.round(previewSelector.start + (previewSelector.end - previewSelector.start) / 2),
         target: event.target.id,
         offset: basicTrackSelector[event.target.id].offset,
         boxWidth: previewSelector.boxWidth,
         originalBoxWidth: previewSelector.boxWidth,
         beginning: Math.min(...basicTrackSelector[event.target.id].array.map(d => d.start)),
-        fin:Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
+        fin: Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
       }))
-  
+
       setTestId(id => id + 1)
       setStartY(startY => startY + 50)
 
@@ -182,11 +182,11 @@ export default function Demo({isDark}) {
 
   let previewBackground = isDark ? 'grey' : 'whitesmoke'
 
-  let styling = css(css`.example {
-    width: 500px;
-    height: 700px;
-    border: 1px solid black;
-}
+  let styling = css(css`
+  
+  &.pageWrapper {
+    min-height: 750px;
+  }
 .draggable {
     /* cursor: crosshair; */
     border: 1px solid grey;
@@ -195,9 +195,7 @@ export default function Demo({isDark}) {
     border:solid black 1px;
     flex-direction: row;
 }
-.demo {
-  backgroundColor: red;
-}
+
 .noMarginDraggable {
       /* cursor: crosshair; */
       border: 1px solid grey;
@@ -252,91 +250,83 @@ export default function Demo({isDark}) {
 }`)
 
   return (
-    <div css={{ minHeight: '50vw' }}>
-      <div css={styling}>
-      <div className={'demo'} sx={{
-        backgroundColor:'black',
-        color: 'black',
-        background: 'black',}}>
+    <div className='pageWrapper' css={styling}>
+      <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+        <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
+        <Button variant='outlined' onClick={removeADraggable}>Remove a Draggable</Button>
+        <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
+      </Stack>
 
-        <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-          <Button variant='outlined' onClick={addNewDraggable}>Add a Draggable</Button>
-          <Button variant='outlined' onClick={removeADraggable}>Remove a Draggable</Button>
-         <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"}/>
-         
-        </Stack>
+      {previewSelector.visible && <Miniview
+        className={'preview'}
+        array={previewSelector.array}
+        coordinateX={previewSelector.coordinateX}
+        coordinateY={previewSelector.coordinateY}
+        width={previewSelector.width}
+        height={previewSelector.height}
+        beginning={previewSelector.start}
+        fin={previewSelector.end}
+        color={previewSelector.color}
+        id={previewSelector.id}
+        absolutePositioning={true}
+        preview={true}
+        isDark={isDark}
+      />}
 
-        {previewSelector.visible && <Miniview
-          className={'preview'}
-          array={previewSelector.array}
+
+      {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
+        let current = comparableSelector[item]
+        let parent = document.getElementById(current.target).getBoundingClientRect()
+        let verticalScroll = document.documentElement.scrollTop
+        return <Miniview
+
+          className={'comparison preview'}
+          key={item}
+          array={current.array}
+          color={current.color}
           coordinateX={previewSelector.coordinateX}
-          coordinateY={previewSelector.coordinateY}
+          coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
           width={previewSelector.width}
           height={previewSelector.height}
-          beginning={previewSelector.start}
-          fin={previewSelector.end}
-          color={previewSelector.color}
-          id={previewSelector.id}
+          displayPreview={false}
+          beginning={current.start}
+          fin={current.end}
           absolutePositioning={true}
           preview={true}
+          boxLeft={current.coordinateX}
+          boxTop={parent.y + verticalScroll}
+          boxWidth={current.boxWidth}
+          grouped={groupSelector.includes(comparableSelector[item].target)}
           isDark={isDark}
-        />}
-
-        
-        {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
-          let current = comparableSelector[item]
-          let parent = document.getElementById(current.target).getBoundingClientRect()
-          let verticalScroll = document.documentElement.scrollTop
-          return <Miniview
-      
-            className={'comparison preview'}
-            key={item}
-            array={current.array}
-            color={current.color}
-            coordinateX={previewSelector.coordinateX}
-            coordinateY={previewSelector.coordinateY + 18 * (index+1)}
-            width={previewSelector.width}
-            height={previewSelector.height}
-            displayPreview={false}
-            beginning={current.start}
-            fin={current.end}
-            absolutePositioning={true}
-            preview={true}
-            boxLeft={current.coordinateX}
-            boxTop={parent.y + verticalScroll}
-            boxWidth={current.boxWidth}
-            grouped={groupSelector.includes(comparableSelector[item].target)}
-            isDark={isDark}
-          />
-        }))
-        }
+        />
+      }))
+      }
 
 
-        <Typography variant={'h5'} sx={{
-          WebkitUserSelect: 'none',
-        }}>Draggable Container: Items re-order themselves</Typography>
-        <CustomDragLayer groupID={groupSelector}/>
-        <DragContainer starting={draggableSelector}>
-          {draggableSelector.map(item => {
-            return (
-              <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
-                <BasicTrack
-                  array={basicTrackSelector[item].array}
-                  color={basicTrackSelector[item].color}
-                  doSomething={handleClick}
-                  id={item}
-                  zoom={basicTrackSelector[item].zoom}
-                  pastZoom={basicTrackSelector[item].pastZoom}
-                  offset={basicTrackSelector[item].offset}
-                  selection={basicTrackSelector[item].selection}
-                  isDark={isDark}
-                />
-              </Draggable>
-            )
-          })}
-        </DragContainer>
-      </div>
-      </div>
+      <Typography variant={'h5'} sx={{
+        WebkitUserSelect: 'none',
+      }}>Draggable Container: Items re-order themselves</Typography>
+      <CustomDragLayer groupID={groupSelector} />
+      <DragContainer starting={draggableSelector}>
+        {draggableSelector.map(item => {
+          return (
+            <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={draggableSpacing} >
+              <BasicTrack
+                array={basicTrackSelector[item].array}
+                color={basicTrackSelector[item].color}
+                doSomething={handleClick}
+                id={item}
+                zoom={basicTrackSelector[item].zoom}
+                pastZoom={basicTrackSelector[item].pastZoom}
+                offset={basicTrackSelector[item].offset}
+                selection={basicTrackSelector[item].selection}
+                isDark={isDark}
+              />
+            </Draggable>
+          )
+        })}
+      </DragContainer>
+
     </div>
   );
 }

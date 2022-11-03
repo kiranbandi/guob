@@ -50,11 +50,10 @@ export default function App() {
           <Route index element={<Home />} />
           {/* uncessary syntatic sugar since react-router v6 doesnt support optional path params */}
           <Route path="dashboard">
-            <Route index element={<Dashboard />} />
-            <Route path=":dataID" element={<Dashboard />} />
+            <Route index element={<Dashboard isDark={isDark}/>} />
+            <Route path=":dataID" element={<Dashboard isDark={isDark}/>} />
           </Route>
           <Route path="demo" element={<Demo isDark={isDark}/>} />
-          <Route path="agriculture%20demo" element={<AgricultureDemo isDark={isDark} />} />
           <Route path="documentation" element={<Documentation />} />
           <Route path="*" element={<NotFound />}
           />

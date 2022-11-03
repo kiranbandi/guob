@@ -27,8 +27,6 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
     const [hovered, setHovered] = useState()
 
-
-
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
 
@@ -49,8 +47,6 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
         let xScale = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
 
-
-
         // TODO center the text, and leave a small buffer on each end
         let basePairUnits = (cap / 1000000) > 0 ? [1000000, 'Mb'] : [1000, 'Kb']
 
@@ -62,16 +58,21 @@ const BasicTrack = ({ array, color, doSomething, coordinateX, coordinateY, width
 
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth * zoom])
         ctx.fillStyle = 'hsl(' + color + ', 70%, 50%)'
+        
 
+        let dynamicColorScale = scaleLinear().domain([0,100]).range([0,255]);
 
         let holding = []
         let hoverModifier = isDark ? 50 : -50
         if (drawnGenes.length == 0) {
 
             array.forEach(dataPoint => {
+
+                ctx.fillStyle = 'rgb(' + dynamicColorScale(+dataPoint.value) + ', 0%, 0%)'
+
                 let x = ((xScale(dataPoint.start)) + offset)
                 let rectWidth = widthScale(dataPoint.end - dataPoint.start)
-                let drawGene = new gene(dataPoint, color)
+                let drawGene = new gene(dataPoint, +dataPoint.value)
                 drawGene.create(ctx, x, 0, rectWidth, ctx.canvas.height)
                 holding.push(drawGene)
             })
