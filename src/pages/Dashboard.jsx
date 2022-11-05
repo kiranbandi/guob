@@ -265,7 +265,7 @@ export default function Dashboard({ isDark }) {
       <Stack my={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
         <Button variant='outlined' onClick={() => {
-          setDemoFile("files/bn_methylation.bed")
+          setDemoFile("files/bn_methylation_100k.bed")
           setTitleState("Canola Methylation")
         }}> Canola Methylation</Button>
 

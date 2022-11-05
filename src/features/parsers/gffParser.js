@@ -2,9 +2,9 @@
 import { text } from "d3-fetch"
 
 
-async function parseGFF(demoFile){
-       
-    let x = text(demoFile).then(data =>{
+async function parseGFF(demoFile) {
+
+    let x = text(demoFile).then(data => {
         let temporary = data.split(/\n/)
         let dataset = {}
         let trackType = 'default'
@@ -12,7 +12,7 @@ async function parseGFF(demoFile){
         // BED file processor for methylation data
         if (demoFile.indexOf('.bed') > -1) {
 
-            trackType = 'histogram'
+            trackType = 'scatter'
 
             temporary.forEach(d => {
                 let info = d.split('\t')
@@ -80,20 +80,35 @@ async function parseGFF(demoFile){
             }
         })
 
-        chromosomeNameList.forEach((chr) => {
-          var subset = Object.entries(dataset).filter(d => {
-            return d[1].chromosome == chr.chromosome
-          }).map(x => x[1])
-          
-          var temp = {
-            key: chr,
-            data: subset,
-            trackType,
-          }
-          chromosomalData.push(temp)
+        chromosomeNameList.forEach((chr, chrIndex) => {
+            var subset = Object.entries(dataset).filter(d => {
+                return d[1].chromosome == chr.chromosome
+            }).map(x => x[1])
+
+            //   temporary stub for demo purposes 
+            let tempTrackType = trackType;
+            if (trackType === 'scatter') {
+
+                if (chrIndex % 3 === 1) {
+                    tempTrackType = 'scatter';
+                }
+                else if (chrIndex % 3 === 2) {
+                    tempTrackType = 'line';
+                }
+                else {
+                    tempTrackType = 'histogram';
+                }
+            }
+
+            var temp = {
+                key: chr,
+                data: subset,
+                trackType: tempTrackType,
+            }
+            chromosomalData.push(temp)
         })
-        
-        return {chromosomalData, dataset}
+
+        return { chromosomalData, dataset }
     })
 
     return x

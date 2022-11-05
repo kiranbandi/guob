@@ -1,14 +1,11 @@
 import React, { useEffect, useRef, useState, focus } from "react"
-
 import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
-import Window from "features/miniview/Window";
 import { Typography, Stack } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from 'features/miniview/miniviewSlice.js'
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
-import { Tooltip } from "@mui/material";
-
+import { line } from 'd3-shape';
 
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
@@ -31,11 +28,25 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
 
-    const magicWidth = 2000;
+    // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
+    // the rest will be used for the scale 
+    // If no height is present default to 100 pixel tall tracks
+    // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
+    let parentWrapperHeight = document.querySelector('.draggable')?.getBoundingClientRect()?.height,
+        parentWrapperWidth = document.querySelector('.draggable')?.getBoundingClientRect()?.width;
+
+    let style = {
+        position: 'relative',
+        top: coordinateY,
+        left: coordinateX
+    }
+
+    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) : width,
+        maxHeight = parentWrapperHeight ? Math.round(parentWrapperHeight * 0.75) : height;
 
     useEffect(() => {
 
-        if (array == undefined) return
+        if (!array) return
 
         let cap = normalize ? normalizedLength : Math.max(...array.map(d => d.end))
 
@@ -43,81 +54,104 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         const ctx = canvasRef.current.getContext('2d')
 
-        const maxHeight = ctx.canvas.height;
+        ctx.clearRect(0, 0, maxWidth, maxHeight)
 
-        ctx.clearRect(0, 0, magicWidth, maxHeight)
-
-        let xScale = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
+        const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
+        let xScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
 
         // TODO center the text, and leave a small buffer on each end
         let basePairUnits = (cap / 1000000) > 0 ? [1000000, 'Mb'] : [1000, 'Kb']
 
         setNormalizer(basePairUnits)
 
-        let scalingIncrements = scaleLinear().domain([0, cap]).range([0, magicWidth * zoom])
+        let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth * zoom])
         setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
-        setEndCap(Math.min(scalingIncrements.invert(magicWidth - offset), cap))
+        setEndCap(Math.min(scalingIncrements.invert(maxWidth - offset), cap))
 
-        let widthScale = scaleLinear().domain([0, cap - start]).range([0, magicWidth * zoom])
-
+        let widthScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
         let minValue = 0, maxValue = 100;
-        
-        let dynamicColorScale = (trackType === 'heatmap' || trackType === 'histogram') ? scaleLinear().domain([minValue, maxValue]).range(["#141414", color]) : false;
 
-        let yScale = (trackType === 'histogram') ? scaleLinear().domain([0, maxValue]).range([0, maxHeight]) : () => maxHeight;
+        // Deal with color palette switch in dark mode;
+        let zeroColor = '#ffffff';
 
-
-        let holding = []
-        let hoverModifier = isDark ? 50 : -50
+        let dynamicColorScale = ['heatmap', 'histogram', 'scatter'].indexOf(trackType) > -1 ? scaleLinear().domain([minValue, maxValue]).range([zeroColor, color]) : false;
+        let yScale = ['histogram', 'scatter', 'line'].indexOf(trackType) > -1 ? scaleLinear().domain([0, maxValue]).range([paddingTop, maxHeight - paddingBottom]) : () => maxHeight;
 
         if (drawnGenes.length === 0) {
-            array.forEach(dataPoint => {
-                let x = ((xScale(dataPoint.start)) + offset)
-                let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
-                let rectWidth = widthScale(dataPoint.end - dataPoint.start)
-                let drawGene = new gene(dataPoint, adjustedColor)
-                drawGene.create(ctx, x, maxHeight - yScale(dataPoint.value), rectWidth, yScale(dataPoint.value))
-                holding.push(drawGene)
-            })
-            setDrawnGenes(holding)
+
+            if (trackType == 'line') {
+                let pathArray = array.map(dataPoint => {
+                    let x = ((xScale(dataPoint.start)) + offset),
+                        y = maxHeight - yScale(dataPoint.value);
+                    return [x, y];
+                });
+                let lineFunction = line().context(ctx);
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.fillStyle = 'white';
+                lineFunction(pathArray);
+                ctx.fill();
+                ctx.stroke();
+                setDrawnGenes([...array]);
+            }
+
+            else {
+                let holding = array.map(dataPoint => {
+                    let x = ((xScale(dataPoint.start)) + offset)
+                    let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
+                    let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                    let drawGene = new gene(dataPoint, adjustedColor, trackType)
+                    drawGene.draw(ctx, x, maxHeight - yScale(dataPoint.value), rectWidth, yScale(dataPoint.value))
+                    return drawGene;
+                })
+                setDrawnGenes(holding)
+            }
+
         }
         else {
-            drawnGenes.forEach(drawGene => {
-                let x = ((xScale(drawGene.start)) + offset)
-                let rectWidth = widthScale(drawGene.end - drawGene.start)
-                if (x + rectWidth < 0 || x > magicWidth) {
-                    return
-                }
-                if (drawGene.key == selection) {
-                    drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50 + hoverModifier)
-                }
-                else if (drawGene == hovered) {
-                    if (hoverModifier < 0) {
-                        drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 20)
-                    }
-                    else {
-                        drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 70)
-                    }
 
-                }
-                else {
-                    drawGene.update(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value), 50)
-                }
+            if (trackType == 'line') {
+
+                let pathArray = [];
+                array.map(dataPoint => {
+                    let x = ((xScale(dataPoint.start)) + offset),
+                        y = maxHeight - yScale(dataPoint.value);
+
+                    let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+
+                    if (x + rectWidth < 0 || x > maxWidth) {
+                        return
+                    }
+                    pathArray.push([x, y]);
+                });
+
+                let lineFunction = line().context(ctx);
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.fillStyle = 'white';
+                lineFunction(pathArray);
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            else {
+                drawnGenes.forEach(drawGene => {
+                    let x = ((xScale(drawGene.start)) + offset)
+                    let rectWidth = widthScale(drawGene.end - drawGene.start)
+                    if (x + rectWidth < 0 || x > maxWidth) {
+                        return
+                    }
+                    drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
                 })
-         
+            }
+
         }
 
     }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark, normalize])
 
-    let style = {
-        position: 'relative',
-        top: coordinateY,
-        left: coordinateX,
-        width: width,
-        height: height,
-        paddingLeft: '0.5rem',
-        paddingRight: '0.5rem',
-    }
+
 
     const dispatch = useDispatch()
 
@@ -133,16 +167,16 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor = 1 / factor
             }
 
-             // Finding important markers of the track, since it's often in a container
+            // Finding important markers of the track, since it's often in a container
             let trackBoundingRectangle = e.target.getBoundingClientRect()
             let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
 
             // Finding the location of the mouse on the track, the rendered track is adjusted with css,
             // so the mouse location needs to be normalized to the canvas
-            let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+            let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
             // Arbitrarily decided that if the preview window is 1/3 of the entire track, it's likely zoomed in enough
-            if (previewSelector.boxWidth > magicWidth / 3 && factor > 1.0) {
+            if (previewSelector.boxWidth > maxWidth / 3 && factor > 1.0) {
                 factor = 1.0
             }
 
@@ -153,8 +187,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
             //  Needs to be panned so that the zoom location remains the same
             let dx = ((normalizedLocation - offset) * (factor - 1))
-            let offsetX = Math.max(Math.min(offset - dx, 0), -((magicWidth * zoom * factor) - magicWidth))
-            if (Math.max(zoom * factor, 1.0) == 1.0) offsetX = 0
+            let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * zoom * factor) - maxWidth))
+            if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
 
             dispatch(pan({
                 key: id,
@@ -164,8 +198,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 key: id,
                 offset: offsetX,
                 zoom: Math.max(zoom * factor, 1.0),
-                width: magicWidth,
-                ratio: magicWidth / e.target.clientWidth,
+                width: maxWidth,
+                ratio: maxWidth / e.target.clientWidth,
                 left: trackBoundingRectangle.left + padding,
                 realWidth: trackBoundingRectangle.width - (2 * padding),
                 factor: factor
@@ -180,15 +214,15 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-        
+
         // Finding the offset
-        let dx = e.movementX * (magicWidth / e.target.clientWidth)
-        let offsetX = Math.max(Math.min(offset + e.movementX, 0), -((magicWidth * zoom) - magicWidth))
-        
+        let dx = e.movementX * (maxWidth / e.target.clientWidth)
+        let offsetX = Math.max(Math.min(offset + e.movementX, 0), -((maxWidth * zoom) - maxWidth))
+
         // Either end of the track
         let westEnd = trackBoundingRectangle.x
         let eastEnd = trackBoundingRectangle.width + westEnd
-        
+
         dispatch(pan({
             key: id,
             offset: offsetX,
@@ -200,21 +234,21 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 coordinateY: trackBoundingRectangle.y + trackBoundingRectangle.height + 5,
                 viewFinderX: e.clientX
             }))
-            
-            /* Re-declaring these, because the track is adjusted from 2000px to the screen by css,
-            but comparison windows use absolute values. So the dx and offset need to be adjust to whatever
-            the css has made the track, not the magicWidth that the rest of the track can use.
-            */ 
-           dx = (e.movementX / magicWidth) * trackBoundingRectangle.width
-           offsetX = Math.max(Math.min(offset + dx, 0), -((magicWidth * zoom) - magicWidth))
-           
-           //! The comparison window location is a slightly off due to rounding error(?) or bad math
+
+        /* Re-declaring these, because the track is adjusted from 2000px to the screen by css,
+        but comparison windows use absolute values. So the dx and offset need to be adjust to whatever
+        the css has made the track, not the maxWidth that the rest of the track can use.
+        */
+        dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
+        offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
+
+        //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
             offset: offsetX,
             zoom: Math.max(zoom, 1.0),
-            width: magicWidth,
-            ratio: magicWidth / e.target.clientWidth,
+            width: maxWidth,
+            ratio: maxWidth / e.target.clientWidth,
             left: trackBoundingRectangle.left + padding,
             realWidth: trackBoundingRectangle.width - (2 * padding),
             factor: 1.0
@@ -297,7 +331,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     setClickLocation(null)
                     return
                 }
-                let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+                let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
                 let found = false
                 drawnGenes.forEach(x => {
@@ -328,14 +362,14 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
                             if (matched == true && index > -1) {
 
-                            
+
                                 let orthologCap = Math.max(...orthologChromosome.map(d => d.end))
 
                                 // Location of the ortholog 
                                 let ratio = orthologInformation.start / orthologCap
-                                
+
                                 // Should almost certainly use a web worker for this
-                                let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, magicWidth])
+                                let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
                                 let calculatedZoom = x.width / relatedWidthScale(orthologInformation.end - orthologInformation.start) //the size of the ortholog
 
                                 // Aligning related tracks with the selected block
@@ -349,7 +383,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                                 }))
                                 dispatch(pan({
                                     key: trackID,
-                                    offset: -(ratio * magicWidth * calculatedZoom) + x.coordinateX
+                                    offset: -(ratio * maxWidth * calculatedZoom) + x.coordinateX
                                 }))
                             }
                         }
@@ -367,12 +401,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     //! TODO Changing length of text changes the location of ticks
     return (
-        <div className="test" style={{ width: '100%', height: '100%' }}>
-            {/* <Tooltip
-                title={'hovered.key'}
-                arrow
-                placement='top'> */}
-                {/*TODO  Calculate the actual width here*/}
+        <div style={{ width: '100%', height: '100%' }}>
             {title &&
                 <Typography
                     className={"title"}
@@ -392,9 +421,9 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 tabIndex={-1}
                 id={id}
                 ref={canvasRef}
+                height={maxHeight}
+                width={maxWidth}
                 className='miniview'
-                width={magicWidth}
-                height='1000'
                 style={style}
                 onContextMenu={doSomething}
                 onMouseDown={(e) => handleClick(e)}
@@ -404,7 +433,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         handlePan(e)
                     }
                     else {
-                        let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * magicWidth
+                        let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
                         let found = false
                         drawnGenes.forEach(x => {
@@ -426,12 +455,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         key: 'preview',
                         visible: false
                     })
-                )}
+                    )
+                }
                 }
                 onWheel={handleScroll}
                 {...props} />
-            {!noScale && <div className='scale' style={{ paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
-                <div width='2000' style={{ border: 'solid 1px', marginTop: -8, paddingLeft: '6 rem', paddingRight: '0.5rem', }} />
+            {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
+                <div width='2000' style={{ border: 'solid 1px', marginTop: -5 }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">
                     <div style={{ borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
                     <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
@@ -440,9 +470,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                     <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
-            </div>
-            }
-            {/* </Tooltip> */}
+            </div>}
 
         </div>
     )
@@ -452,8 +480,8 @@ BasicTrack.defaultProps = {
     color: 0,
     coordinateX: 0,
     coordinateY: 0,
-    width: '100%',
-    height: '75%',
+    width: 500,
+    height: 100,
     zoom: 1.0,
     pastZoom: 1.0,
     offset: 0,
