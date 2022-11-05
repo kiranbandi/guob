@@ -44,6 +44,20 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) : width,
         maxHeight = parentWrapperHeight ? Math.round(parentWrapperHeight * 0.75) : height;
 
+
+    useEffect(() => {
+        canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
+        // if alt key is pressed then stop the event 
+        function preventScroll(e) {
+            if (e.altKey == true) {
+                e.preventDefault();
+                // e.stopPropagation();
+                return false;
+            }
+        }
+    }, [])
+
+
     useEffect(() => {
 
         if (!array) return
