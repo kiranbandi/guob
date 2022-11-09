@@ -89,7 +89,7 @@ const OrthologLinks = ({index, id,...props}) =>{
         let xScale1 = scaleLinear().domain([0, aboveCap]).range([paddingLeft, (maxWidth) - paddingRight])
         let xScale2 = scaleLinear().domain([0, belowCap]).range([paddingLeft, (maxWidth) - paddingRight])
 
-        arrayLinks.push({type: "line",color: "purple", source: {x: xScale1(geneAbove.start), x1:  xScale1(geneAbove.end), y:0 }, target: {x: xScale2(geneBelow.start), x1: xScale2(geneBelow.end), y: parentWrapperHeight}})
+        arrayLinks.push({type: "polygon",color: "purple", source: {x: xScale1(geneAbove.start), x1:  xScale1(geneAbove.end), y:0 }, target: {x: xScale2(geneBelow.start), x1: xScale2(geneBelow.end), y: parentWrapperHeight}})
 
        
     }
