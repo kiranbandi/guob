@@ -96,12 +96,9 @@ function draw(arrayCoordinates, ctx,curvature){
 
         }
 
-       
-        // zoomed(d3.zoomIdentity);
-
     })
 }
-const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=50, width=900 }) => {
+const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=500, width=900 }) => {
     const canvasRef = useRef()
     const svgRef = useRef()
     const svgGRef = useRef()
@@ -122,41 +119,6 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=50, 
             var ctx = canvasRef.current.getContext('2d')
 
             draw(arrayCoordinates, ctx, curvature);
-
-            var zoomBehavior = d3.zoom().scaleExtent([1, 1000]).on("zoom", handleZoom);
-
-            d3.select(canvasRef.current).call(d3.zoom()
-
-            .on("zoom", (handleZoom)));
-
-        function handleZoom(e) {
-
-            var transform = e.transform;
-
-            ctx.save();
-            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            ctx.translate(transform.x,0)
-
-            // console.log(transform.k)
-            ctx.scale(transform.k,1)
-            draw(arrayCoordinates, ctx, curvature);
-            ctx.restore();
-
-        }
-
-        } else if (type.toLowerCase() === "svg") {
-
-
-            function handleZoom(e) {
-                var transform = e.transform;
-                var transformString = 'translate(' + transform.x + ',' + '0) scale(' + transform.k + ',1)';
-                d3.select(svgGRef.current).attr("transform", transformString);
-            };
-            var zoomBehavior = d3.zoom().scaleExtent([1, 1000]).on("zoom", handleZoom);
-
-            d3.select(svgRef.current)
-                .call(zoomBehavior);
-
 
         }
 

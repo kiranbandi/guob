@@ -2,7 +2,7 @@ import { useDragLayer } from 'react-dnd'
 import { ItemTypes } from './ItemTypes.js'
 import { DragPreview } from './DragPreview.js'
 import { nanoid } from '@reduxjs/toolkit'
-import TrackLinks from 'components/tracks/TrackLinks.jsx'
+import LinkContainer from 'components/tracks/LinkContainer.jsx'
 
 
 const layerStyle = {
@@ -50,7 +50,7 @@ export const CustomDragLayer = (props) => {
                         )
                     }
                     else{
-                        return <TrackLinks></TrackLinks>
+                        return <LinkContainer index={item.index}></LinkContainer>
                     }
                 }
             default:

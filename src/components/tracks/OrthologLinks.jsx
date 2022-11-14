@@ -24,6 +24,9 @@ function  findGene(geneSearched) {
     }
 }
 
+function searchTrack(geneSearched, trackDataset){
+    return trackDataset.find((d) => d.key.toLowerCase() == geneSearched.toLowerCase())
+}
 
 function findChromosome(gene){
     // console.log(window.orthologs)
@@ -35,7 +38,6 @@ function findOrthologs (c1, c2){
 
     for ( let gene of orthologs){
         if (findChromosome(gene.source.toLowerCase()) ==  c1 && findChromosome(gene.target.toLowerCase()) == c2){
-
             orthologPairs.push({source: gene.source, target: gene.target})
         }
         else if (findChromosome(gene.target.toLowerCase()) ==  c1 && findChromosome(gene.source.toLowerCase()) == c2){
@@ -49,51 +51,56 @@ function findOrthologs (c1, c2){
 }
 
 let dataSet1 = [{type: "line", source: {x: 623.9910809660769, y:0}, target: {x: 624.2136712245092, y:50}}];
-const OrthologLinks = ({index, id,...props}) =>{
+const OrthologLinks = ({index, id, topTrack, bottomTrack, ...props}) =>{
 
-    
-    const trackSelector =  useSelector(selectBasicTracks)
-    const indexSelector = useSelector(selectDraggables)
+    let aboveLength = topTrack ? topTrack.array.length : 0
+    let aboveCap = aboveLength > 0 ?  Math.max(...topTrack.array.map(d=> d.end)) : 0
+    let belowLength = bottomTrack ? bottomTrack.array.length : 0
+    let belowCap = belowLength > 0 ? Math.max(...bottomTrack.array.map(d=> d.end)) : 0
 
-    // These should have all the information from the tracks, including zoom level + offset
-    let aboveData = trackSelector[indexSelector[index - 1]]
-    let belowData = trackSelector[indexSelector[index + 1]]
-    console.log(aboveData)
-    // Just finding these values for the returned example div below
-    let aboveArray = trackSelector[indexSelector[index - 1]] ? trackSelector[indexSelector[index - 1]].array : []
-    let belowArray =  trackSelector[indexSelector[index + 1]] ? trackSelector[indexSelector[index + 1]].array : []
-    let aboveLength = aboveArray.length 
-    let aboveCap = aboveLength > 0 ?  Math.max(...aboveArray.map(d=> d.end)) : 0
-    let belowLength = belowArray.length
-    let belowCap = belowLength > 0 ? Math.max(...belowArray.map(d=> d.end)) : 0
+    let topKey = topTrack ? topTrack.key : undefined
+    let bottomKey = bottomTrack ? bottomTrack.key : undefined
 
-    let orthologPairs =  findOrthologs(indexSelector[index - 1],  indexSelector[index + 1]);
+    let orthologPairs =  findOrthologs(topKey,  bottomKey);
     //{type: "polygon", source: {x: 0,x1: 0,y1:0, y:0}, target: {x:100,x1: 200, y1: 100, y:100}}
 
-    let arrayLinks =[];
+    let arrayLinks = [];
     let parentWrapperHeight = document.querySelector('.draggable')?.getBoundingClientRect()?.height,
         parentWrapperWidth = document.querySelector('.draggable')?.getBoundingClientRect()?.width;
 
-    const maxWidth =Math.round(parentWrapperWidth * 0.98);
+    const maxWidth = Math.round(parentWrapperWidth * 0.98);
 
-
-    // console.log(maxWidth)
 
     for (var pair of orthologPairs){
-        let chromAbove = indexSelector[index - 1];
-        let chromoBelow = indexSelector[index + 1];
 
-        let geneAbove = findGene(pair.source);
-        let geneBelow = findGene(pair.target);
+
+        // let geneAbove = findGene(pair.source);
+        let geneAbove = searchTrack(pair.source, topTrack.array)
+        // let geneBelow = findGene(pair.target);
+        let geneBelow = findGene(pair.target, bottomTrack.array)
+        console.log(geneAbove)
+
         const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
-        let xScale1 = scaleLinear().domain([0, aboveCap]).range([paddingLeft, (maxWidth) - paddingRight])
-        let xScale2 = scaleLinear().domain([0, belowCap]).range([paddingLeft, (maxWidth) - paddingRight])
+        let xScale1 = scaleLinear().domain([0, aboveCap]).range([paddingLeft, (maxWidth * topTrack.zoom) - paddingRight])
+        let xScale2 = scaleLinear().domain([0, belowCap]).range([paddingLeft, (maxWidth * bottomTrack.zoom) - paddingRight])
+        
+        let widthScale1 = scaleLinear().domain([0, aboveCap]).range([0, (maxWidth * topTrack.zoom) - paddingRight])
+        let widthScale2 = scaleLinear().domain([0, belowCap]).range([0, (maxWidth * bottomTrack.zoom) - paddingRight])
 
-        arrayLinks.push({type: "polygon",color: "purple", source: {x: xScale1(geneAbove.start), x1:  xScale1(geneAbove.end), y:0 }, target: {x: xScale2(geneBelow.start), x1: xScale2(geneBelow.end), y: parentWrapperHeight}})
+        let topX1 = xScale1(geneAbove.start) + topTrack.offset
+        let topX2 = xScale1(geneAbove.start) + widthScale1(geneAbove.end - geneAbove.start) + topTrack.offset
+        
+        let bottomX1 = xScale2(geneBelow.start) + bottomTrack.offset
+        let bottomX2 = xScale2(geneBelow.start) + widthScale2(geneBelow.end - geneBelow.start) + bottomTrack.offset
+
+        
+        console.log(widthScale1(geneAbove.end - geneAbove.start))
+        console.log(topX2)
+
+        arrayLinks.push({type: "polygon",color: "purple", source: {x: topX1, x1:  topX2, y:0 }, target: {x: bottomX1, x1: bottomX2, y: parentWrapperHeight}})
 
        
     }
-    console.log(arrayLinks)
     // console.log(window.dataset)
 
     return(

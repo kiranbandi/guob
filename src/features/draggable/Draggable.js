@@ -12,6 +12,7 @@ import { teal } from '@mui/material/colors';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { useSelector } from "react-redux"
 import { GroupAddOutlined } from "@mui/icons-material"
+import { countBy } from "lodash"
 
 const Draggable = ({ children, id, index, grouped, groupID, className }) => {
 
@@ -103,7 +104,6 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
     // Used with CustomDragLayer
     drop((secondRef))
     //###################################
-
 
     return (
         <div ref={secondRef} className={className}>

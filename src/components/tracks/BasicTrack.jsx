@@ -42,7 +42,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) : width,
-        maxHeight = parentWrapperHeight ? Math.round(parentWrapperHeight * 0.75) : height;
+        maxHeight = parentWrapperHeight ? parentWrapperHeight - 25 : height;
 
 
     useEffect(() => {
@@ -86,7 +86,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let minValue = 0, maxValue = 100;
 
         // Deal with color palette switch in dark mode;
-        let zeroColor = '#ffffff';
+        let zeroColor = isDark ? '#121212' : '#ffffff';
 
         let dynamicColorScale = ['heatmap', 'histogram', 'scatter'].indexOf(trackType) > -1 ? scaleLinear().domain([minValue, maxValue]).range([zeroColor, color]) : false;
         let yScale = ['histogram', 'scatter', 'line'].indexOf(trackType) > -1 ? scaleLinear().domain([0, maxValue]).range([paddingTop, maxHeight - paddingBottom]) : () => maxHeight;
@@ -103,7 +103,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 ctx.beginPath();
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 3;
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = zeroColor;
                 lineFunction(pathArray);
                 ctx.fill();
                 ctx.stroke();
@@ -144,7 +144,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 ctx.beginPath();
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 3;
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = zeroColor;
                 lineFunction(pathArray);
                 ctx.fill();
                 ctx.stroke();
@@ -163,7 +163,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         }
 
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark, normalize])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark, normalize, parentWrapperHeight])
 
 
 
