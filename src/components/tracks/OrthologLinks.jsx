@@ -150,18 +150,6 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         }
     }
 
-    // return (
-    //     <div ref={linkRef} onWheel={handleScroll} onMouseDown={handleClick} onMouseUp={handleClick} onMouseMove={handlePan} >
-    //         <OrthologLinks id={id} topTrack={topTrack} bottomTrack={bottomTrack} normalize={normalize} ></OrthologLinks>
-    //     </div>
-    // )
-
-
-
-
-
-
-
     //######################################################################################
 
     let aboveLength = topTrack ? topTrack.array.length : 0
@@ -177,13 +165,10 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     let arrayLinks = [];
     let parentWrapperHeight = document.querySelector('.draggable')?.getBoundingClientRect()?.height
-    // parentWrapperWidth = document.querySelector('.draggable')?.getBoundingClientRect()?.width;
 
-    // const maxWidth = Math.round(parentWrapperWidth * 0.98);
 
 
     for (var pair of orthologPairs) {
-
 
         // let geneAbove = findGene(pair.source);
         let geneAbove = searchTrack(pair.source, topTrack.array)
@@ -247,10 +232,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 key: bottomTrack.key,
                 offset: -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
             }))
-
         }
-
-
     }
 
     return (
