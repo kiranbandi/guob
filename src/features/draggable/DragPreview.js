@@ -23,6 +23,9 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
                     offset={basicTrackSelector[item].offset}
                     height={height/2}
                     noScale={true}
+                    trackType={basicTrackSelector[item].trackType}
+                    // isDark={false}
+                    // normalize={false}
 
                 />
             </div>

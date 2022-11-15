@@ -144,7 +144,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 ctx.beginPath();
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 3;
-                ctx.fillStyle = zeroColor;
+                ctx.fillStyle = "rgba(255,255,255, 0)"
                 lineFunction(pathArray);
                 ctx.fill();
                 ctx.stroke();

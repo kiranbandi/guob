@@ -51,7 +51,7 @@ function findOrthologs (c1, c2){
 }
 
 let dataSet1 = [{type: "line", source: {x: 623.9910809660769, y:0}, target: {x: 624.2136712245092, y:50}}];
-const OrthologLinks = ({index, id, topTrack, bottomTrack, ...props}) =>{
+const OrthologLinks = ({index, id, topTrack, bottomTrack, normalize, ref, ...props}) =>{
 
     let aboveLength = topTrack ? topTrack.array.length : 0
     let aboveCap = aboveLength > 0 ?  Math.max(...topTrack.array.map(d=> d.end)) : 0
@@ -78,11 +78,14 @@ const OrthologLinks = ({index, id, topTrack, bottomTrack, ...props}) =>{
         let geneAbove = searchTrack(pair.source, topTrack.array)
         // let geneBelow = findGene(pair.target);
         let geneBelow = findGene(pair.target, bottomTrack.array)
-        console.log(geneAbove)
-
+        
         const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
-        let xScale1 = scaleLinear().domain([0, aboveCap]).range([paddingLeft, (maxWidth * topTrack.zoom) - paddingRight])
-        let xScale2 = scaleLinear().domain([0, belowCap]).range([paddingLeft, (maxWidth * bottomTrack.zoom) - paddingRight])
+
+        let topRatio = normalize ? aboveCap/topTrack.normalizedLength : 1.0
+        let bottomRatio = normalize ? belowCap/bottomTrack.normalizedLength : 1.0
+
+        let xScale1 = scaleLinear().domain([0, aboveCap]).range([paddingLeft, (maxWidth * topRatio * topTrack.zoom) - paddingRight])
+        let xScale2 = scaleLinear().domain([0, belowCap]).range([paddingLeft, (maxWidth * bottomRatio * bottomTrack.zoom) - paddingRight])
         
         let widthScale1 = scaleLinear().domain([0, aboveCap]).range([0, (maxWidth * topTrack.zoom) - paddingRight])
         let widthScale2 = scaleLinear().domain([0, belowCap]).range([0, (maxWidth * bottomTrack.zoom) - paddingRight])
@@ -93,15 +96,10 @@ const OrthologLinks = ({index, id, topTrack, bottomTrack, ...props}) =>{
         let bottomX1 = xScale2(geneBelow.start) + bottomTrack.offset
         let bottomX2 = xScale2(geneBelow.start) + widthScale2(geneBelow.end - geneBelow.start) + bottomTrack.offset
 
-        
-        console.log(widthScale1(geneAbove.end - geneAbove.start))
-        console.log(topX2)
-
         arrayLinks.push({type: "polygon",color: "purple", source: {x: topX1, x1:  topX2, y:0 }, target: {x: bottomX1, x1: bottomX2, y: parentWrapperHeight}})
 
-       
     }
-    // console.log(window.dataset)
+
 
     return(
     <>
@@ -110,7 +108,7 @@ const OrthologLinks = ({index, id, topTrack, bottomTrack, ...props}) =>{
             <br/>
             <a>The track below this is {indexSelector[index + 1]}, it has {belowLength} items in the datataset, with the end being {belowCap}</a> */}
 
-            <Links arrayCoordinates={arrayLinks} type="svg"  width={(maxWidth) - 10} />
+            <Links arrayCoordinates={arrayLinks} ref={ref} type="svg"  width={(maxWidth) - 10} />
         </div>
     </>
     )
