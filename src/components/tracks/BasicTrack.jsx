@@ -57,6 +57,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
     }, [])
 
+    // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
+    // keep the old palette
+    useEffect(() => {
+        setDrawnGenes([])
+    }, [isDark])
 
     useEffect(() => {
 
@@ -163,7 +168,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         }
 
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark, normalize, parentWrapperHeight])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
 

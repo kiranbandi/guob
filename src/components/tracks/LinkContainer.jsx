@@ -35,6 +35,10 @@ const LinkContainer = ({ index, id, normalize, ...props }) => {
         }
     }, [])
 
+    function locate(e){
+        console.log(e)
+    }
+
     function handleScroll(e) {
         if (e.altKey == true) {
             let factor = 0.9
@@ -88,6 +92,7 @@ const LinkContainer = ({ index, id, normalize, ...props }) => {
         // Panning both tracks
         if (dragging === true) {
 
+            if(!aboveData || !belowData) return
             let offsetX = Math.max(Math.min(aboveData.offset + e.movementX, 0), -((maxWidth * aboveData.zoom) - maxWidth))
             dispatch(pan({
                 key: aboveData.key,
@@ -103,7 +108,7 @@ const LinkContainer = ({ index, id, normalize, ...props }) => {
     }
 
     return (
-        <div ref={linkRef} onWheel={handleScroll} onMouseDown={handleClick} onMouseUp={handleClick} onMouseMove={handlePan}>
+        <div ref={linkRef} onWheel={handleScroll} onMouseDown={handleClick} onMouseUp={handleClick} onMouseMove={handlePan} locate={locate}>
             <OrthologLinks id={id} topTrack={aboveData} bottomTrack={belowData} normalize={normalize} ></OrthologLinks>
         </div>
     )

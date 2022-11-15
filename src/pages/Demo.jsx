@@ -31,6 +31,7 @@ import LinkContainer from 'components/tracks/LinkContainer'
 import parseGFF from 'features/parsers/gffParser';
 import { CopyAll } from '@mui/icons-material';
 import _ from 'lodash'; 
+import OrthologLinks from 'components/tracks/OrthologLinks';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -415,7 +416,7 @@ return (
                                             isDark={isDark}
                                             normalize={normalize}
                                         />}
-                                        {item === 'links' && <LinkContainer key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></LinkContainer>}
+                                        {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
                                     </Draggable>
 
                                 )

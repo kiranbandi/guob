@@ -3,6 +3,7 @@ import { ItemTypes } from './ItemTypes.js'
 import { DragPreview } from './DragPreview.js'
 import { nanoid } from '@reduxjs/toolkit'
 import LinkContainer from 'components/tracks/LinkContainer.jsx'
+import OrthologLinks from 'components/tracks/OrthologLinks.jsx'
 
 
 const layerStyle = {
@@ -50,7 +51,7 @@ export const CustomDragLayer = (props) => {
                         )
                     }
                     else{
-                        return <LinkContainer index={item.index}></LinkContainer>
+                        return <OrthologLinks index={item.index}></OrthologLinks>
                     }
                 }
             default:

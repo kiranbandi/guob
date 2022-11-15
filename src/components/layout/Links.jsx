@@ -98,7 +98,7 @@ function draw(arrayCoordinates, ctx,curvature){
 
     })
 }
-const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900 }) => {
+const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900, gradient, locate }) => {
     const canvasRef = useRef()
     const svgRef = useRef()
     const svgGRef = useRef()
@@ -175,9 +175,9 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900 }
                 }
             } else if (item.type === "polygon") {
                 var color = item.color;
-                if (color) {
 
-                    return <path d={createLinkPolygonPath({ item }, curvature)} key={index} fill={color}></path>
+                if (color) {
+                    return <path d={createLinkPolygonPath({ item }, curvature)} key={index} fill={'url(#link-gradient)'} id={item.above+"-" + item.below}></path>
                 } else {
                     return <path d={createLinkPolygonPath({ item }, curvature)} key={index} fill={Turbocolors[Math.round((index + 1) * Turbocolors.length / (totalLines + 1))]} ></path>
                 }
@@ -186,9 +186,13 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900 }
         })
 
 
-        return (<svg ref={svgRef} width={width} height={height} className="LinksSVG">
+        return (<svg ref={svgRef} width={width} height={height} className="LinksSVG" onClick={locate}>
             {/* <rect x="0" y="0" width="950" height="100" style={{ fill: "none", stroke: "pink", strokeWidth: 5, fillOpacity: 0.1, strokeOpacity: 0.9 }} /> */}
             <g className="LinksSVGg" ref={svgGRef}>
+            <linearGradient id={'link-gradient'} x1={0} x2={0} y1={0} y2={1}>
+            <stop offset=".25" stop-color={gradient[1]}></stop>
+            <stop offset=".75" stop-color={gradient[0]}></stop>
+            </linearGradient>
                 {pathList}
             </g>
 
