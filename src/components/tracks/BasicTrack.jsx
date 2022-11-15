@@ -275,7 +275,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     function showPreview(event) {
-
+        if(trackType !== "default") return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -452,6 +452,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         handlePan(e)
                     }
                     else {
+                        if(trackType !== "default") return
                         let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
                         let found = false
