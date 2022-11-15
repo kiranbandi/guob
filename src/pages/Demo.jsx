@@ -27,7 +27,6 @@ import { useEffect, useRef } from "react"
 import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import LinkContainer from 'components/tracks/LinkContainer'
 import parseGFF from 'features/parsers/gffParser';
 import { CopyAll } from '@mui/icons-material';
 import _ from 'lodash'; 

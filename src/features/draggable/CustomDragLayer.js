@@ -2,7 +2,6 @@ import { useDragLayer } from 'react-dnd'
 import { ItemTypes } from './ItemTypes.js'
 import { DragPreview } from './DragPreview.js'
 import { nanoid } from '@reduxjs/toolkit'
-import LinkContainer from 'components/tracks/LinkContainer.jsx'
 import OrthologLinks from 'components/tracks/OrthologLinks.jsx'
 
 
