@@ -4,7 +4,7 @@ import { scaleLinear } from "d3-scale"
 import Links from 'components/layout/Links';
 import React, { useState, useEffect, useRef } from 'react';
 import { pan, changeZoom } from "./basicTrackSlice";
-
+import { panComparison } from "features/miniview/miniviewSlice";
 
 // import * as d3 from 'd3';
 
@@ -136,16 +136,42 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         if (dragging === true) {
 
             if (!topTrack || !bottomTrack) return
+
+            
+            let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
             let offsetX = Math.max(Math.min(topTrack.offset + e.movementX, 0), -((maxWidth * topTrack.zoom) - maxWidth))
+           
             dispatch(pan({
                 key: topTrack.key,
                 offset: offsetX,
+            }))
+            // debugger
+            dispatch(panComparison({
+                key: topTrack.key,
+                offset: offsetX + boundingBox.x,
+                zoom: Math.max(topTrack.zoom, 1.0),
+                width: maxWidth,
+                ratio: maxWidth / boundingBox.width,
+                left: boundingBox.left,
+                realWidth: boundingBox.width,
+                factor: 1.0
             }))
 
             offsetX = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
             dispatch(pan({
                 key: bottomTrack.key,
                 offset: offsetX,
+            }))
+
+            dispatch(panComparison({
+                key: bottomTrack.key,
+                offset: offsetX + boundingBox.x,
+                zoom: Math.max(bottomTrack.zoom, 1.0),
+                width: maxWidth,
+                ratio: maxWidth / boundingBox.width,
+                left: boundingBox.left,
+                realWidth: boundingBox.width,
+                factor: 1.0
             }))
         }
     }
@@ -222,6 +248,17 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             dispatch(pan({
                 key: topTrack.key,
                 offset: -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
+            }))
+
+            dispatch(panComparison({
+                key: topTrack.key,
+                offset: -(topRatio * maxWidth * topTrack.zoom) + bottomLocation,
+                zoom: Math.max(topTrack.zoom, 1.0),
+                width: maxWidth,
+                ratio: maxWidth / boundingBox.width,
+                left: boundingBox.left,
+                realWidth: boundingBox.width,
+                factor: 1.0
             }))
         }
         else {

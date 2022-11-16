@@ -215,14 +215,16 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }))
             dispatch(panComparison({
                 key: id,
-                offset: offsetX,
+                offset: offsetX + trackBoundingRectangle.x,
                 zoom: Math.max(zoom * factor, 1.0),
                 width: maxWidth,
                 ratio: maxWidth / e.target.clientWidth,
-                left: trackBoundingRectangle.left + padding,
-                realWidth: trackBoundingRectangle.width - (2 * padding),
+                left: trackBoundingRectangle.left,
+                realWidth: trackBoundingRectangle.width - (2 * 10),
                 factor: factor
             }))
+
+
             showPreview(e)
         }
     }
@@ -261,13 +263,14 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
+        debugger
         //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
             offset: offsetX,
             zoom: Math.max(zoom, 1.0),
             width: maxWidth,
-            ratio: maxWidth / e.target.clientWidth,
+            ratio: 1.0,
             left: trackBoundingRectangle.left + padding,
             realWidth: trackBoundingRectangle.width - (2 * padding),
             factor: 1.0
