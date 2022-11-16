@@ -11,6 +11,5 @@ export const store = configureStore({
     miniview: miniviewReducer,
     alternateDraggable: alternateDraggableReducer,
     draggable: draggableReducer,
-    theme: themeReducer,
   },
 });

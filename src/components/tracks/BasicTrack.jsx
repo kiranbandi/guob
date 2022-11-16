@@ -42,7 +42,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) : width,
-        maxHeight = parentWrapperHeight ? Math.round(parentWrapperHeight * 0.75) : height;
+        maxHeight = parentWrapperHeight ? parentWrapperHeight - 25 : height;
 
 
     useEffect(() => {
@@ -57,6 +57,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
     }, [])
 
+    // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
+    // keep the old palette
+    useEffect(() => {
+        setDrawnGenes([])
+    }, [isDark])
 
     useEffect(() => {
 
@@ -86,7 +91,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let minValue = 0, maxValue = 100;
 
         // Deal with color palette switch in dark mode;
-        let zeroColor = '#ffffff';
+        let zeroColor = isDark ? '#121212' : '#ffffff';
 
         let dynamicColorScale = ['heatmap', 'histogram', 'scatter'].indexOf(trackType) > -1 ? scaleLinear().domain([minValue, maxValue]).range([zeroColor, color]) : false;
         let yScale = ['histogram', 'scatter', 'line'].indexOf(trackType) > -1 ? scaleLinear().domain([0, maxValue]).range([paddingTop, maxHeight - paddingBottom]) : () => maxHeight;
@@ -103,7 +108,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 ctx.beginPath();
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 3;
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = zeroColor;
                 lineFunction(pathArray);
                 ctx.fill();
                 ctx.stroke();
@@ -144,7 +149,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 ctx.beginPath();
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 3;
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = "rgba(255,255,255, 0)"
                 lineFunction(pathArray);
                 ctx.fill();
                 ctx.stroke();
@@ -163,7 +168,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         }
 
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, isDark, normalize])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
 
@@ -210,14 +215,16 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }))
             dispatch(panComparison({
                 key: id,
-                offset: offsetX,
+                offset: offsetX + trackBoundingRectangle.x,
                 zoom: Math.max(zoom * factor, 1.0),
                 width: maxWidth,
                 ratio: maxWidth / e.target.clientWidth,
-                left: trackBoundingRectangle.left + padding,
-                realWidth: trackBoundingRectangle.width - (2 * padding),
+                left: trackBoundingRectangle.left,
+                realWidth: trackBoundingRectangle.width - (2 * 10),
                 factor: factor
             }))
+
+
             showPreview(e)
         }
     }
@@ -256,13 +263,14 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
+        debugger
         //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
             offset: offsetX,
             zoom: Math.max(zoom, 1.0),
             width: maxWidth,
-            ratio: maxWidth / e.target.clientWidth,
+            ratio: 1.0,
             left: trackBoundingRectangle.left + padding,
             realWidth: trackBoundingRectangle.width - (2 * padding),
             factor: 1.0
@@ -270,7 +278,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     function showPreview(event) {
-
+        if(trackType !== "default") return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -447,6 +455,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         handlePan(e)
                     }
                     else {
+                        if(trackType !== "default") return
                         let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
                         let found = false

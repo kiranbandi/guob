@@ -27,7 +27,6 @@ import { useEffect, useRef } from "react"
 import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import TrackLinks from 'components/tracks/TrackLinks'
 import parseGFF from 'features/parsers/gffParser';
 import { CopyAll } from '@mui/icons-material';
 import _ from 'lodash'; 
@@ -243,7 +242,7 @@ export default function Demo({ isDark }) {
     height: .5rem;
 }
 .comparison {
-    height: ${sliderHeight*.75 + 'px'};
+    height: ${sliderHeight - 25 + 'px'};
 }
 .groupedComparison {
   height : 2.5rem;
@@ -416,7 +415,7 @@ return (
                                             isDark={isDark}
                                             normalize={normalize}
                                         />}
-                                        {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item) }></OrthologLinks>}
+                                        {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
                                     </Draggable>
 
                                 )

@@ -96,15 +96,13 @@ function draw(arrayCoordinates, ctx,curvature){
 
         }
 
-       
-        // zoomed(d3.zoomIdentity);
-
     })
 }
-const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=50, width=900 }) => {
+const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900, gradient, locate }) => {
     const canvasRef = useRef()
     const svgRef = useRef()
     const svgGRef = useRef()
+    let height = document.querySelector('.draggable')?.getBoundingClientRect()?.height
 
     let pathList = [];
     
@@ -113,7 +111,7 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=50, 
 
 
 
-    console.log(arrayCoordinates)
+    // console.log(arrayCoordinates)
 
     useEffect(() => {
 
@@ -123,39 +121,39 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=50, 
 
             draw(arrayCoordinates, ctx, curvature);
 
-            var zoomBehavior = d3.zoom().scaleExtent([1, 1000]).on("zoom", handleZoom);
+            // var zoomBehavior = d3.zoom().scaleExtent([1, 1000]).on("zoom", handleZoom);
 
-            d3.select(canvasRef.current).call(d3.zoom()
+            // d3.select(canvasRef.current).call(d3.zoom()
 
-            .on("zoom", (handleZoom)));
+            // .on("zoom", (handleZoom)));
 
-        function handleZoom(e) {
+        // function handleZoom(e) {
 
-            var transform = e.transform;
+        //     var transform = e.transform;
 
-            ctx.save();
-            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            ctx.translate(transform.x,0)
+        //     ctx.save();
+        //     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        //     ctx.translate(transform.x,0)
 
-            // console.log(transform.k)
-            ctx.scale(transform.k,1)
-            draw(arrayCoordinates, ctx, curvature);
-            ctx.restore();
+        //     // console.log(transform.k)
+        //     ctx.scale(transform.k,1)
+        //     draw(arrayCoordinates, ctx, curvature);
+        //     ctx.restore();
 
-        }
+        // }
 
         } else if (type.toLowerCase() === "svg") {
 
 
-            function handleZoom(e) {
-                var transform = e.transform;
-                var transformString = 'translate(' + transform.x + ',' + '0) scale(' + transform.k + ',1)';
-                d3.select(svgGRef.current).attr("transform", transformString);
-            };
-            var zoomBehavior = d3.zoom().scaleExtent([1, 1000]).on("zoom", handleZoom);
+            // function handleZoom(e) {
+            //     var transform = e.transform;
+            //     var transformString = 'translate(' + transform.x + ',' + '0) scale(' + transform.k + ',1)';
+            //     d3.select(svgGRef.current).attr("transform", transformString);
+            // };
+            // var zoomBehavior = d3.zoom().scaleExtent([1, 1000]).on("zoom", handleZoom);
 
-            d3.select(svgRef.current)
-                .call(zoomBehavior);
+            // d3.select(svgRef.current)
+            //     .call(zoomBehavior);
 
 
         }
@@ -177,9 +175,9 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=50, 
                 }
             } else if (item.type === "polygon") {
                 var color = item.color;
-                if (color) {
 
-                    return <path d={createLinkPolygonPath({ item }, curvature)} key={index} fill={color}></path>
+                if (color) {
+                    return <path d={createLinkPolygonPath({ item }, curvature)} key={index} fill={'url(#link-gradient)'} id={item.above+"-" + item.below}></path>
                 } else {
                     return <path d={createLinkPolygonPath({ item }, curvature)} key={index} fill={Turbocolors[Math.round((index + 1) * Turbocolors.length / (totalLines + 1))]} ></path>
                 }
@@ -188,9 +186,13 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", height=50, 
         })
 
 
-        return (<svg ref={svgRef} width={width} height={height} className="LinksSVG">
+        return (<svg ref={svgRef} width={width} height={height} className="LinksSVG" onClick={locate}>
             {/* <rect x="0" y="0" width="950" height="100" style={{ fill: "none", stroke: "pink", strokeWidth: 5, fillOpacity: 0.1, strokeOpacity: 0.9 }} /> */}
             <g className="LinksSVGg" ref={svgGRef}>
+            <linearGradient id={'link-gradient'} x1={0} x2={0} y1={0} y2={1}>
+            <stop offset=".25" stop-color={gradient[1]}></stop>
+            <stop offset=".75" stop-color={gradient[0]}></stop>
+            </linearGradient>
                 {pathList}
             </g>
 
