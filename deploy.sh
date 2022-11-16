@@ -6,5 +6,5 @@ npm run build
 sudo systemctl stop nginx
 rm -rf /var/www/guob/*
 cp -r build/. /var/www/guob
-systemctl reload nginx
+systemctl start nginx
 echo "deploy complete"
