@@ -304,10 +304,10 @@ function enableGT(e){
     async function connect(){
     try {
 
-        gt = window.createGt('localhost:3002')
+        gt = window.createGt('hci-sandbox.usask.ca:3001')
         await gt.connect();
         await gt.auth();
-        await gt.join('synvisio-test');
+        await gt.join('gutb-test');
       }
       catch (e) {
         console.error(e)
