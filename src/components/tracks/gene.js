@@ -52,7 +52,7 @@ function drawPoint(context, cx, cy, r) {
     // speed up if the path is closed after all the points have been drawn
     // and don't mind points not having a stroke
     context.beginPath();
-    context.arc(cx, cy, r, 0, 2 * Math.PI);
+    context.arc(cx, cy, 4, 0, 2 * Math.PI);
     context.closePath();
     context.fill();
     context.stroke();
