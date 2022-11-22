@@ -1,10 +1,11 @@
+
+
 let currentUserID = 'U-' + Math.floor(Math.random() * 10000);
-currentUserID = prompt('Enter desired Username', currentUserID);
 
 
 let colorScale = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
 let colorHash = colorScale[Math.floor(Math.random()*10)];
-colorHash = prompt('Enter desired cursor color', colorHash);
+
 
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -25532,6 +25533,9 @@ Socket.prototype.onack = function (packet) {
  */
 
 Socket.prototype.onconnect = function () {
+
+  currentUserID = prompt('Enter desired Username', currentUserID);
+colorHash = prompt('Enter desired cursor color', colorHash);
   this.connected = true;
   this.disconnected = false;
   this.emit('connect');
@@ -25567,6 +25571,7 @@ Socket.prototype.ondisconnect = function () {
   debug('server disconnect (%s)', this.nsp);
   this.destroy();
   this.onclose('io server disconnect');
+
 };
 
 /**
@@ -27403,6 +27408,15 @@ class GT extends EventEmitter {
       createCursor(id, user);
       this.emit('connected', id, user)
 
+      document.getElementsByTagName("body").innerHTML += `
+      <div id="draggable" class="card w-25" style="position: absolute;">
+          <h5 class="card-header primary-color white-text">Other Users in Room</h5>
+          <div class="card-body">
+            <p class="card-text" id="userlist"></p>
+          </div>
+        </div>`
+
+  $( "#draggable" ).draggable();
 
     })
 
@@ -27418,7 +27432,10 @@ class GT extends EventEmitter {
       }
 
       // emit the message out
-      this.emit('disconnected', id, reason)
+      
+      this.emit('disconnected', id, reason);
+
+      
     })
 
     // helper function to update the state of a user
@@ -27570,6 +27587,7 @@ class GT extends EventEmitter {
 
       // emit the message
       this.emit('disconnect', reason)
+      
     })
 
     // when we join a room

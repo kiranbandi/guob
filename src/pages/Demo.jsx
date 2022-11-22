@@ -21,7 +21,8 @@ import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
 import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
-import { text } from "d3-request"
+import { text } from "d3-request";
+import $ from 'jquery';
 import { scaleOrdinal } from 'd3-scale';
 import { useEffect, useRef } from "react"
 import { useFetch } from '../hooks/useFetch';
@@ -286,7 +287,46 @@ export default function Demo({ isDark }) {
     setLoading(true)
 }, [demoFile])
 
+
+
+
+
 function changeNormalize(e) { setNormalize(e.target.checked) }
+
+
+
+function enableGT(e){
+    console.log(e.target.checked)
+
+    if (e.target.checked){
+    let gt;
+
+    async function connect(){
+    try {
+
+        gt = window.createGt('localhost:3002')
+        await gt.connect();
+        await gt.auth();
+        await gt.join('synvisio-test');
+      }
+      catch (e) {
+        console.error(e)
+      }
+      window.gt = gt;
+    }
+      connect();
+
+      
+    }
+    else{
+        let gt = window.gt;
+        gt.disconnect();
+        window.location.reload()
+
+    }
+    
+}
+
 
 function clearComparisonTracks() {
     dispatch(clearComparisons({
@@ -328,6 +368,8 @@ return (
                 }}>Triticum aestivum</Button>
                 <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
                 <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
+
+                <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
 
             </Stack>
             <Slider
