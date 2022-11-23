@@ -39,7 +39,7 @@ export default function Demo({ isDark }) {
 
 
     // Demo of redux miniview
-    const previewSelector = useSelector(selectMiniviews)['preview']
+    const previewSelector = useSelector(selectMiniviews)['newPreview']
     const miniviewSelector = useSelector(selectMiniviews)
     const draggableSelector = useSelector(selectDraggables)
     const alternateDraggableSelector = useSelector(selectAlternateDraggables)
@@ -165,7 +165,7 @@ export default function Demo({ isDark }) {
             let y = event.target.offsetTop
             dispatch(addComparison({
                 key: testId,
-                array: previewSelector.array,
+                array: basicTrackSelector[previewSelector.linkedTrack].array,
                 color: previewSelector.color,
                 start: Math.round(previewSelector.start),
                 end: Math.round(previewSelector.end),
@@ -198,12 +198,16 @@ export default function Demo({ isDark }) {
     border: 1px solid black;
 }
 .draggable {
-    /* cursor: crosshair; */
+    cursor: crosshair; 
     border: 1px solid grey;
     margin-bottom: ${draggableSpacing ? 0 : "1.5rem"};
     height: ${sliderHeight + 'px'};
     border:solid black 1px;
     flex-direction: row;
+}
+.track {
+    width: 100%
+    
 }
 .body {
     overflow: hidden;
@@ -341,7 +345,7 @@ return (
 
             {previewSelector.visible && <Miniview
                 className={'preview'}
-                array={previewSelector.array}
+                array={basicTrackSelector[previewSelector.linkedTrack].array}
                 coordinateX={previewSelector.coordinateX}
                 coordinateY={previewSelector.coordinateY}
                 width={previewSelector.width}
@@ -353,6 +357,12 @@ return (
                 absolutePositioning={true}
                 preview={true}
                 isDark={isDark}
+                trackType={previewSelector.trackType}
+                zoom={previewSelector.zoom}
+                offset={previewSelector.offset}
+                boxLeft={previewSelector.viewFinderX}
+                boxTop={previewSelector.viewFinderY}
+                boxWidth={previewSelector.viewFinderWidth}
             />}
 
 
@@ -382,6 +392,7 @@ return (
                     boxWidth={current.boxWidth}
                     grouped={groupSelector.includes(comparableSelector[item].target)}
                     isDark={isDark}
+                    trackType={previewSelector.trackType}
                 />
             }))
             }

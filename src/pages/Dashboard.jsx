@@ -180,7 +180,7 @@ export default function Dashboard({ isDark }) {
   cursor: crosshair;
 }  
 .draggable {
-    /* cursor: crosshair; */
+    cursor: crosshair; 
     border: 1px solid grey;
     margin-bottom: ${draggableSpacing ? 0 : "1.5rem"};
     height: 6rem;
@@ -203,6 +203,9 @@ export default function Dashboard({ isDark }) {
     padding: 0%;
     cursor: grab;
   }
+.track {
+    width: 100%
+}
 .alternateDraggable{
   height: 50px;
   width: 96%;
@@ -301,6 +304,7 @@ export default function Dashboard({ isDark }) {
         absolutePositioning={true}
         preview={true}
         isDark={isDark}
+        trackType={previewSelector.trackType}
       />}
 
 

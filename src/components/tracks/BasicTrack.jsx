@@ -3,9 +3,10 @@ import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
 import { Typography, Stack } from '@mui/material';
 import { gene } from './gene.js'
-import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility } from 'features/miniview/miniviewSlice.js'
+import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview } from 'features/miniview/miniviewSlice.js'
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
 import { line } from 'd3-shape';
+import Window from "features/miniview/Window.js";
 
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
@@ -14,7 +15,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
-    const previewSelector = useSelector(selectMiniviews)['preview']
+    const previewSelector = useSelector(selectMiniviews)['newPreview']
 
     const [endCap, setEndCap] = useState(0)
     const [startOfTrack, setStartOfTrack] = useState(0)
@@ -22,7 +23,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const [clickLocation, setClickLocation] = useState()
     const [normalizer, setNormalizer] = useState([1, 1])
     const [drawnGenes, setDrawnGenes] = useState([])
-
+    const [start, setStart] = useState(0)
+    const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
 
     //! Needed for syncing multiple tracks
@@ -32,8 +34,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     // the rest will be used for the scale 
     // If no height is present default to 100 pixel tall tracks
     // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
-    let parentWrapperHeight = document.querySelector('.draggable')?.getBoundingClientRect()?.height,
-        parentWrapperWidth = document.querySelector('.draggable')?.getBoundingClientRect()?.width;
+    let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height,
+        parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
 
     let style = {
         position: 'relative',
@@ -41,8 +43,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         left: coordinateX
     }
 
-    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) : width,
-        maxHeight = parentWrapperHeight ? parentWrapperHeight - 25 : height;
+    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) - 10 : width,
+        maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25) : height;
 
 
     useEffect(() => {
@@ -67,9 +69,9 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         if (!array) return
 
-        let cap = normalize ? normalizedLength : Math.max(...array.map(d => d.end))
+        normalize ? setCap(normalizedLength) : setCap(Math.max(...array.map(d => d.end)))
 
-        let start = Math.min(...array.map(d => d.start))
+        setStart(Math.min(...array.map(d => d.start)))
 
         const ctx = canvasRef.current.getContext('2d')
 
@@ -159,7 +161,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 drawnGenes.forEach(drawGene => {
                     let x = ((xScale(drawGene.start)) + offset)
                     let rectWidth = widthScale(drawGene.end - drawGene.start)
-                    if (x + rectWidth < 0 || x > maxWidth) {
+                    if (x + rectWidth < 10 || x > maxWidth - 10) {
                         return
                     }
                     drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
@@ -167,7 +169,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
 
         }
-
+debugger
     }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
@@ -224,7 +226,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor: factor
             }))
 
-
             showPreview(e)
         }
     }
@@ -263,7 +264,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
-        debugger
         //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
@@ -278,7 +278,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     function showPreview(event) {
-        if(trackType !== "default") return
+        // if(trackType !== "default") return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -309,29 +309,33 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
         })
 
+        let coordinateX = trackType === "default" ? Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)) : changedX - previewSelector.width / 2
+
+        let ratio = center / cap
         // TODO This is a lot of events, no?
         dispatch(changeMiniviewColor({
-            key: 'preview',
+            key: 'newPreview',
             color: color
         }))
-        dispatch(updateData({
-            key: 'preview',
-            array: previewArray,
-            start: head,
-            end: end,
-            boxWidth: width,
+
+        dispatch(updatePreview({
+            track: id,
+            trackType: trackType,
+            cap: cap,
         }))
-        dispatch(moveMiniview(
+        dispatch(movePreview(
             {
-                key: 'preview',
-                coordinateX: Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)),
+                coordinateX: coordinateX,
                 coordinateY: changedY,
                 viewFinderY: boundingBox.y + verticalScroll,
-                viewFinderX: changedX
+                viewFinderX: changedX,
+                viewFinderWidth: width,
+                offset: ratio,
+                zoom: (cap - start) / (end - head),
+                parentZoom: zoom,
             }))
-        dispatch(changeMiniviewVisibility(
+        dispatch(changePreviewVisibility(
             {
-                key: 'preview',
                 visible: true
             }))
 
@@ -420,7 +424,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             setClickLocation(null)
         }
     }
-
+debugger
     //! TODO Changing length of text changes the location of ticks
     return (
         <div style={{ width: '100%', height: '100%' }}>
@@ -439,13 +443,21 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         background: 'red',
                     }}
                 >{title}</Typography>}
+            {previewSelector.visible && <Window
+                coordinateX={(previewSelector.viewFinderX / cap) * previewSelector.cap}
+                coordinateY={canvasRef.current.offsetTop}
+                width={scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])(10000)} // boxwidth
+                preview={id == 'preview' ? false : true}
+                text={Math.max(Math.round(beginning), 0)}
+                grouped={grouped}
+            />}
             <canvas
                 tabIndex={-1}
                 id={id}
                 ref={canvasRef}
                 height={maxHeight}
                 width={maxWidth}
-                className='miniview'
+                className='track'
                 style={style}
                 onContextMenu={doSomething}
                 onMouseDown={(e) => handleClick(e)}
@@ -455,18 +467,21 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         handlePan(e)
                     }
                     else {
-                        if(trackType !== "default") return
+                        // if(trackType !== "default") return
                         let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
                         let found = false
-                        drawnGenes.forEach(x => {
-                            if (x.hovering(normalizedLocation)) {
-                                setHovered(x)
-                                found = true
+                        if (trackType !== "line") {
+
+                            drawnGenes.forEach(x => {
+                                if (x.hovering(normalizedLocation)) {
+                                    setHovered(x)
+                                    found = true
+                                }
+                            })
+                            if (found == false) {
+                                setHovered()
                             }
-                        })
-                        if (found == false) {
-                            setHovered()
                         }
                         canvasRef.current.focus()
                         showPreview(e)
@@ -474,8 +489,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
                 }}
                 onMouseLeave={() => {
-                    dispatch(changeMiniviewVisibility({
-                        key: 'preview',
+                    dispatch(changePreviewVisibility({
                         visible: false
                     })
                     )
