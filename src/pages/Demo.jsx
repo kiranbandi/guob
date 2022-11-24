@@ -136,7 +136,11 @@ export default function Demo({ isDark }) {
     }
 
     function changeMargins(e) {
-        setDraggableSpacing(e.target.checked)   
+        let gt = window.gt;
+        if (gt){
+        gt.updateState({ Action: "changeMargins", Todo: e.target.checked})
+        }setDraggableSpacing(e.target.checked)
+           
       }
 
     function removeAnAlternateDraggable() {
@@ -291,7 +295,29 @@ export default function Demo({ isDark }) {
 
 
 
-function changeNormalize(e) { setNormalize(e.target.checked) }
+function changeNormalize(e) { 
+    
+    let gt = window.gt;
+    if (gt){
+    gt.updateState({ Action: "changeNormalize", Todo: e.target.checked})
+    }setNormalize(e.target.checked)
+    }
+
+
+
+
+    if  (window.gt){
+    window.gt.on('state_updated_reliable', (id, payload) => {
+        console.log(payload)
+        if (payload.Action == "changeNormalize"){
+        setNormalize(payload.Todo) }
+        if (payload.Action == "changeMargins"){
+            setDraggableSpacing(payload.Todo) }
+      })
+
+
+      
+    }
 
 
 
@@ -366,8 +392,8 @@ return (
                     setDemoFile("files/ta_hb_coordinate.gff")
                     setTitleState("Triticum aestivum")
                 }}>Triticum aestivum</Button>
-                <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
-                <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
+                <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing}/>} label={"Toggle Margins"} />
+                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize}/>} label={"Normalize"} />
 
                 <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
 
