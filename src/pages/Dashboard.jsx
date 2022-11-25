@@ -34,7 +34,7 @@ export default function Dashboard({ isDark }) {
 
 
   // Demo of redux miniview
-  const previewSelector = useSelector(selectMiniviews)['preview']
+  const previewSelector = useSelector(selectMiniviews)['newPreview']
   const draggableSelector = useSelector(selectDraggables)
   const alternateDraggableSelector = useSelector(selectAlternateDraggables)
   const comparableSelector = useSelector(selectComparison)
@@ -292,7 +292,7 @@ export default function Dashboard({ isDark }) {
 
       {previewSelector.visible && <Miniview
         className={'preview'}
-        array={previewSelector.array}
+        array={basicTrackSelector[previewSelector.linkedTrack].array}
         coordinateX={previewSelector.coordinateX}
         coordinateY={previewSelector.coordinateY}
         width={previewSelector.width}
@@ -304,7 +304,8 @@ export default function Dashboard({ isDark }) {
         absolutePositioning={true}
         preview={true}
         isDark={isDark}
-        trackType={previewSelector.trackType}
+        trackType={basicTrackSelector[previewSelector.linkedTrack].trackType}
+        center={previewSelector.center}
       />}
 
 
@@ -332,6 +333,7 @@ export default function Dashboard({ isDark }) {
           boxWidth={current.boxWidth}
           grouped={groupSelector.includes(comparableSelector[item].target)}
           isDark={isDark}
+          center={previewSelector.center}
         />
       }))
       }

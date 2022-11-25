@@ -186,7 +186,7 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900, 
         })
 
 
-        return (<svg ref={svgRef} width={width} height={height} className="LinksSVG" onClick={locate}>
+        return (<svg ref={svgRef} x={27} width={width} height={height}  className="LinksSVG" onClick={locate}>
             {/* <rect x="0" y="0" width="950" height="100" style={{ fill: "none", stroke: "pink", strokeWidth: 5, fillOpacity: 0.1, strokeOpacity: 0.9 }} /> */}
             <g className="LinksSVGg" ref={svgGRef}>
             <linearGradient id={'link-gradient'} x1={0} x2={0} y1={0} y2={1}>

@@ -10,50 +10,36 @@ This is the small preview that appears on mouse-over.
 TODO make work with the histogram
 */
 
-const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absolutePositioning, displayPreview, id, beginning, fin, preview, boxLeft, boxTop, boxWidth, grouped, isDark, trackType, zoom, offset, ...props }) => {
+const Miniview = ({ array, color, coordinateX, coordinateY, width, height,  absolutePositioning, displayPreview, id,preview,isDark, trackType, center, boxLeft, boxTop, ...props }) => {
 
     const canvasRef = useRef()
     const previewSelector = useSelector(selectMiniviews)['newPreview']
-    let [cap, setCap] = useState()
-    let [start, setStart] = useState()
-    let [testWidth, setTestWidth] = useState()
+
+   
 
     useEffect(() => {
-        if (array == undefined) return
-        if (trackType !== "default") return
-        fin ? setCap(fin) : setCap(Math.max(...array.map(d => d.end)))
-        beginning ? setStart(beginning) : setStart(Math.min(...array.map(d => d.start)))
-    }, [array, color])
-
-    useEffect(() => {
+        if(trackType !== 'default') return
+        // debugger
         const ctx = canvasRef.current.getContext('2d')
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-
-        let xScale = scaleLinear().domain([start, cap]).range([0, ctx.canvas.width * zoom])
-        let widthScale = scaleLinear().domain([0, cap - start]).range([0, ctx.canvas.width * zoom])
-
-        let parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
-        const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) - 10 : width
-
-        let testScale = scaleLinear().domain([0, cap - start]).range([0,maxWidth * previewSelector.parentZoom])
-        setTestWidth(testScale(100000))
+        let middle = Math.round(center)
+     
+        let xScale = scaleLinear().domain([middle - 50000, middle + 50000]).range([0, ctx.canvas.width])
+        let widthScale = scaleLinear().domain([0, 100000]).range([0, ctx.canvas.width])
         ctx.fillStyle = color
 
-
-        array.forEach(gene => {
-            let x = xScale(gene.start) - (offset * ctx.canvas.width * zoom)
+        let geneArray = array.filter(d => d.end > center - 50000 && d.start < center + 50000)
+        geneArray.forEach(gene => {
+            let x = xScale(gene.start)
             let rectWidth = widthScale(gene.end - gene.start)
-            if (x + rectWidth < 0 || x > ctx.canvas.width) {
-                return
-            }
             ctx.beginPath()
             ctx.rect(x, 0, rectWidth, ctx.canvas.height)
             ctx.fill()
         })
 
 
-    }, [cap, start, offset, previewSelector.viewFinderX])
+    }, [center])
 
     let position = absolutePositioning ? 'absolute' : 'relative'
 
@@ -75,7 +61,7 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
         background: scaleBackground,
         zIndex: 2,
     }
-
+    // debugger
     return (
 
         <>
@@ -83,22 +69,21 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
                 className={"comparison"}
                 coordinateX={boxLeft}
                 coordinateY={boxTop}
-                width={testWidth} // boxwidth
+                width={10} // boxwidth
                 preview={id == 'preview' ? false : true}
-                text={Math.max(Math.round(beginning), 0)}
-                grouped={grouped}
             />
             }
-            {(trackType === "default") && <Window
+            {/* {(trackType === "default") && <Window
                 className={"comparison"}
                 coordinateX={previewSelector.viewFinderX}
                 coordinateY={previewSelector.viewFinderY}
                 width={10}
                 preview={id == 'preview' ? true : false}
-            />}
+            />} */}
 
-            {(trackType === "default") && <Typography style={scaleStyle} left={coordinateX - 80}>{Math.max(Math.round(start), 0)}</Typography>
-            }     {(trackType === "default") && <canvas
+            {(trackType === "default") && <Typography style={scaleStyle} left={coordinateX - 80}>{Math.max(Math.round(center- 50000), 0)}</Typography>
+            }     
+            {(trackType === "default") && <canvas
                 id={id}
                 ref={canvasRef}
                 className='miniview'
@@ -106,8 +91,8 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height, absol
                 height='1000'
                 style={style}
                 {...props} />}
-            {(trackType === "default") && <Typography style={scaleStyle} left={coordinateX + width + 2}>{Math.round(cap)}</Typography>}
-            {(trackType !== "default") && <Typography style={scaleStyle} left={coordinateX + width / 2}>{Math.round(start + (cap - start) / 2)}</Typography>}
+            {(trackType === "default") && <Typography style={scaleStyle} left={coordinateX + width + 2}>{Math.round(center)+ 50000}</Typography>}
+            {(trackType !== "default") && <Typography style={scaleStyle} left={coordinateX + width / 2}>{Math.round(center)}</Typography>}
             {(trackType !== "default") && <Window
                 className={"test"}
                 coordinateX={previewSelector.viewFinderX}

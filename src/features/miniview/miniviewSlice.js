@@ -24,7 +24,7 @@ const initialState = {
             color: 0,
             coordinateX: 0,
             coordinateY: 0,
-            height: '2rem',
+            height: '1rem',
             width: 400,
             id: 'newPreview',
             visible: false,
@@ -113,9 +113,7 @@ export const miniviewSlice = createSlice({
             state.miniviews['newPreview'].viewFinderY = action.payload.viewFinderY
             state.miniviews['newPreview'].viewFinderX = action.payload.viewFinderX
             state.miniviews['newPreview'].viewFinderWidth = action.payload.viewFinderWidth
-            state.miniviews['newPreview'].offset = action.payload.offset
-            state.miniviews['newPreview'].zoom = action.payload.zoom
-            state.miniviews['newPreview'].parentZoom = action.payload.parentZoom
+            state.miniviews['newPreview'].center = action.payload.center
         },
         updatePreview: (state, action) => {
             state.miniviews['newPreview'].linkedTrack = action.payload.track

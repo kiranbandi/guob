@@ -7,6 +7,7 @@ import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateDat
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
+import { padding } from "@mui/system";
 
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
@@ -30,6 +31,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
 
+    
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
     // the rest will be used for the scale 
     // If no height is present default to 100 pixel tall tracks
@@ -43,7 +45,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         left: coordinateX
     }
 
-    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth * 0.98) - 10 : width,
+    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth): width,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25) : height;
 
 
@@ -63,7 +65,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     // keep the old palette
     useEffect(() => {
         setDrawnGenes([])
-    }, [isDark])
+    }, [isDark, normalize])
 
     useEffect(() => {
 
@@ -118,6 +120,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
 
             else {
+              
                 let holding = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset)
                     let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
@@ -169,7 +172,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
 
         }
-debugger
     }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
@@ -183,7 +185,7 @@ debugger
         // e.stopPropagation()
 
         if (e.altKey == true) {
-            let factor = 0.9
+            let factor = 0.8
             if (e.deltaY < 0) {
                 factor = 1 / factor
             }
@@ -243,15 +245,15 @@ debugger
 
         // Either end of the track
         let westEnd = trackBoundingRectangle.x
-        let eastEnd = trackBoundingRectangle.width + westEnd
-
+        let eastEnd = westEnd + maxWidth
+        // debugger
         dispatch(pan({
             key: id,
             offset: offsetX,
         }))
         dispatch(moveMiniview(
             {
-                key: 'preview',
+                key: 'newPreview',
                 coordinateX: Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, e.clientX - previewSelector.width / 2)),
                 coordinateY: trackBoundingRectangle.y + trackBoundingRectangle.height + 5,
                 viewFinderX: e.clientX
@@ -305,13 +307,12 @@ debugger
 
         let width = widthScale(end - head)
 
-        let previewArray = array.filter(item => {
-            return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
-        })
+        // let previewArray = array.filter(item => {
+        //     return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
+        // })
 
         let coordinateX = trackType === "default" ? Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)) : changedX - previewSelector.width / 2
 
-        let ratio = center / cap
         // TODO This is a lot of events, no?
         dispatch(changeMiniviewColor({
             key: 'newPreview',
@@ -330,9 +331,7 @@ debugger
                 viewFinderY: boundingBox.y + verticalScroll,
                 viewFinderX: changedX,
                 viewFinderWidth: width,
-                offset: ratio,
-                zoom: (cap - start) / (end - head),
-                parentZoom: zoom,
+                center: center
             }))
         dispatch(changePreviewVisibility(
             {
@@ -424,7 +423,29 @@ debugger
             setClickLocation(null)
         }
     }
-debugger
+
+    let viewFinderScale = undefined
+    let viewFinderWidth = undefined
+    let x = 0
+    let previewWidth = 0
+
+    if (previewSelector.visible) {
+
+        viewFinderScale = scaleLinear().domain([startOfTrack, endCap]).range([canvasRef.current.offsetLeft, canvasRef.current.offsetLeft + canvasRef.current.offsetWidth])
+        viewFinderWidth = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
+        x = viewFinderScale(previewSelector.center)
+        previewWidth = viewFinderWidth(100000)
+
+        if (x - previewWidth / 2 < canvasRef.current.offsetLeft) {
+            let difference = (x - previewWidth / 2) - canvasRef.current.offsetLeft
+            previewWidth += difference * 2
+        }
+        else if (x + previewWidth / 2 > canvasRef.current.offsetLeft + canvasRef.current.offsetWidth) {
+            let difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - (x + previewWidth / 2)
+            previewWidth += difference * 2
+        }
+
+    }
     //! TODO Changing length of text changes the location of ticks
     return (
         <div style={{ width: '100%', height: '100%' }}>
@@ -443,14 +464,18 @@ debugger
                         background: 'red',
                     }}
                 >{title}</Typography>}
-            {previewSelector.visible && <Window
-                coordinateX={(previewSelector.viewFinderX / cap) * previewSelector.cap}
-                coordinateY={canvasRef.current.offsetTop}
-                width={scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])(10000)} // boxwidth
-                preview={id == 'preview' ? false : true}
-                text={Math.max(Math.round(beginning), 0)}
-                grouped={grouped}
-            />}
+            {previewSelector.visible &&
+                x >= canvasRef.current.offsetLeft &&
+              previewWidth > 0 &&
+                <Window
+                    coordinateX={x}
+                    coordinateY={canvasRef.current.offsetTop}
+                    height={canvasRef.current.offsetHeight+2}
+                    width={previewWidth} // boxwidth
+                    preview={id == 'preview' ? false : true}
+                    text={Math.max(Math.round(beginning), 0)}
+                    grouped={grouped}
+                />}
             <canvas
                 tabIndex={-1}
                 id={id}

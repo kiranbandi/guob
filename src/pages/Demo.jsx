@@ -167,23 +167,22 @@ export default function Demo({ isDark }) {
                 key: testId,
                 array: basicTrackSelector[previewSelector.linkedTrack].array,
                 color: previewSelector.color,
-                start: Math.round(previewSelector.start),
-                end: Math.round(previewSelector.end),
+                start: Math.round(previewSelector.center - 50000),
+                end: Math.round(previewSelector.center + 50000),
                 coordinateX: event.pageX,
                 coordinateY: y,
                 head: Math.round(previewSelector.start + (previewSelector.end - previewSelector.start) / 2),
                 target: event.target.id,
-                offset: basicTrackSelector[event.target.id].offset,
-                boxWidth: previewSelector.boxWidth,
-                originalBoxWidth: previewSelector.boxWidth,
-                beginning: Math.min(...basicTrackSelector[event.target.id].array.map(d => d.start)),
-                fin: Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
+                center: previewSelector.center,
+                trackType: basicTrackSelector[previewSelector.linkedTrack].trackType,
+                linkedTrack: previewSelector.linkedTrack
             }))
 
             setTestId(id => id + 1)
             setStartY(startY => startY + 50)
 
         }
+        debugger
     }
 
 
@@ -205,10 +204,10 @@ export default function Demo({ isDark }) {
     border:solid black 1px;
     flex-direction: row;
 }
-.track {
+${'' /* .track {
     width: 100%
     
-}
+} */}
 .body {
     overflow: hidden;
 }
@@ -357,12 +356,8 @@ return (
                 absolutePositioning={true}
                 preview={true}
                 isDark={isDark}
-                trackType={previewSelector.trackType}
-                zoom={previewSelector.zoom}
-                offset={previewSelector.offset}
-                boxLeft={previewSelector.viewFinderX}
-                boxTop={previewSelector.viewFinderY}
-                boxWidth={previewSelector.viewFinderWidth}
+                trackType={basicTrackSelector[previewSelector.linkedTrack].trackType}
+                center={previewSelector.center}
             />}
 
 
@@ -390,9 +385,10 @@ return (
                     boxLeft={what}
                     boxTop={parent.y + verticalScroll}
                     boxWidth={current.boxWidth}
-                    grouped={groupSelector.includes(comparableSelector[item].target)}
+                    grouped={groupSelector.includes(current.target)}
                     isDark={isDark}
-                    trackType={previewSelector.trackType}
+                    trackType={basicTrackSelector[current.linkedTrack].trackType}
+                    center={current.center}
                 />
             }))
             }
