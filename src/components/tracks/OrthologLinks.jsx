@@ -82,10 +82,21 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     }, [])
 
     function handleScrollEvent(e){
+        let altKey = e.altKey;
+        let deltaY = e.deltaY;
+        let boundingBox = e.target.getBoundingClientRect();
+        let clientX = e.clientX;
+        
+
+
         handleScroll(e)
         let gt = window.gt;
         if (gt){
-            gt.updateState({ Action: "handleScroll", Event: String(e)})
+            gt.updateState({ Action: "handleScroll", Event: {altKey, deltaY, boundingBox, clientX}})
+            }else{
+                let event= {altKey, deltaY, boundingBox, clientX};
+
+                handleScroll(event)
             }
 
     }
@@ -96,7 +107,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 factor = 1 / factor
             }
 
-            let boundingBox = e.target.getBoundingClientRect()
+            let boundingBox = e.boundingBox;
             let normalizedLocation = ((e.clientX - boundingBox.x) / boundingBox.width) * maxWidth
             let dx = ((normalizedLocation - topTrack.offset) * (factor - 1))
             let offsetX = Math.max(Math.min(topTrack.offset - dx, 0), -((maxWidth * topTrack.zoom * factor) - maxWidth))
@@ -133,12 +144,13 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             if (payload.Action == "handleClick"){
                 handleClick(payload.type, payload.clientX)}
                 // console.log("Clicked")}
-            if (payload.Action == "handlePan"){
+            else if (payload.Action == "handlePan"){
 
                 handlePan(payload.BoundingBox, payload.movementX)}
-            if (payload.Action == "handleScroll"){
-                    // handleScroll(payload.Event)
-                    console.log("Scrolled")}
+            else if (payload.Action == "handleScroll"){
+                    handleScroll(payload.Event)}
+            else if (payload.Action == "handleLocate"){
+                locate(payload.Event)}
             
           })
     
@@ -147,11 +159,13 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
 
     function handleClickEvent(e){
-        handleClick(e.type, e.clientX)
+        
         let gt = window.gt;
         if (gt){
         gt.updateState({ Action: "handleClick", type: e.type, clientX: e.clientX})
         
+        }else{
+            handleClick(e.type, e.clientX)
         }
 
     }
@@ -168,11 +182,14 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     function handlePanEvent(e){
         let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
-        handlePan(boundingBox, e.movementX)
+        
         let gt = window.gt;
         if (gt){
             
             gt.updateState({ Action: "handlePan", BoundingBox: boundingBox, movementX: e.movementX})
+            }else{
+
+                handlePan(boundingBox, e.movementX)
             }
     }
     function handlePan(boundingBox,  movementX) {
@@ -270,12 +287,29 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     let gradient = [topColor, bottomColor]
 
+    function handleLocate(e){
+        const genes = e.target.id.split("-")
+        let boundingBox = e.target.getBoundingClientRect()
+        let gt = window.gt;
+        let clientY = e.clientY;
+
+        if (gt){
+            
+            gt.updateState({ Action: "handleLocate", Event:{genes, boundingBox, clientY }})
+            }else{
+                let event = {genes,boundingBox, clientY}
+                locate(event)
+            }
+
+    }
+
     function locate(e) {
 
-        const genes = e.target.id.split("-")
+        const genes = e.genes;
         if (genes.length < 2) return
+        let boundingBox = e.boundingBox;
 
-        let boundingBox = e.target.getBoundingClientRect()
+        
 
         let topGene = searchTrack(genes[0], topTrack.array)
         let bottomGene = searchTrack(genes[1], bottomTrack.array)
@@ -318,7 +352,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     return (
         <>
             <div id={id} ref={linkRef} onWheel={handleScrollEvent} onMouseDown={handleClickEvent} onMouseUp={handleClickEvent} onMouseMove={handlePanEvent} >
-                <Links arrayCoordinates={arrayLinks} type="svg" width={(maxWidth) - 10} gradient={gradient} locate={locate} />
+                <Links arrayCoordinates={arrayLinks} type="svg" width={(maxWidth) - 10} gradient={gradient} locate={handleLocate} />
             </div>
         </>
     )
