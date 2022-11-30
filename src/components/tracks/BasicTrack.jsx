@@ -186,7 +186,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             else if (payload.Action == "handleBTPan"){
 
                 handlePan(payload.Event)}
-            else if (payload.Action == "handleScroll"){
+            else if (payload.Action == "handleBTScroll"){
                     handleScroll(payload.Event)}
          
             
@@ -482,7 +482,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     }
     function handleClick(e) {
-        console.log("HERE")
+
         if (e.type == 'mousedown') {
             setDragging(true)
             setClickLocation(e.clientX - e.targetOffsetLeft)

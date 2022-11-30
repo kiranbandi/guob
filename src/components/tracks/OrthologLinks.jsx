@@ -87,9 +87,6 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         let boundingBox = e.target.getBoundingClientRect();
         let clientX = e.clientX;
         
-
-
-        handleScroll(e)
         let gt = window.gt;
         if (gt){
             gt.updateState({ Action: "handleScroll", Event: {altKey, deltaY, boundingBox, clientX}})
@@ -290,9 +287,10 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     function handleLocate(e){
         const genes = e.target.id.split("-")
         let boundingBox = e.target.getBoundingClientRect()
-        let gt = window.gt;
         let clientY = e.clientY;
 
+        let gt = window.gt;
+        
         if (gt){
             
             gt.updateState({ Action: "handleLocate", Event:{genes, boundingBox, clientY }})
