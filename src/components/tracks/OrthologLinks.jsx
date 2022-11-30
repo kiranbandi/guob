@@ -81,7 +81,14 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         }
     }, [])
 
+    function handleScrollEvent(e){
+        handleScroll(e)
+        let gt = window.gt;
+        if (gt){
+            gt.updateState({ Action: "handleScroll", Event: String(e)})
+            }
 
+    }
     function handleScroll(e) {
         if (e.altKey == true) {
             let factor = 0.8
@@ -120,26 +127,62 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         }
     }
 
-    function handleClick(e) {
-        if (e.type == 'mousedown') {
-            setDragging(true)
-            setClickLocation(e.clientX)
+    
+    if  (window.gt){
+        window.gt.on('state_updated_reliable', (id, payload) => {
+            if (payload.Action == "handleClick"){
+                handleClick(payload.type, payload.clientX)}
+                // console.log("Clicked")}
+            if (payload.Action == "handlePan"){
+
+                handlePan(payload.BoundingBox, payload.movementX)}
+            if (payload.Action == "handleScroll"){
+                    // handleScroll(payload.Event)
+                    console.log("Scrolled")}
+            
+          })
+    
+          
         }
-        if (e.type == 'mouseup') {
+
+
+    function handleClickEvent(e){
+        handleClick(e.type, e.clientX)
+        let gt = window.gt;
+        if (gt){
+        gt.updateState({ Action: "handleClick", type: e.type, clientX: e.clientX})
+        
+        }
+
+    }
+    function handleClick(type, clientX) {
+        if (type == 'mousedown') {
+            setDragging(true)
+            setClickLocation(clientX)
+        }
+        if (type == 'mouseup') {
             setDragging(false)
             setClickLocation(null)
         }
     }
 
-    function handlePan(e) {
+    function handlePanEvent(e){
+        let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
+        handlePan(boundingBox, e.movementX)
+        let gt = window.gt;
+        if (gt){
+            
+            gt.updateState({ Action: "handlePan", BoundingBox: boundingBox, movementX: e.movementX})
+            }
+    }
+    function handlePan(boundingBox,  movementX) {
         // Panning both tracks
         if (dragging === true) {
 
             if (!topTrack || !bottomTrack) return
 
             
-            let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
-            let offsetX = Math.max(Math.min(topTrack.offset + e.movementX, 0), -((maxWidth * topTrack.zoom) - maxWidth))
+            let offsetX = Math.max(Math.min(topTrack.offset + movementX, 0), -((maxWidth * topTrack.zoom) - maxWidth))
            
             dispatch(pan({
                 key: topTrack.key,
@@ -157,7 +200,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 factor: 1.0
             }))
 
-            offsetX = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
+            offsetX = Math.max(Math.min(bottomTrack.offset + movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
             dispatch(pan({
                 key: bottomTrack.key,
                 offset: offsetX,
@@ -274,7 +317,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     return (
         <>
-            <div id={id} ref={linkRef} onWheel={handleScroll} onMouseDown={handleClick} onMouseUp={handleClick} onMouseMove={handlePan} >
+            <div id={id} ref={linkRef} onWheel={handleScrollEvent} onMouseDown={handleClickEvent} onMouseUp={handleClickEvent} onMouseMove={handlePanEvent} >
                 <Links arrayCoordinates={arrayLinks} type="svg" width={(maxWidth) - 10} gradient={gradient} locate={locate} />
             </div>
         </>
