@@ -28,7 +28,7 @@ import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import parseGFF from 'features/parsers/gffParser';
-import { CopyAll } from '@mui/icons-material';
+import { CopyAll, LocalConvenienceStoreOutlined } from '@mui/icons-material';
 import _ from 'lodash'; 
 import OrthologLinks from 'components/tracks/OrthologLinks';
 // import './canola.gff'
@@ -52,11 +52,11 @@ export default function Demo({ isDark }) {
     const [startY, setStartY] = useState(900)
 
     const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
+    const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [titleState, setTitleState] = useState("Aradopsis thaliana")
     const [normalize, setNormalize] = useState(false)
 
     const [draggableSpacing, setDraggableSpacing] = useState(true)
-
     const dispatch = useDispatch()
 
     // 85 px
@@ -159,7 +159,9 @@ export default function Demo({ isDark }) {
             return
         }
         if (event.ctrlKey) {
-            dispatch(removeComparison())
+            dispatch(removeComparison({
+                target: event.target.id
+            }))
         }
         else {
             let y = event.target.offsetTop
@@ -169,9 +171,9 @@ export default function Demo({ isDark }) {
                 color: previewSelector.color,
                 start: Math.round(previewSelector.center - 50000),
                 end: Math.round(previewSelector.center + 50000),
-                coordinateX: event.pageX,
-                coordinateY: y,
-                head: Math.round(previewSelector.start + (previewSelector.end - previewSelector.start) / 2),
+                // coordinateX: event.pageX,
+                // coordinateY: y,
+                // head: Math.round(previewSelector.start + (previewSelector.end - previewSelector.start) / 2),
                 target: event.target.id,
                 center: previewSelector.center,
                 trackType: basicTrackSelector[previewSelector.linkedTrack].trackType,
@@ -180,14 +182,12 @@ export default function Demo({ isDark }) {
 
             setTestId(id => id + 1)
             setStartY(startY => startY + 50)
-
         }
-        debugger
     }
 
 
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
-    let [sliderHeight, setSliderHeight] = useState(50);
+    let [sliderHeight, setSliderHeight] = useState(75);
 
     //TODO fix some hacky stuff in here
 
@@ -261,13 +261,13 @@ ${'' /* .track {
         setLoading(true)
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
-        parseGFF(demoFile).then(({chromosomalData, dataset}) => {
+        parseGFF(demoFile, demoCollinearity).then(({chromosomalData, dataset}) => {
           let  normalizedLength = 0;
           let color;
           let ColourScale = scaleOrdinal().domain([0,9])
           .range(["#4e79a7","#f28e2c","#e15759","#76b7b2","#59a14f","#edc949","#af7aa1","#ff9da7","#9c755f","#bab0ab"])
           
-          
+          debugger
           normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
           chromosomalData.forEach((point, i) => {
               if(point.trackType === 'default'){
@@ -304,6 +304,7 @@ const handleSlider = (event, newValue) => {
     }
 }
 
+let testIndex = -1
 return (
     <>
         <div css={styling}>
@@ -313,21 +314,25 @@ return (
                     clearComparisonTracks()
                     setDemoFile("files/bn_methylation.bed")
                     setTitleState("Methylation test")
+                    setDemoCollinearity()
                 }}>Methylation Test</Button>
                 <Button variant='outlined' onClick={() => {
                     clearComparisonTracks()
                     setDemoFile("files/at_coordinate.gff")
                     setTitleState("Aradopsis thaliana")
+                    setDemoCollinearity("files/at_vv_collinear.collinearity")
                 }}>Aradopsis thaliana</Button>
                 <Button variant='outlined' onClick={() => {
                     clearComparisonTracks()
                     setDemoFile("files/bn_coordinate.gff")
                     setTitleState("Brassica napus")
+                    setDemoCollinearity()
                 }}>Brassica napus</Button>
                 <Button variant='outlined' onClick={() => {
                     clearComparisonTracks()
                     setDemoFile("files/ta_hb_coordinate.gff")
                     setTitleState("Triticum aestivum")
+                    setDemoCollinearity()
                 }}>Triticum aestivum</Button>
                 <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
                 <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
@@ -335,8 +340,8 @@ return (
             </Stack>
             <Slider
                 step={1}
-                min={35}
-                max={200}
+                min={75}
+                max={300}
                 valueLabelDisplay={"auto"}
                 onChange={handleSlider}
 
@@ -361,8 +366,12 @@ return (
             />}
 
 
-            {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
-                let current = comparableSelector[item]
+            {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, keyIndex) => {
+
+                if(comparableSelector[item]){
+
+               return comparableSelector[item].map( (current, index) =>{
+                testIndex++
                 let parent = document.getElementById(current.target).getBoundingClientRect()
                 let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
                 let verticalScroll = document.documentElement.scrollTop
@@ -370,11 +379,11 @@ return (
                 return <Miniview
 
                     className={'comparison preview'}
-                    key={item}
+                    key={current.key}
                     array={current.array}
                     color={current.color}
                     coordinateX={previewSelector.coordinateX}
-                    coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
+                    coordinateY={previewSelector.coordinateY + 18 * (testIndex + 1)}
                     width={previewSelector.width}
                     height={previewSelector.height}
                     displayPreview={false}
@@ -390,6 +399,9 @@ return (
                     trackType={basicTrackSelector[current.linkedTrack].trackType}
                     center={current.center}
                 />
+                } )
+                }
+                
             }))
             }
 

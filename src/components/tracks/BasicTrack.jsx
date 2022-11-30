@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState, focus } from "react"
 import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
-import { Typography, Stack } from '@mui/material';
+import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
-import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview } from 'features/miniview/miniviewSlice.js'
+import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
-import { padding } from "@mui/system";
-
+import CustomTooltip from "components/layout/CustomTooltip.jsx";
+import { EventNoteTwoTone } from "@mui/icons-material";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
@@ -17,6 +17,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['newPreview']
+    const comparisonSelector = useSelector(selectComparison)[title]
 
     const [endCap, setEndCap] = useState(0)
     const [startOfTrack, setStartOfTrack] = useState(0)
@@ -28,10 +29,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
 
+
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
 
-    
+
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
     // the rest will be used for the scale 
     // If no height is present default to 100 pixel tall tracks
@@ -39,14 +41,16 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height,
         parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
 
+    const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
+
     let style = {
         position: 'relative',
         top: coordinateY,
         left: coordinateX
     }
 
-    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth): width,
-        maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25) : height;
+    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
+        maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
 
     useEffect(() => {
@@ -79,7 +83,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         ctx.clearRect(0, 0, maxWidth, maxHeight)
 
-        const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
+
         let xScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
 
         // TODO center the text, and leave a small buffer on each end
@@ -120,7 +124,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
 
             else {
-              
+
                 let holding = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset)
                     let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
@@ -167,7 +171,12 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     if (x + rectWidth < 10 || x > maxWidth - 10) {
                         return
                     }
-                    drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
+                    if (hovered && drawGene.key === hovered.key) {
+                        drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
+                    }
+                    else {
+                        drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
+                    }
                 })
             }
 
@@ -280,12 +289,19 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     function showPreview(event) {
-        // if(trackType !== "default") return
+        
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
-        let westEnd = boundingBox.x
-        let eastEnd = boundingBox.x + boundingBox.width
+        let westEnd = boundingBox.x + paddingLeft
+        let eastEnd = boundingBox.x + boundingBox.width - paddingRight
+        if(event.pageX < westEnd || event.pageX > eastEnd){
+            dispatch(changePreviewVisibility(
+                {
+                    visible: false
+                }))
+                return
+        }
 
         let changedX = Math.min(Math.max(event.pageX, westEnd), eastEnd)
         let changedY = boundingBox.y + boundingBox.height + 5 + verticalScroll
@@ -431,97 +447,191 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     if (previewSelector.visible) {
 
-        viewFinderScale = scaleLinear().domain([startOfTrack, endCap]).range([canvasRef.current.offsetLeft, canvasRef.current.offsetLeft + canvasRef.current.offsetWidth])
+        viewFinderScale = scaleLinear().domain([startOfTrack, endCap]).range([canvasRef.current.offsetLeft + paddingLeft, canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight])
         viewFinderWidth = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
         x = viewFinderScale(previewSelector.center)
         previewWidth = viewFinderWidth(100000)
 
-        if (x - previewWidth / 2 < canvasRef.current.offsetLeft) {
-            let difference = (x - previewWidth / 2) - canvasRef.current.offsetLeft
+        if (x - previewWidth / 2 < canvasRef.current.offsetLeft + paddingLeft) {
+            let difference = (x - previewWidth / 2) - (canvasRef.current.offsetLeft + paddingLeft)
             previewWidth += difference * 2
         }
-        else if (x + previewWidth / 2 > canvasRef.current.offsetLeft + canvasRef.current.offsetWidth) {
-            let difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - (x + previewWidth / 2)
+        else if (x + previewWidth / 2 > canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight) {
+            let difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight - (x + previewWidth / 2)
             previewWidth += difference * 2
         }
 
     }
+
+
+    let info
+
     //! TODO Changing length of text changes the location of ticks
+    if (trackType === "default") {
+        let orthologInfo = (hovered && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\n" + orthologInfo : ''
+    }
+    else {
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end  + "\nValue: " + hovered.value: ''
+    }
+
+    const positionRef = React.useRef({
+        x: 0,
+        y: 0,
+    });
+    const popperRef = React.useRef(null);
+
+    const handleMouseMove = (event) => {
+        positionRef.current = { x: event.clientX, y: event.clientY };
+
+        if (popperRef.current != null) {
+            popperRef.current.update();
+        }
+    };
+
+
+    let trackTitle = trackType === 'default' ? "Chromosome: " + title.toUpperCase() + ", Gene Density Track" : "Chromosome: " + title.toUpperCase() + ", Methylation Track"
+
+    let locationScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
+    let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
+
     return (
         <div style={{ width: '100%', height: '100%' }}>
             {title &&
                 <Typography
+                    variant="h6"
+                    alignJustify
                     className={"title"}
                     style={{
                         position: 'relative',
                         top: 0,
+                        // justify: 'center',
                         marginLeft: 'auto',
                         marginRight: 0,
-                        width: 40,
-                        height: '0%',
-                        zIndex: 2,
+                        width: '60%',
+                        height: 25,
+                        zIndex: 1,
                         pointerEvents: 'none',
-                        background: 'red',
+
                     }}
-                >{title}</Typography>}
+                >{trackTitle}</Typography>}
+
             {previewSelector.visible &&
                 x >= canvasRef.current.offsetLeft &&
-              previewWidth > 0 &&
+                previewWidth > 0 &&
                 <Window
+                key={"thisisthepreview"}
                     coordinateX={x}
                     coordinateY={canvasRef.current.offsetTop}
-                    height={canvasRef.current.offsetHeight+2}
+                    height={canvasRef.current.offsetHeight + 2}
                     width={previewWidth} // boxwidth
                     preview={id == 'preview' ? false : true}
                     text={Math.max(Math.round(beginning), 0)}
                     grouped={grouped}
                 />}
-            <canvas
-                tabIndex={-1}
-                id={id}
-                ref={canvasRef}
-                height={maxHeight}
-                width={maxWidth}
-                className='track'
-                style={style}
-                onContextMenu={doSomething}
-                onMouseDown={(e) => handleClick(e)}
-                onMouseUp={(e) => handleClick(e)}
-                onMouseMove={(e) => {
-                    if (dragging) {
-                        handlePan(e)
-                    }
-                    else {
-                        // if(trackType !== "default") return
-                        let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
-                        let found = false
-                        if (trackType !== "line") {
+            {previewSelector.visible && comparisonSelector &&
+                comparisonSelector.map(comparison => {
+                    //Lolwhut?
+                    let x = locationScale(comparison.center) + offset + canvasRef.current.offsetLeft + 3
+                    let width = viewFinderWidth(comparison.end - comparison.start)
+                    let start = viewFinderScale(comparison.start) + offset + canvasRef.current.offsetLeft
+               
+                    if ((
+                        width > 0) && start + width < canvasRef.current.offsetLeft + maxWidth) {
+                     
+                        return (
+                            <Window
+                            key={comparison.id}
+                                coordinateX={x}
+                                coordinateY={canvasRef.current.offsetTop}
+                                height={canvasRef.current.offsetHeight + 2}
+                                width={width} // boxwidth
+                                preview={true}
+                                text={Math.max(Math.round(beginning), 0)}
+                                grouped={grouped}
+                            />
+                )
+                }
+            })
+            }
 
-                            drawnGenes.forEach(x => {
-                                if (x.hovering(normalizedLocation)) {
-                                    setHovered(x)
-                                    found = true
-                                }
-                            })
-                            if (found == false) {
-                                setHovered()
-                            }
-                        }
-                        canvasRef.current.focus()
-                        showPreview(e)
-                    }
-
+            <Tooltip
+                title={info.length > 0 ? <Typography
+                    variant="caption"
+                    style={{ whiteSpace: 'pre-line' }}
+                >
+                    {info}
+                </Typography> : ''}
+                arrow
+                placement='top'
+                zoom
+                PopperProps={{
+                    popperRef,
+                    anchorEl: {
+                        getBoundingClientRect: () => {
+                            return new DOMRect(
+                                positionRef.current.x,
+                                canvasRef.current.getBoundingClientRect().y,
+                                0,
+                                0,
+                            );
+                        },
+                    },
                 }}
-                onMouseLeave={() => {
-                    dispatch(changePreviewVisibility({
-                        visible: false
-                    })
-                    )
-                }
-                }
-                onWheel={handleScroll}
-                {...props} />
+            >
+                <canvas
+                    tabIndex={-1}
+                    id={id}
+                    ref={canvasRef}
+                    height={maxHeight}
+                    width={maxWidth}
+                    className='track'
+                    style={style}
+                    onContextMenu={doSomething}
+                    onMouseDown={(e) => handleClick(e)}
+                    onMouseUp={(e) => handleClick(e)}
+                    onMouseMove={(e) => {
+                        if (dragging) {
+                            handlePan(e)
+                        }
+                        else {
+                            // if(trackType !== "default") return
+                            let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
+
+                            let found = false
+                            if (trackType !== "line") {
+
+                                drawnGenes.forEach(x => {
+                                    if (x.hovering(normalizedLocation)) {
+                                        setHovered(x)
+                                        found = true
+                                    }
+                                })
+                                if (found == false) {
+                                    setHovered()
+                                }
+                            }
+                            canvasRef.current.focus()
+                            showPreview(e)
+                            handleMouseMove(e)
+                        }
+
+                    }}
+                    onMouseLeave={() => {
+                        setHovered(undefined)
+                        dispatch(changePreviewVisibility({
+                            visible: false
+                        })
+                        )
+                    }
+                    }
+                    onWheel={handleScroll}
+                    {...props} />
+                {/* </Tooltip> */}
+            </Tooltip>
+
+
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -5 }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">

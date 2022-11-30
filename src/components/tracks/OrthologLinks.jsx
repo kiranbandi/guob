@@ -12,7 +12,7 @@ import { selectBasicTracks } from "./basicTrackSlice"
 
 
 
-var orthologs = window.orthologs;
+// var orthologs = window.orthologs;
 
 function findGene(geneSearched) {
 
@@ -35,18 +35,22 @@ function findChromosome(gene) {
 function findOrthologs(c1, c2) {
     let orthologPairs = [];
 
-    for (let gene of orthologs) {
-        if (findChromosome(gene.source.toLowerCase()) == c1 && findChromosome(gene.target.toLowerCase()) == c2) {
-            orthologPairs.push({ source: gene.source, target: gene.target })
-        }
-        else if (findChromosome(gene.target.toLowerCase()) == c1 && findChromosome(gene.source.toLowerCase()) == c2) {
+    let topOrthologs = c1.array.filter(gene => gene.ortholog && gene.siblings.some(x=> x.slice(0,3).toLowerCase() == c2.key))
+    let bottomOrthologs = c2.array.filter(gene => gene.ortholog && gene.siblings.some(x => x.slice(0, 3).toLowerCase() == c1.key))
 
-            orthologPairs.push({ source: gene.target, target: gene.source })
+    for (let gene of topOrthologs) {
+        if(bottomOrthologs.some(t => t.siblings.includes(gene.key.toUpperCase()))){
+
+            let match = gene.siblings.filter(x => x.slice(0, 3).toLowerCase() == c2.key)
+            if(match.length < 2){
+                orthologPairs.push({source: gene.key, target:match.toString()})
+            }
+            else{
+                match.forEach(x => orthologPairs.push({source: gene.key, target: x}))
+            }
         }
     }
-
     return orthologPairs;
-
 }
 
 let dataSet1 = [{ type: "line", source: { x: 623.9910809660769, y: 0 }, target: { x: 624.2136712245092, y: 50 } }];
@@ -93,7 +97,6 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             
             let boundingBox = e.target.getBoundingClientRect()
             let normalizedLocation = (e.clientX - boundingBox.x)
-            // debugger
             let dx = ((normalizedLocation - topTrack.offset) * (factor - 1))
             let offsetX = Math.max(Math.min(topTrack.offset - dx, 0), -((maxWidth * topTrack.zoom * factor) - maxWidth))
             if (Math.max(topTrack.zoom * factor, 1.0) === 1.0) offsetX = 0
@@ -143,12 +146,12 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             
             let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
             let offsetX = Math.max(Math.min(topTrack.offset + e.movementX, 0), -((maxWidth * topTrack.zoom) - maxWidth))
-        //    debugger
+      
             dispatch(pan({
                 key: topTrack.key,
                 offset: offsetX,
             }))
-            // debugger
+     
             dispatch(panComparison({
                 key: topTrack.key,
                 offset: offsetX + boundingBox.x,
@@ -224,7 +227,13 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     let topKey = topTrack ? topTrack.key : undefined
     let bottomKey = bottomTrack ? bottomTrack.key : undefined
 
-    let orthologPairs = findOrthologs(topKey, bottomKey);
+    if(!topKey || !bottomKey){
+        return (
+            <div id={id} ref={linkRef}></div>
+        )
+    }
+
+    let orthologPairs = findOrthologs(topTrack, bottomTrack);
     //{type: "polygon", source: {x: 0,x1: 0,y1:0, y:0}, target: {x:100,x1: 200, y1: 100, y:100}}
 
     let arrayLinks = [];

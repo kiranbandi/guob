@@ -34,7 +34,7 @@ const initialState = {
         }
 
     },
-    comparison: []
+    comparison: {}
 }
 
 
@@ -78,11 +78,14 @@ export const miniviewSlice = createSlice({
             state.miniviews[action.payload.key].visible = action.payload.visible
         },
         addComparison: (state, action) => {
-            state.comparison.push(action.payload)
+            if(!state.comparison[action.payload.target]){
+                state.comparison[action.payload.target] = []
+            }
+            state.comparison[action.payload.target].push(action.payload)
 
         },
         removeComparison: (state, action) => {
-            let popped = state.comparison.pop()
+            let popped = state.comparison[action.payload.target].pop()
         },
         panComparison: (state, action) => {
             for (const [key, value] of Object.entries(state.comparison)) {

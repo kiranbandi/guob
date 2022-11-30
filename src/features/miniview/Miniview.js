@@ -59,27 +59,12 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height,  abso
         height: height + 5,
         margin: 0,
         background: scaleBackground,
-        zIndex: 2,
+        zIndex: 3,
     }
     // debugger
     return (
 
         <>
-            {(trackType === "default") && <Window
-                className={"comparison"}
-                coordinateX={boxLeft}
-                coordinateY={boxTop}
-                width={10} // boxwidth
-                preview={id == 'preview' ? false : true}
-            />
-            }
-            {/* {(trackType === "default") && <Window
-                className={"comparison"}
-                coordinateX={previewSelector.viewFinderX}
-                coordinateY={previewSelector.viewFinderY}
-                width={10}
-                preview={id == 'preview' ? true : false}
-            />} */}
 
             {(trackType === "default") && <Typography style={scaleStyle} left={coordinateX - 80}>{Math.max(Math.round(center- 50000), 0)}</Typography>
             }     
