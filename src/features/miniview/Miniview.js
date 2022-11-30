@@ -10,7 +10,7 @@ This is the small preview that appears on mouse-over.
 TODO make work with the histogram
 */
 
-const Miniview = ({ array, color, coordinateX, coordinateY, width, height,  absolutePositioning, displayPreview, id,preview,isDark, trackType, center, boxLeft, boxTop, ...props }) => {
+const Miniview = ({ array, color, coordinateX, coordinateY, width, height,  absolutePositioning, displayPreview, id,preview,isDark, trackType, center, boxLeft, boxTop, label=undefined, ...props }) => {
 
     const canvasRef = useRef()
     const previewSelector = useSelector(selectMiniviews)['newPreview']
@@ -66,6 +66,7 @@ const Miniview = ({ array, color, coordinateX, coordinateY, width, height,  abso
 
         <>
 
+        {id !== "newPreview" && <Typography variant="caption" style={scaleStyle} left={coordinateX + width + 80}>{array[0].chromosome.toUpperCase() + "-" + id}</Typography>}
             {(trackType === "default") && <Typography style={scaleStyle} left={coordinateX - 80}>{Math.max(Math.round(center- 50000), 0)}</Typography>
             }     
             {(trackType === "default") && <canvas

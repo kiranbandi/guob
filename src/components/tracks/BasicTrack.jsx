@@ -542,7 +542,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                      
                         return (
                             <Window
-                            key={comparison.id}
+                            key={comparison.key}
                                 coordinateX={x}
                                 coordinateY={canvasRef.current.offsetTop}
                                 height={canvasRef.current.offsetHeight + 2}
@@ -550,6 +550,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                                 preview={true}
                                 text={Math.max(Math.round(beginning), 0)}
                                 grouped={grouped}
+                                label={title.toUpperCase() + "-" + comparison.key}
                             />
                 )
                 }
@@ -624,6 +625,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                             visible: false
                         })
                         )
+                        setDragging(false)
                     }
                     }
                     onWheel={handleScroll}
