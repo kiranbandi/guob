@@ -86,9 +86,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     function handleScroll(e) {
         if (e.altKey == true) {
-            if(window.gt){
-                updateTimer()
-            }
+            if(window.gt) updateTimer()
             let factor = 0.8
             if (e.deltaY < 0) {
                 factor = 1 / factor
@@ -237,6 +235,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     let gradient = [topColor, bottomColor]
 
     function locate(e) {
+        if(window.gt) updateTimer()
 
         const genes = e.target.id.split("-")
         if (genes.length < 2) return
