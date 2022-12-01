@@ -5,6 +5,7 @@ import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
+import { addAnnotation, selectAnnotations } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
 import CustomTooltip from "components/layout/CustomTooltip.jsx";
@@ -32,6 +33,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
+    const annotationSelector = useSelector(selectAnnotations)[id]
 
 
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
@@ -289,18 +291,18 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     function showPreview(event) {
-        
+
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
         let westEnd = boundingBox.x + paddingLeft
         let eastEnd = boundingBox.x + boundingBox.width - paddingRight
-        if(event.pageX < westEnd || event.pageX > eastEnd){
+        if (event.pageX < westEnd || event.pageX > eastEnd) {
             dispatch(changePreviewVisibility(
                 {
                     visible: false
                 }))
-                return
+            return
         }
 
         let changedX = Math.min(Math.max(event.pageX, westEnd), eastEnd)
@@ -359,7 +361,22 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
 
+    function newAnnotation() {
+        console.log(x)
+        let note = prompt("Enter a message: ")
+
+        dispatch(addAnnotation({
+            key: id,
+            note,
+            location: previewSelector.center
+
+        }))
+        console.log(note)
+        console.log(annotationSelector)
+    }
+
     function handleClick(e) {
+        console.log(e.shiftKey)
         if (e.type == 'mousedown') {
             setDragging(true)
             setClickLocation(e.clientX - e.target.offsetLeft)
@@ -367,8 +384,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         if (e.type == 'mouseup') {
             setDragging(false)
             if (e.clientX - e.target.offsetLeft == clickLocation) {
-                if (e.altKey == true) {
+                if (e.altKey) {
                     doSomething(e)
+                    setClickLocation(null)
+                    return
+                }
+                if (e.shiftKey) {
+                    newAnnotation()
                     setClickLocation(null)
                     return
                 }
@@ -472,7 +494,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\n" + orthologInfo : ''
     }
     else {
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end  + "\nValue: " + hovered.value: ''
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end + "\nValue: " + hovered.value : ''
     }
 
     const positionRef = React.useRef({
@@ -503,6 +525,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     alignJustify
                     className={"title"}
                     style={{
+                        WebkitUserSelect: 'none',
                         position: 'relative',
                         top: 0,
                         // justify: 'center',
@@ -520,7 +543,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 x >= canvasRef.current.offsetLeft &&
                 previewWidth > 0 &&
                 <Window
-                key={"thisisthepreview"}
+                    key={"thisisthepreview"}
                     coordinateX={x}
                     coordinateY={canvasRef.current.offsetTop}
                     height={canvasRef.current.offsetHeight + 2}
@@ -536,13 +559,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     let x = locationScale(comparison.center) + offset + canvasRef.current.offsetLeft + 3
                     let width = viewFinderWidth(comparison.end - comparison.start)
                     let start = viewFinderScale(comparison.start) + offset + canvasRef.current.offsetLeft
-               
+
                     if ((
                         width > 0) && start + width < canvasRef.current.offsetLeft + maxWidth) {
-                     
+
                         return (
                             <Window
-                            key={comparison.key}
+                                key={comparison.key}
                                 coordinateX={x}
                                 coordinateY={canvasRef.current.offsetTop}
                                 height={canvasRef.current.offsetHeight + 2}
@@ -552,9 +575,25 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                                 grouped={grouped}
                                 label={title.toUpperCase() + "-" + comparison.key}
                             />
-                )
-                }
-            })
+                        )
+                    }
+                })
+            }
+            {
+                annotationSelector && annotationSelector.map(note => {
+                    let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
+                    return (
+                        <Window
+                            coordinateX={x}
+                            coordinateY={canvasRef.current.offsetTop}
+                            height={canvasRef.current.offsetHeight + 2}
+                            width={2} // boxwidth
+                            preview={true}
+                            text={Math.max(Math.round(beginning), 0)}
+                            grouped={grouped}
+                            label={note.note}
+                        />)
+                })
             }
 
             <Tooltip
@@ -637,12 +676,12 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -5 }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">
-                    <div style={{ borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ WebkitUserSelect: 'none', borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
+                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
             </div>}
 
