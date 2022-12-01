@@ -86,6 +86,9 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     function handleScroll(e) {
         if (e.altKey == true) {
+            if(window.gt){
+                updateTimer()
+            }
             let factor = 0.8
             if (e.deltaY < 0) {
                 factor = 1 / factor
@@ -295,7 +298,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 zoom: bottomTrack.zoom
             }
             gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-        }, 0))
+        }, 100))
     }
 
 

@@ -174,37 +174,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     const dispatch = useDispatch()
 
-
-
-    function buildGTEvent(e) {
-        let altKey = e.altKey;
-        let deltaY = e.deltaY;
-        let trackBoundingRectangle = e.target.getBoundingClientRect()
-        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-        let clientX = e.clientX
-        let targetOffsetLeft = e.target.offsetLeft;
-        let targetOffsetWidth = e.target.offsetWidth;
-        let pageX = e.pageX;
-
-        let left = e.target.offsetLeft
-        let width = e.target.offsetWidth
-        let event = {
-            altKey,
-            deltaY,
-            trackBoundingRectangle,
-            padding,
-            clientX,
-            target: {
-                offsetLeft: left,
-                offsetWidth: width,
-                id: e.target.id
-            },
-            pageX
-        };
-        return event
-    }
-
-
     let [waiting, setWaiting] = useState()
     function updateTimer() {
         let gt = window.gt;
@@ -480,30 +449,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
     }
 
-
-    function updateTrack(event) {
-        dispatch(changeZoom({
-            key: event.id,
-            zoom: event.zoom
-        }))
-
-        dispatch(pan({
-            key: event.id,
-            offset: event.ratio * maxWidth
-        }))
-    }
-
-    if (window.gt) {
-        window.gt.on('state_updated_reliable', (userID, payload) => {
-
-            // TODO this feels like a hacky way of doing this
-            if (userID === document.title) return
-            if (payload.Action == "handleTrackUpdate") {
-                if (payload.trackInfo.id !== id) return
-                updateTrack(payload.trackInfo)
-            }
-        })
-    }
 
 
     //! TODO Changing length of text changes the location of ticks
