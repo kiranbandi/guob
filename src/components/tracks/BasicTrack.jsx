@@ -177,27 +177,12 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
 
 
-    if  (window.gt){
-        window.gt.on('state_updated_reliable', (id, payload) => {
-            console.log(payload)
-            if (payload.Action == "handleBTClick"){
-                handleClick(payload.Event)}
-                // console.log("Clicked")}
-            else if (payload.Action == "handleBTPan"){
-
-                handlePan(payload.Event)}
-            else if (payload.Action == "handleScroll"){
-                    handleScroll(payload.Event)}
-         
-            
-          })
-    
-          
-        }
+   
 
 
     function handleScrollEvent(e){
-        let altKey =e.altKey;
+        
+        let altKey = e.altKey;
         let deltaY = e.deltaY;
         let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
@@ -207,11 +192,24 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let pageX = e.pageX;
 
         let gt = window.gt;
-        if (gt){
-            gt.updateState({ Action: "handleBTScroll", Event: {altKey, deltaY, trackBoundingRectangle, padding, clientX, targetOffsetLeft, targetOffsetWidth, pageX}})
-            }else{
-                let event= {altKey, deltaY, trackBoundingRectangle, padding, clientX, targetOffsetLeft, targetOffsetWidth, pageX};
+        debugger
+        let left = e.target.offsetLeft
+        let width = e.target.offsetWidth
+        let event = {
+            altKey, 
+            deltaY, 
+            trackBoundingRectangle, 
+            padding, 
+            clientX, 
+            target: {offsetLeft : left,
+                    offsetWidth: width,
+                    id: e.target.id
+             },
+              pageX};
 
+        if (gt){
+            gt.updateState({ Action: "handleBTScroll", event})
+            }else{
                 handleScroll(event)
             }
 
@@ -225,7 +223,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
         // e.stopPropagation()
-
+        debugger
+        console.log(e)
+        if(e.target.id !== id){
+            return
+        }
         if (e.altKey == true) {
             let factor = 0.9
             if (e.deltaY < 0) {
@@ -271,7 +273,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }))
 
 
-            showPreviewScroll(e)
+            // showPreviewScroll(e)
         }
     }
 
@@ -285,7 +287,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             gt.updateState({ Action: "handleBTPan", Event: {trackBoundingRectangle, padding, targetClientWidth, movementX}})
             }else{
                 let event= {trackBoundingRectangle, padding, targetClientWidth, movementX};
-
+                
                 handlePan(event)
             }
 
@@ -293,7 +295,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
-
+        // debugger
+        
         // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.trackBoundingRectangle;
         let padding = e.padding;
@@ -325,7 +328,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
-        debugger
+        // debugger
         //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
@@ -465,24 +468,28 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
 
     function handleClickEvent(e){
+        debugger
         let type = e.type;
         let clientX = e.clientX;
         let targetOffsetLeft = e.target.offsetLeft;
         let altKey = e.altKey;
         let targetOffsetWidth  = e.target.offsetWidth;
-
+        debugger
         let gt = window.gt;
         if (gt){
+            debugger
             gt.updateState({ Action: "handleBTClick", Event: {type, clientX, targetOffsetLeft, altKey, targetOffsetWidth}})
             }else{
-                let event= {type, clientX, targetOffsetLeft, altKey, targetOffsetWidth};
 
+                let event= {type, clientX, targetOffsetLeft, altKey, targetOffsetWidth};
+debugger
                 handleClick(event)
             }
 
     }
     function handleClick(e) {
-        console.log("HERE")
+        // console.log("HERE")
+        // debugger
         if (e.type == 'mousedown') {
             setDragging(true)
             setClickLocation(e.clientX - e.targetOffsetLeft)
@@ -563,6 +570,27 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
     }
 
+
+    // TODO id flag to ignore anything happening to a different track
+    if  (window.gt){
+        window.gt.on('state_updated_reliable', (id, payload) => {
+            // console.log(payload)
+            if (payload.Action == "handleBTClick"){
+                handleClick(payload.event)}
+
+            else if (payload.Action == "handleBTPan"){
+                handlePan(payload.event)}
+            else if (payload.Action == "handleBTScroll"){
+                // console.log("?")
+                    handleScroll(payload.event)}
+         
+            
+          })
+    
+          
+        }
+
+
     //! TODO Changing length of text changes the location of ticks
     return (
         <div style={{ width: '100%', height: '100%' }}>
@@ -621,6 +649,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         visible: false
                     })
                     )
+                    setDragging()
                 }
                 }
                 onWheel={handleScrollEvent}

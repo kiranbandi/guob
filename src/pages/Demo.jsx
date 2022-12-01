@@ -306,18 +306,18 @@ function changeNormalize(e) {
 
 
 
-    if  (window.gt){
-    window.gt.on('state_updated_reliable', (id, payload) => {
-        console.log(payload)
-        if (payload.Action == "changeNormalize"){
-        setNormalize(payload.Todo) }
-        if (payload.Action == "changeMargins"){
-            setDraggableSpacing(payload.Todo) }
-      })
+    // if  (window.gt){
+    // window.gt.on('state_updated_reliable', (id, payload) => {
+    //     // console.log(payload)
+    //     if (payload.Action == "changeNormalize"){
+    //     setNormalize(payload.Todo) }
+    //     if (payload.Action == "changeMargins"){
+    //         setDraggableSpacing(payload.Todo) }
+    //   })
 
 
       
-    }
+    // }
 
 
 
