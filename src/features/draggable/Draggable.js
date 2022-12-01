@@ -127,7 +127,6 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
             if (userID === document.title) return
             if (payload.Action == "handleDragged") {
                 if(payload.id !== id) return
-                console.log(id)
                 dispatch(setDraggables({
                     order: payload.order
                 }))

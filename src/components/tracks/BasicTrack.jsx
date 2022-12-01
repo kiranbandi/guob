@@ -286,7 +286,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         if(window.gt) updateTimer()
         // Finding important markers of the track, since it's often in a container
-        debugger
+        // debugger
         
         // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.target.getBoundingClientRect()
@@ -498,18 +498,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
             // TODO this feels like a hacky way of doing this
             if (userID === document.title) return
-            // if (payload.Action == "handleBTClick") {
-            //     handleClick(payload.event)
-            // }
             if (payload.Action == "handleTrackUpdate") {
                 if (payload.trackInfo.id !== id) return
                 updateTrack(payload.trackInfo)
             }
-
-
         })
-
-
     }
 
 
