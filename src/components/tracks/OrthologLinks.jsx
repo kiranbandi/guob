@@ -10,8 +10,6 @@ import { panComparison } from "features/miniview/miniviewSlice";
 
 import { selectBasicTracks } from "./basicTrackSlice"
 
-
-
 var orthologs = window.orthologs;
 
 function findGene(geneSearched) {
@@ -34,6 +32,10 @@ function findChromosome(gene) {
 }
 function findOrthologs(c1, c2) {
     let orthologPairs = [];
+
+    if(!orthologs){
+        return []
+    }
 
     for (let gene of orthologs) {
         if (findChromosome(gene.source.toLowerCase()) == c1 && findChromosome(gene.target.toLowerCase()) == c2) {

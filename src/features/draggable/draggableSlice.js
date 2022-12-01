@@ -63,11 +63,15 @@ export const draggableSlice = createSlice({
             state.draggables.length = 0
             state.group.length = 0
         },
+        setDraggables: (state, action) => {
+            state.draggables.length = 0
+            state.draggables = action.payload.order
+        }
 
     }
 })
 
-export const { deleteAllDraggables, moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup } = draggableSlice.actions
+export const { deleteAllDraggables, moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup, setDraggables } = draggableSlice.actions
 
 export const selectDraggables = (state) => state.draggable.draggables
 export const selectGroup = (state) => state.draggable.group
