@@ -7,7 +7,7 @@ import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews, clearComparisons } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { deleteAllDraggables, selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -321,201 +321,201 @@ export default function Demo({ isDark }) {
 
             // TODO this feels like a hacky way of doing this
             if (userID === document.title) return
-            if (payload.Action == "handleTrackUpdate") {
-
-
-                updateTrack(payload.trackInfo)
+            switch (payload.Action){
+                case "handleTrackUpdate":
+                    updateTrack(payload.trackInfo)
+                    break
+                    case "changeNormalize":
+                        setNormalize(payload.Todo)
+                    break
+                    case "changeMargins":
+                        setDraggableSpacing(payload.Todo)
+                    break
+                    case "handleDragged":
+                        dispatch(setDraggables({
+                            order: payload.order
+                        }))
+                    break
             }
-
-            // console.log(payload)
-            if (payload.Action == "changeNormalize") {
-                setNormalize(payload.Todo)
-            }
-            if (payload.Action == "changeMargins") {
-                setDraggableSpacing(payload.Todo)
-            }
+           
         })
-
-
-
     }
 
 
+function enableGT(e) {
+    console.log(e.target.checked)
 
-    function enableGT(e) {
-        console.log(e.target.checked)
+    if (e.target.checked) {
+        let gt;
 
-        if (e.target.checked) {
-            let gt;
+        async function connect() {
+            try {
 
-            async function connect() {
-                try {
-
-                    gt = window.createGt('hci-sandbox.usask.ca:3001')
-                    await gt.connect();
-                    await gt.auth();
-                    await gt.join('gutb-test');
-                }
-                catch (e) {
-                    console.error(e)
-                }
-                window.gt = gt;
+                gt = window.createGt('hci-sandbox.usask.ca:3001')
+                await gt.connect();
+                await gt.auth();
+                await gt.join('gutb-test');
             }
-            connect();
-
-
+            catch (e) {
+                console.error(e)
+            }
+            window.gt = gt;
         }
-        else {
-            let gt = window.gt;
-            gt.disconnect();
-            window.location.reload()
+        connect();
 
-        }
+
+    }
+    else {
+        let gt = window.gt;
+        gt.disconnect();
+        window.location.reload()
 
     }
 
+}
 
-    function clearComparisonTracks() {
-        dispatch(clearComparisons({
 
-        }))
+function clearComparisonTracks() {
+    dispatch(clearComparisons({
+
+    }))
+}
+
+const handleSlider = (event, newValue) => {
+    if (typeof newValue === 'number') {
+
+        setSliderHeight(newValue)
     }
-
-    const handleSlider = (event, newValue) => {
-        if (typeof newValue === 'number') {
-
-            setSliderHeight(newValue)
-        }
-    }
+}
 
 
 
-    return (
-        <>
-            <div css={styling}>
+return (
+    <>
+        <div css={styling}>
 
-                <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/bn_methylation.bed")
-                        setTitleState("Methylation test")
-                    }}>Methylation Test</Button>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/at_coordinate.gff")
-                        setTitleState("Aradopsis thaliana")
-                    }}>Aradopsis thaliana</Button>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/bn_coordinate.gff")
-                        setTitleState("Brassica napus")
-                    }}>Brassica napus</Button>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/ta_hb_coordinate.gff")
-                        setTitleState("Triticum aestivum")
-                    }}>Triticum aestivum</Button>
-                    <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
-                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+            <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/bn_methylation.bed")
+                    setTitleState("Methylation test")
+                }}>Methylation Test</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/at_coordinate.gff")
+                    setTitleState("Aradopsis thaliana")
+                }}>Aradopsis thaliana</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/bn_coordinate.gff")
+                    setTitleState("Brassica napus")
+                }}>Brassica napus</Button>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/ta_hb_coordinate.gff")
+                    setTitleState("Triticum aestivum")
+                }}>Triticum aestivum</Button>
+                <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
 
-                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
+                <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
 
-                </Stack>
-                <Slider
-                    step={1}
-                    min={35}
-                    max={200}
-                    valueLabelDisplay={"auto"}
-                    onChange={handleSlider}
+            </Stack>
+            <Slider
+                step={1}
+                min={35}
+                max={200}
+                valueLabelDisplay={"auto"}
+                onChange={handleSlider}
 
-                />
+            />
 
-                {previewSelector.visible && <Miniview
-                    className={'preview'}
-                    array={previewSelector.array}
+            {previewSelector.visible && <Miniview
+                className={'preview'}
+                array={previewSelector.array}
+                coordinateX={previewSelector.coordinateX}
+                coordinateY={previewSelector.coordinateY}
+                width={previewSelector.width}
+                height={previewSelector.height}
+                beginning={previewSelector.start}
+                fin={previewSelector.end}
+                color={previewSelector.color}
+                id={previewSelector.id}
+                absolutePositioning={true}
+                preview={true}
+                isDark={isDark}
+            />}
+
+
+            {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
+                let current = comparableSelector[item]
+                let parent = document.getElementById(current.target).getBoundingClientRect()
+                let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
+                let verticalScroll = document.documentElement.scrollTop
+                let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
+                return <Miniview
+
+                    className={'comparison preview'}
+                    key={item}
+                    array={current.array}
+                    color={current.color}
                     coordinateX={previewSelector.coordinateX}
-                    coordinateY={previewSelector.coordinateY}
+                    coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
                     width={previewSelector.width}
                     height={previewSelector.height}
-                    beginning={previewSelector.start}
-                    fin={previewSelector.end}
-                    color={previewSelector.color}
-                    id={previewSelector.id}
+                    displayPreview={false}
+                    beginning={current.start}
+                    fin={current.end}
                     absolutePositioning={true}
                     preview={true}
+                    boxLeft={what}
+                    boxTop={parent.y + verticalScroll}
+                    boxWidth={current.boxWidth}
+                    grouped={groupSelector.includes(comparableSelector[item].target)}
                     isDark={isDark}
-                />}
+                />
+            }))
+            }
 
+            {
+                loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                    <CircularProgress size={75} />
+                </Box> :
+                    <>
+                        <Typography variant={'h5'} sx={{
+                            WebkitUserSelect: 'none',
+                        }}>{titleState}</Typography>
+                        <CustomDragLayer groupID={groupSelector} />
+                        <DragContainer startingList={draggableSelector}>
+                            {draggableSelector.map(item => {
 
-                {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
-                    let current = comparableSelector[item]
-                    let parent = document.getElementById(current.target).getBoundingClientRect()
-                    let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
-                    let verticalScroll = document.documentElement.scrollTop
-                    let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
-                    return <Miniview
+                                return (
+                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                                        {item !== 'links' && <BasicTrack
+                                            array={basicTrackSelector[item].array}
+                                            color={basicTrackSelector[item].color}
+                                            normalizedLength={basicTrackSelector[item].normalizedLength}
+                                            trackType={basicTrackSelector[item].trackType}
+                                            title={item}
+                                            doSomething={handleClick}
+                                            id={item}
+                                            zoom={basicTrackSelector[item].zoom}
+                                            pastZoom={basicTrackSelector[item].pastZoom}
+                                            offset={basicTrackSelector[item].offset}
+                                            selection={basicTrackSelector[item].selection}
+                                            isDark={isDark}
+                                            normalize={normalize}
+                                        />}
+                                        {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
+                                    </Draggable>
 
-                        className={'comparison preview'}
-                        key={item}
-                        array={current.array}
-                        color={current.color}
-                        coordinateX={previewSelector.coordinateX}
-                        coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
-                        width={previewSelector.width}
-                        height={previewSelector.height}
-                        displayPreview={false}
-                        beginning={current.start}
-                        fin={current.end}
-                        absolutePositioning={true}
-                        preview={true}
-                        boxLeft={what}
-                        boxTop={parent.y + verticalScroll}
-                        boxWidth={current.boxWidth}
-                        grouped={groupSelector.includes(comparableSelector[item].target)}
-                        isDark={isDark}
-                    />
-                }))
-                }
+                                )
+                            })}
 
-                {
-                    loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
-                        <CircularProgress size={75} />
-                    </Box> :
-                        <>
-                            <Typography variant={'h5'} sx={{
-                                WebkitUserSelect: 'none',
-                            }}>{titleState}</Typography>
-                            <CustomDragLayer groupID={groupSelector} />
-                            <DragContainer startingList={draggableSelector}>
-                                {draggableSelector.map(item => {
-
-                                    return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
-                                            {item !== 'links' && <BasicTrack
-                                                array={basicTrackSelector[item].array}
-                                                color={basicTrackSelector[item].color}
-                                                normalizedLength={basicTrackSelector[item].normalizedLength}
-                                                trackType={basicTrackSelector[item].trackType}
-                                                title={item}
-                                                doSomething={handleClick}
-                                                id={item}
-                                                zoom={basicTrackSelector[item].zoom}
-                                                pastZoom={basicTrackSelector[item].pastZoom}
-                                                offset={basicTrackSelector[item].offset}
-                                                selection={basicTrackSelector[item].selection}
-                                                isDark={isDark}
-                                                normalize={normalize}
-                                            />}
-                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
-                                        </Draggable>
-
-                                    )
-                                })}
-
-                            </DragContainer>
-                        </>
-                }
-            </div>
-        </>
-    );
+                        </DragContainer>
+                    </>
+            }
+        </div>
+    </>
+);
 }
