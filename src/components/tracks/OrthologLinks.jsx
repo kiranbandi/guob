@@ -58,6 +58,27 @@ let dataSet1 = [{ type: "line", source: { x: 623.9910809660769, y: 0 }, target: 
 const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
 
+    let [waiting, setWaiting] = useState()
+    function updateTimer(topKey, topRatio, topZoom, bottomKey, bottomRatio, bottomZoom) {
+        let gt = window.gt;
+        clearTimeout(waiting)
+        setWaiting(window.setTimeout(() => {
+            let trackInfo = {
+                id: topKey,
+                ratio: topTrack.offset / maxWidth,
+                zoom: topTrack.zoom
+            }
+            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
+            trackInfo = {
+                id: bottomKey,
+                ratio: bottomTrack.offset / maxWidth,
+                zoom: bottomTrack.zoom
+            }
+            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
+
+        }, 80))
+    }
+
     const trackSelector = useSelector(selectBasicTracks)
     const indexSelector = useSelector(selectDraggables)
     const linkRef = useRef(1)
@@ -323,26 +344,6 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         if (window.gt) updateTimer(topTrack.key, topOffset / maxWidth, topTrack.zoom, bottomTrack.key, bottomOffset / maxWidth, bottomTrack.zoom)
     }
 
-    let [waiting, setWaiting] = useState()
-    function updateTimer(topKey, topRatio, topZoom, bottomKey, bottomRatio, bottomZoom) {
-        let gt = window.gt;
-        clearTimeout(waiting)
-        setWaiting(window.setTimeout(() => {
-            let trackInfo = {
-                id: topKey,
-                ratio: topTrack.offset / maxWidth,
-                zoom: topTrack.zoom
-            }
-            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-            trackInfo = {
-                id: bottomKey,
-                ratio: bottomTrack.offset / maxWidth,
-                zoom: bottomTrack.zoom
-            }
-            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-
-        }, 80))
-    }
 
     return (
         <>

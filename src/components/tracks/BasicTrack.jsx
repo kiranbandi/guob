@@ -535,7 +535,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     };
 
 
-    let trackTitle = trackType === 'default' ? "Chromosome: " + title.toUpperCase() + ", Gene Density Track" : "Chromosome: " + title.toUpperCase() + ", Methylation Track"
+    let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", Gene Density Track" : "Chromosome: " + title.toUpperCase() + ", Methylation Track"
 
     let locationScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
