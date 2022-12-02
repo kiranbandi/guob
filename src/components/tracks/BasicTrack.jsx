@@ -384,7 +384,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
 
     function newAnnotation() {
-        console.log(x)
         let note = prompt("Enter a message: ")
 
         dispatch(addAnnotation({
@@ -393,18 +392,15 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             location: previewSelector.center
 
         }))
-        console.log(note)
-        console.log(annotationSelector)
     }
 
     function handleClick(e) {
         if (e.type == 'mousedown') {
             setDragging(true)
-            setClickLocation(e.clientX - e.targetOffsetLeft)
+            setClickLocation(e.clientX - e.target.offsetLeft)
         }
         if (e.type == 'mouseup') {
             setDragging(false)
-
             if (e.clientX - e.target.offsetLeft == clickLocation) {
                 if (e.altKey) {
                     doSomething(e)
@@ -514,7 +510,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     //! TODO Changing length of text changes the location of ticks
     if (trackType === "default") {
         let orthologInfo = (hovered && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\n" + orthologInfo : ''
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nOrhologs: " + orthologInfo : ''
     }
     else {
         info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end + "\nValue: " + hovered.value : ''
