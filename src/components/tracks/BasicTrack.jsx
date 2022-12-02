@@ -286,7 +286,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
 
     function showPreview(event) {
-        if (trackType !== "default") return
+       
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -532,7 +532,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
             {previewSelector.visible && Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
-                let collabWidth = viewFinderWidth(100000)
+                
+                let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
 
                 if(collabX >= canvasRef.current.offsetLeft &&
                     previewWidth > 0) 
@@ -668,7 +669,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     }
                     onWheel={handleScroll}
                     {...props} />
-                {/* </Tooltip> */}
             </Tooltip>
 
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
