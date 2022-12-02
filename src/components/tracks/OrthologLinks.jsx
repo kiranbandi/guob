@@ -33,7 +33,7 @@ function findChromosome(gene) {
 function findOrthologs(c1, c2) {
     let orthologPairs = [];
 
-    if(!orthologs){
+    if (!orthologs) {
         return []
     }
 
@@ -86,7 +86,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     function handleScroll(e) {
         if (e.altKey == true) {
-            if(window.gt) updateTimer()
+
             let factor = 0.8
             if (e.deltaY < 0) {
                 factor = 1 / factor
@@ -104,12 +104,12 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             }))
 
             dx = ((normalizedLocation - bottomTrack.offset) * (factor - 1))
-            offsetX = Math.max(Math.min(bottomTrack.offset - dx, 0), -((maxWidth * bottomTrack.zoom * factor) - maxWidth))
-            if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) offsetX = 0
+            let BottomOffset = Math.max(Math.min(bottomTrack.offset - dx, 0), -((maxWidth * bottomTrack.zoom * factor) - maxWidth))
+            if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) BottomOffset = 0
 
             dispatch(pan({
                 key: bottomTrack.key,
-                offset: offsetX
+                offset: BottomOffset
             }))
 
             dispatch(changeZoom({
@@ -120,20 +120,18 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 key: bottomTrack.key,
                 zoom: Math.max(bottomTrack.zoom * factor, 1.0)
             }))
+            if (window.gt) updateTimer(topKey, offsetX / maxWidth, Math.max(topTrack.zoom * factor, 1.0), bottomKey, BottomOffset / maxWidth, Math.max(bottomTrack.zoom * factor, 1.0))
         }
     }
 
-    
-   
+
+
     function handleClick(e) {
         if (e.type == 'mousedown') {
             setDragging(true)
             setClickLocation(e.clientX)
         }
         if (e.type == 'mouseup') {
-            if(window.gt){
-                updateTimer()
-            }
             setDragging(false)
             setClickLocation(null)
         }
@@ -144,10 +142,10 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
             if (!topTrack || !bottomTrack) return
 
-            
+
             let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
             let offsetX = Math.max(Math.min(topTrack.offset + e.movementX, 0), -((maxWidth * topTrack.zoom) - maxWidth))
-           
+
             dispatch(pan({
                 key: topTrack.key,
                 offset: offsetX,
@@ -235,7 +233,6 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     let gradient = [topColor, bottomColor]
 
     function locate(e) {
-        if(window.gt) updateTimer()
 
         const genes = e.target.id.split("-")
         if (genes.length < 2) return
@@ -249,13 +246,16 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         let bottomRatio = bottomGene.start / belowCap
 
         // If near the bottom, snap to the bottom, if near the top, snap to top
-        if (e.clientY > boundingBox.top +( boundingBox.height / 2)) {
-            
+        let topOffset = topTrack.offset
+        let bottomOffset = bottomTrack.offset
+        if (e.clientY > boundingBox.top + (boundingBox.height / 2)) {
+
             // Find location of gene on top track to snap
             let bottomLocation = bottomRatio * maxWidth * bottomTrack.zoom + bottomTrack.offset
+            topOffset = -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
             dispatch(pan({
                 key: topTrack.key,
-                offset: -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
+                offset: topOffset
             }))
 
             dispatch(panComparison({
@@ -270,18 +270,19 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             }))
         }
         else {
-
             // Find location of gene on top track
             let topLocation = topRatio * maxWidth * topTrack.zoom + topTrack.offset
+            bottomOffset = -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
             dispatch(pan({
                 key: bottomTrack.key,
-                offset: -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
+                offset: bottomOffset
             }))
         }
+        if (window.gt) updateTimer(topTrack.key, topOffset / maxWidth, topTrack.zoom, bottomTrack.key, bottomOffset / maxWidth, bottomTrack.zoom)
     }
 
     let [waiting, setWaiting] = useState()
-    function updateTimer() {
+    function updateTimer(topKey, topRatio, topZoom, bottomKey, bottomRatio, bottomZoom) {
         let gt = window.gt;
         clearTimeout(waiting)
         setWaiting(window.setTimeout(() => {
@@ -291,13 +292,14 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 zoom: topTrack.zoom
             }
             gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-            trackInfo= {
+            trackInfo = {
                 id: bottomKey,
                 ratio: bottomTrack.offset / maxWidth,
                 zoom: bottomTrack.zoom
             }
             gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-        }, 100))
+
+        }, 80))
     }
 
 

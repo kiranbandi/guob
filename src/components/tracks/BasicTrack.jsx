@@ -175,17 +175,17 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const dispatch = useDispatch()
 
     let [waiting, setWaiting] = useState()
-    function updateTimer() {
+    function updateTimer(id, ratio, zoom) {
         let gt = window.gt;
         clearTimeout(waiting)
         setWaiting(window.setTimeout(() => {
             let trackInfo = {
                 id: id,
-                ratio: trackSelector[id].offset / maxWidth,
-                zoom: trackSelector[id].zoom
+                ratio: ratio,
+                zoom: zoom
             }
             gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-        }, 200))
+        }, 80))
     }
 
     function handleScroll(e) {
@@ -198,7 +198,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
         if (e.altKey == true) {
 
-            if(window.gt) updateTimer()
+           
 
             let factor = 0.9
             if (e.deltaY < 0) {
@@ -243,6 +243,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor: factor
             }))
 
+            if(window.gt) updateTimer(id, offsetX/maxWidth, Math.max(zoom * factor, 1.0))
 
             showPreview(e)
         }
@@ -251,12 +252,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
-        // debugger
 
-        if(window.gt) updateTimer()
-        // Finding important markers of the track, since it's often in a container
-        // debugger
-        
         // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
@@ -273,6 +269,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             key: id,
             offset: offsetX,
         }))
+        if(window.gt) updateTimer(id, offsetX/maxWidth, zoom)
         dispatch(moveMiniview(
             {
                 key: 'preview',
@@ -288,7 +285,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
-        // debugger
         //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
