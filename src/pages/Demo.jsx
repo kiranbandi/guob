@@ -33,7 +33,7 @@ import TextField from '@mui/material/TextField'
 import parseGFF from 'features/parsers/gffParser';
 import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
-import { addAnnotation } from 'features/annotation/annotationSlice';
+import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -346,6 +346,12 @@ ${'' /* .track {
                 case "handleAnnotation":
                     dispatch(addAnnotation(payload.annotation))
                     break
+                case "handleSearch":
+                    dispatch(addSearch(payload.annotation))
+                    break
+                case "clearSearch":
+                    dispatch(clearSearches())
+                    break
                 case "handleDragged":
                     dispatch(setDraggables({
                         order: payload.order
@@ -464,6 +470,10 @@ ${'' /* .track {
                         <Button onClick={() => {
                             let gt = window.gt;
 
+                            dispatch(clearSearches())
+                            if (gt) {
+                                gt.updateState({ Action: "clearSearch" })
+                            }
 
                             if (!searchTerms || searchTerms.length < 1) return
                             searchTerms.forEach(term => {
@@ -473,15 +483,15 @@ ${'' /* .track {
                                     note: gene.key,
                                     location: +gene.start
                                 }
-                                dispatch(addAnnotation(annotation))
+                                dispatch(addSearch(annotation))
                                 if (gt) {
-                                    gt.updateState({ Action: "handleAnnotation", annotation })
+                                    gt.updateState({ Action: "handleSearch", annotation })
                                 }
                             })
                         }
 
                         }>
-                            Search
+                            Update Search
                         </Button>
                     </Stack>
 

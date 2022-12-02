@@ -5,7 +5,7 @@ import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack } from "./basicTrackSlice";
-import { addAnnotation, selectAnnotations } from "features/annotation/annotationSlice";
+import { addAnnotation, selectAnnotations, selectSearch } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
 import { selectDraggables } from "features/draggable/draggableSlice.js";
@@ -35,6 +35,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const trackSelector = useSelector(selectBasicTracks)
     const order = useSelector(selectDraggables)
     const annotationSelector = useSelector(selectAnnotations)[id]
+    const searchSelector = useSelector(selectSearch)[id]
 
 
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
@@ -587,6 +588,27 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
                         return (
                             <Window
+                                coordinateX={x}
+                                coordinateY={annotationY}
+                                height={canvasRef.current.offsetHeight + 2}
+                                width={2} // boxwidth
+                                preview={true}
+                                text={Math.max(Math.round(beginning), 0)}
+                                grouped={grouped}
+                                label={note.note}
+                            />)
+
+                    }
+                })
+            }
+
+            {
+                searchSelector && searchSelector.map(note => {
+                    let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
+                    if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
+                        return (
+                            <Window
+                                key={note.id + x}
                                 coordinateX={x}
                                 coordinateY={annotationY}
                                 height={canvasRef.current.offsetHeight + 2}
