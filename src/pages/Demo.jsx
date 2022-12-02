@@ -267,6 +267,7 @@ ${'' /* .track {
         dispatch(deleteAllDraggables({}))
         parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
             window.dataset = dataset
+            window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
             let normalizedLength = 0;
             let color;
             let ColourScale = scaleOrdinal().domain([0, 9])
@@ -410,6 +411,7 @@ ${'' /* .track {
     }
 
     const [searchTerms, setSearchTerms] = useState()
+    const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
     return (
         <>
@@ -448,14 +450,33 @@ ${'' /* .track {
                 </Stack>
                 <Stack mt={2} spacing={2}>
                     <Stack direction='row' justifyContent={"flex-start"}>
-                        <Autocomplete sx={{ width: '80%' }}
+                    <Autocomplete sx={{ width: '15%' }}
+                            multiple
+                            size="small"
+                            onChange={(event, newValue) => {
+                                setSearchingChromosome(newValue)
+                            }}
+                            id="Chromosome Category"
+                            options={window.chromosomes}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Chromosome"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        type: 'search',
+                                    }}
+                                />
+                            )}
+                        />
+                        <Autocomplete sx={{ width: '70%' }}
                             multiple
                             size="small"
                             onChange={(event, newValue) => {
                                 setSearchTerms(newValue)
                             }}
                             id="Gene Search"
-                            options={Object.keys(window.dataset)}
+                            options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome )}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
