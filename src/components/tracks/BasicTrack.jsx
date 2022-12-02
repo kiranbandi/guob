@@ -8,9 +8,7 @@ import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updat
 import { addAnnotation, selectAnnotations } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
-import CustomTooltip from "components/layout/CustomTooltip.jsx";
-import { EventNoteTwoTone } from "@mui/icons-material";
-import { zipObjectDeep } from "lodash";
+import { selectDraggables } from "features/draggable/draggableSlice.js";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
@@ -35,6 +33,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
+    const order = useSelector(selectDraggables)
     const annotationSelector = useSelector(selectAnnotations)[id]
 
 
@@ -68,6 +67,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
         }
     }, [])
+
+    const [ annotationY, setAnnotationY ] = useState()
+    useEffect(() => {
+        setAnnotationY(canvasRef.current.offsetTop)
+    }, [order])
 
     // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
     // keep the old palette
@@ -108,6 +112,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let dynamicColorScale = ['heatmap', 'histogram', 'scatter'].indexOf(trackType) > -1 ? scaleLinear().domain([minValue, maxValue]).range([zeroColor, color]) : false;
         let yScale = ['histogram', 'scatter', 'line'].indexOf(trackType) > -1 ? scaleLinear().domain([0, maxValue]).range([paddingTop, maxHeight - paddingBottom]) : () => maxHeight;
 
+        setAnnotationY(canvasRef.current.offsetTop)
         if (drawnGenes.length === 0) {
 
             if (trackType == 'line') {
@@ -583,7 +588,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         return (
                             <Window
                                 coordinateX={x}
-                                coordinateY={canvasRef.current.offsetTop}
+                                coordinateY={annotationY}
                                 height={canvasRef.current.offsetHeight + 2}
                                 width={2} // boxwidth
                                 preview={true}

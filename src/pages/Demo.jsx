@@ -444,6 +444,7 @@ ${'' /* .track {
                     <Stack direction='row' justifyContent={"flex-start"}>
                         <Autocomplete sx={{ width: '80%' }}
                             multiple
+                            size="small"
                             onChange={(event, newValue) => {
                                 setSearchTerms(newValue)
                             }}
@@ -462,7 +463,7 @@ ${'' /* .track {
                         />
                         <Button onClick={() => {
                             let gt = window.gt;
-                         
+
 
                             if (!searchTerms || searchTerms.length < 1) return
                             searchTerms.forEach(term => {
@@ -474,9 +475,9 @@ ${'' /* .track {
                                 }
                                 dispatch(addAnnotation(annotation))
                                 if (gt) {
-                                gt.updateState({ Action: "handleAnnotation", annotation })
-                            }
-                       })
+                                    gt.updateState({ Action: "handleAnnotation", annotation })
+                                }
+                            })
                         }
 
                         }>
