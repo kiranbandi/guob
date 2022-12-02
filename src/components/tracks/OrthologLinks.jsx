@@ -83,7 +83,6 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         }
     }, [topTrack, bottomTrack])
 
-
     function handleScroll(e) {
         if (e.altKey == true) {
 
