@@ -10,16 +10,16 @@ import { scaleLinear } from 'd3-scale';
 const initialState = {
     // Currently just a placeholder 
     miniviews: {
-        'preview': {
-            color: 0,
-            coordinateX: 0,
-            coordinateY: 0,
-            height: "1rem",
-            width: 400,
-            id: 'preview',
-            visible: false,
-            trackType: "default"
-        },
+        // 'preview': {
+        //     color: 0,
+        //     coordinateX: 0,
+        //     coordinateY: 0,
+        //     height: "1rem",
+        //     width: 400,
+        //     id: 'preview',
+        //     visible: false,
+        //     trackType: "default"
+        // },
         'newPreview': {
             color: 0,
             coordinateX: 0,
@@ -31,7 +31,7 @@ const initialState = {
             trackType: 'default',
             linkedTrack: undefined,
             offset: 0,
-        }
+        },
 
     },
     comparison: {}

@@ -4,12 +4,11 @@ import { useDispatch, useSelector } from "react-redux"
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
-import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
+import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack } from "./basicTrackSlice";
 import { addAnnotation, selectAnnotations } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
-import CustomTooltip from "components/layout/CustomTooltip.jsx";
-import { EventNoteTwoTone } from "@mui/icons-material";
+import { selectDraggables } from "features/draggable/draggableSlice.js";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
@@ -18,6 +17,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['newPreview']
+    const collabPreviews = useSelector(selectMiniviews)
     const comparisonSelector = useSelector(selectComparison)[title]
 
     const [endCap, setEndCap] = useState(0)
@@ -33,6 +33,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
+    const order = useSelector(selectDraggables)
     const annotationSelector = useSelector(selectAnnotations)[id]
 
 
@@ -66,6 +67,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
         }
     }, [])
+
+    const [ annotationY, setAnnotationY ] = useState()
+    useEffect(() => {
+        setAnnotationY(canvasRef.current.offsetTop)
+    }, [order])
 
     // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
     // keep the old palette
@@ -106,6 +112,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let dynamicColorScale = ['heatmap', 'histogram', 'scatter'].indexOf(trackType) > -1 ? scaleLinear().domain([minValue, maxValue]).range([zeroColor, color]) : false;
         let yScale = ['histogram', 'scatter', 'line'].indexOf(trackType) > -1 ? scaleLinear().domain([0, maxValue]).range([paddingTop, maxHeight - paddingBottom]) : () => maxHeight;
 
+        setAnnotationY(canvasRef.current.offsetTop)
         if (drawnGenes.length === 0) {
 
             if (trackType == 'line') {
@@ -186,12 +193,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
-
+    const gt = window.gt;
     const dispatch = useDispatch()
 
     let [waiting, setWaiting] = useState()
     function updateTimer(id, ratio, zoom) {
-        let gt = window.gt;
         clearTimeout(waiting)
         setWaiting(window.setTimeout(() => {
             let trackInfo = {
@@ -231,32 +237,20 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor = 1.0
             }
 
-            dispatch(changeZoom({
-                key: id,
-                zoom: Math.max(zoom * factor, 1.0)
-            }))
-
             //  Needs to be panned so that the zoom location remains the same
             let dx = ((normalizedLocation - offset) * (factor - 1))
             let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * zoom * factor) - maxWidth))
             if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
 
-            dispatch(pan({
+
+            dispatch(updateTrack({
                 key: id,
-                offset: offsetX
-            }))
-            dispatch(panComparison({
-                key: id,
-                offset: offsetX + trackBoundingRectangle.x,
-                zoom: Math.max(zoom * factor, 1.0),
-                width: maxWidth,
-                ratio: maxWidth / e.target.clientWidth,
-                left: trackBoundingRectangle.left,
-                realWidth: trackBoundingRectangle.width - (2 * 10),
-                factor: factor
+                offset: offsetX,
+                zoom: Math.max(zoom * factor, 1.0)
             }))
 
-            if (window.gt) updateTimer(id, offsetX / maxWidth, Math.max(zoom * factor, 1.0))
+
+            if (gt) updateTimer(id, offsetX / maxWidth, Math.max(zoom * factor, 1.0))
             showPreview(e)
         }
     }
@@ -276,12 +270,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         // Either end of the track
         let westEnd = trackBoundingRectangle.x
         let eastEnd = westEnd + maxWidth
-        // debugger
-        dispatch(pan({
+
+        dispatch(updateTrack({
             key: id,
             offset: offsetX,
+            zoom: zoom
         }))
-        if (window.gt) updateTimer(id, offsetX / maxWidth, zoom)
+        if (gt) updateTimer(id, offsetX / maxWidth, zoom)
         dispatch(moveMiniview(
             {
                 key: 'newPreview',
@@ -290,30 +285,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 viewFinderX: e.clientX
             }))
 
-        /* Re-declaring these, because the track is adjusted from 2000px to the screen by css,
-        but comparison windows use absolute values. So the dx and offset need to be adjust to whatever
-        the css has made the track, not the maxWidth that the rest of the track can use.
-        */
-        dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
-        offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
-        //! The comparison window location is a slightly off due to rounding error(?) or bad math
-        dispatch(panComparison({
-            key: id,
-            offset: offsetX,
-            zoom: Math.max(zoom, 1.0),
-            width: maxWidth,
-            ratio: 1.0,
-            left: trackBoundingRectangle.left + padding,
-            realWidth: trackBoundingRectangle.width - (2 * padding),
-            factor: 1.0
-        }))
     }
 
 
 
     function showPreview(event) {
-        if (trackType !== "default") return
+       
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -346,11 +324,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
 
         let width = widthScale(end - head)
-
-        // let previewArray = array.filter(item => {
-        //     return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
-        // })
-
         let coordinateX = trackType === "default" ? Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)) : changedX - previewSelector.width / 2
 
         // TODO This is a lot of events, no?
@@ -386,12 +359,17 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     function newAnnotation() {
         let note = prompt("Enter a message: ")
 
-        dispatch(addAnnotation({
+        let annotation = {
             key: id,
             note,
             location: previewSelector.center
+        }
 
-        }))
+        dispatch(addAnnotation(annotation))
+
+        if (gt) {
+            gt.updateState({ Action: "handleAnnotation", annotation })
+        }
     }
 
     function handleClick(e) {
@@ -419,7 +397,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 drawnGenes.forEach(x => {
                     if (x.hovering(normalizedLocation)) {
                         setSelection(x)
-                        console.log(x)
                         dispatch(setSelection({
                             key: id,
                             selection: x.key,
@@ -558,19 +535,27 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     }}
                 >{trackTitle}</Typography>}
 
-            {previewSelector.visible &&
-                x >= canvasRef.current.offsetLeft &&
-                previewWidth > 0 &&
-                <Window
-                    key={"thisisthepreview"}
-                    coordinateX={x}
-                    coordinateY={canvasRef.current.offsetTop}
-                    height={canvasRef.current.offsetHeight + 2}
-                    width={previewWidth} // boxwidth
-                    preview={id == 'preview' ? false : true}
-                    text={Math.max(Math.round(beginning), 0)}
-                    grouped={grouped}
-                />}
+            {previewSelector.visible && Object.keys(collabPreviews).map(item => {
+                let collabX = viewFinderScale(collabPreviews[item].center)
+                
+                let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
+
+                if(collabX >= canvasRef.current.offsetLeft &&
+                    previewWidth > 0) 
+                    return(
+                    <Window
+                        key={item}
+                        coordinateX={collabX}
+                        coordinateY={canvasRef.current.offsetTop}
+                        height={canvasRef.current.offsetHeight + 2}
+                        width={collabWidth} // boxwidth
+                        preview={id == 'preview' ? false : true}
+                        text={Math.max(Math.round(beginning), 0)}
+                        grouped={grouped}
+                    />
+                    )
+            })
+            }
 
             {previewSelector.visible && comparisonSelector &&
                 comparisonSelector.map(comparison => {
@@ -578,7 +563,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     let width = viewFinderWidth(comparison.end - comparison.start)
                     let start = viewFinderScale(comparison.start) + offset + canvasRef.current.offsetLeft
 
-                    if ( width > 0 && start + width < canvasRef.current.offsetLeft + maxWidth) {
+                    if (width > 0 && start + width < canvasRef.current.offsetLeft + maxWidth) {
 
                         return (
                             <Window
@@ -603,7 +588,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         return (
                             <Window
                                 coordinateX={x}
-                                coordinateY={canvasRef.current.offsetTop}
+                                coordinateY={annotationY}
                                 height={canvasRef.current.offsetHeight + 2}
                                 width={2} // boxwidth
                                 preview={true}
@@ -689,7 +674,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     }
                     onWheel={handleScroll}
                     {...props} />
-                {/* </Tooltip> */}
             </Tooltip>
 
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>

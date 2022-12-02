@@ -58,6 +58,22 @@ export const basicTrackSlice = createSlice({
                 state.BasicTracks[action.payload.key].boxWidth = action.payload.boxWidth
             }
         },
+        updateTrack: (state, action) => {
+            if(action.payload.key === undefined) return
+            state.BasicTracks[action.payload.key].offset = action.payload.offset
+            state.BasicTracks[action.payload.key].zoom = action.payload.zoom
+
+        },
+        updateBothTracks: (state, action) => {
+            if(action.payload.topKey !== undefined){
+                state.BasicTracks[action.payload.topKey].offset = action.payload.topOffset
+                state.BasicTracks[action.payload.topKey].zoom = action.payload.topZoom
+            }
+            if(action.payload.bottomKey !== undefined){
+                state.BasicTracks[action.payload.bottomKey].offset = action.payload.bottomOffset
+                state.BasicTracks[action.payload.bottomKey].zoom = action.payload.bottomZoom
+            }
+        },
         changeBasicTrackColor: (state, action) => {
             state.BasicTracks[action.payload.key].color = action.payload.color
         },
@@ -79,8 +95,8 @@ export const basicTrackSlice = createSlice({
     }
 })
 
-console.log(basicTrackSlice)
-export const {deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
+
+export const {updateTrack, updateBothTracks,deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
 
 
 export const selectBasicTracks = (state) => state.basictrack.BasicTracks

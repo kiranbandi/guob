@@ -17,7 +17,12 @@ export const annotationSlice = createSlice({
                 state.annotations[action.payload.key] = [action.payload]
             }
             else{
-                state.annotations[action.payload.key].push([action.payload])
+                if(state.annotations[action.payload.key].some(x => {
+                    return x.note == action.payload.note && x.location == action.payload.location
+                })){
+                    return
+                }
+                state.annotations[action.payload.key].push(action.payload)
             }
 
         },
