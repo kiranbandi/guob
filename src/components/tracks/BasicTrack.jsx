@@ -174,67 +174,40 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     const dispatch = useDispatch()
 
-
-
-
-    if  (window.gt){
-        window.gt.on('state_updated_reliable', (id, payload) => {
-            console.log(payload)
-            if (payload.Action == "handleBTClick"){
-                handleClick(payload.Event)}
-                // console.log("Clicked")}
-            else if (payload.Action == "handleBTPan"){
-
-                handlePan(payload.Event)}
-            else if (payload.Action == "handleBTScroll"){
-                    handleScroll(payload.Event)}
-         
-            
-          })
-    
-          
-        }
-
-
-    function handleScrollEvent(e){
-        let altKey =e.altKey;
-        let deltaY = e.deltaY;
-        let trackBoundingRectangle = e.target.getBoundingClientRect()
-        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-        let clientX = e.clientX
-        let targetOffsetLeft = e.target.offsetLeft;
-        let targetOffsetWidth  = e.target.offsetWidth;
-        let pageX = e.pageX;
-
+    let [waiting, setWaiting] = useState()
+    function updateTimer(id, ratio, zoom) {
         let gt = window.gt;
-        if (gt){
-            gt.updateState({ Action: "handleBTScroll", Event: {altKey, deltaY, trackBoundingRectangle, padding, clientX, targetOffsetLeft, targetOffsetWidth, pageX}})
-            }else{
-                let event= {altKey, deltaY, trackBoundingRectangle, padding, clientX, targetOffsetLeft, targetOffsetWidth, pageX};
-
-                handleScroll(event)
+        clearTimeout(waiting)
+        setWaiting(window.setTimeout(() => {
+            let trackInfo = {
+                id: id,
+                ratio: ratio,
+                zoom: zoom
             }
-
-
-
+            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
+        }, 80))
     }
-
 
     function handleScroll(e) {
 
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
         // e.stopPropagation()
-
+        if (e.target.id !== id) {
+            return
+        }
         if (e.altKey == true) {
+
+           
+
             let factor = 0.9
             if (e.deltaY < 0) {
                 factor = 1 / factor
             }
 
-            // Finding important markers of the track, since it's often in a container
-            let trackBoundingRectangle = e.trackBoundingRectangle
-            let padding = e.padding;
+              // Finding important markers of the track, since it's often in a container
+              let trackBoundingRectangle = e.target.getBoundingClientRect()
+              let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
 
             // Finding the location of the mouse on the track, the rendered track is adjusted with css,
             // so the mouse location needs to be normalized to the canvas
@@ -270,33 +243,19 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor: factor
             }))
 
+            if(window.gt) updateTimer(id, offsetX/maxWidth, Math.max(zoom * factor, 1.0))
 
-            showPreviewScroll(e)
+            showPreview(e)
         }
     }
 
-    function handlePanEvent(e){
-        let trackBoundingRectangle = e.target.getBoundingClientRect()
-        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-        let targetClientWidth = e.target.clientWidth;
-        let movementX = e.movementX;
-        let gt = window.gt;
-        if (gt){
-            gt.updateState({ Action: "handleBTPan", Event: {trackBoundingRectangle, padding, targetClientWidth, movementX}})
-            }else{
-                let event= {trackBoundingRectangle, padding, targetClientWidth, movementX};
-
-                handlePan(event)
-            }
-
-    }
 
     //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
 
         // Finding important markers of the track, since it's often in a container
-        let trackBoundingRectangle = e.trackBoundingRectangle;
-        let padding = e.padding;
+        let trackBoundingRectangle = e.target.getBoundingClientRect()
+        let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
 
         // Finding the offset
         let dx = e.movementX * (maxWidth / e.targetClientWidth)
@@ -310,6 +269,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             key: id,
             offset: offsetX,
         }))
+        if(window.gt) updateTimer(id, offsetX/maxWidth, zoom)
         dispatch(moveMiniview(
             {
                 key: 'preview',
@@ -325,7 +285,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
         offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
-        debugger
         //! The comparison window location is a slightly off due to rounding error(?) or bad math
         dispatch(panComparison({
             key: id,
@@ -339,70 +298,10 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }))
     }
 
-    function showPreviewScroll(event) {
-        if(trackType !== "default") return
-        let boundingBox = event.trackBoundingRectangle;
-        let verticalScroll = document.documentElement.scrollTop
-
-        let westEnd = boundingBox.x
-        let eastEnd = boundingBox.x + boundingBox.width
-
-        let changedX = Math.min(Math.max(event.pageX, westEnd), eastEnd)
-        let changedY = boundingBox.y + boundingBox.height + 5 + verticalScroll
-
-        let xScale = scaleLinear().domain([startOfTrack, endCap]).range([westEnd, eastEnd])
-        let widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, eastEnd - westEnd])
-
-        let center = xScale.invert(changedX)
-        let head = Math.max(center - 50000, startOfTrack)
-        let end = Math.min(center + 50000, endCap)
-        if (head == startOfTrack) {
-            changedX = xScale(startOfTrack + 50000)
-            end = startOfTrack + 100000
-        }
-        else if (end == endCap) {
-            changedX = xScale(endCap - 50000)
-            head = endCap - 100000
-        }
-
-        let width = widthScale(end - head)
-
-        let previewArray = array.filter(item => {
-            return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
-        })
-
-        // TODO This is a lot of events, no?
-        dispatch(changeMiniviewColor({
-            key: 'preview',
-            color: color
-        }))
-        dispatch(updateData({
-            key: 'preview',
-            array: previewArray,
-            start: head,
-            end: end,
-            boxWidth: width,
-        }))
-        dispatch(moveMiniview(
-            {
-                key: 'preview',
-                coordinateX: Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)),
-                coordinateY: changedY,
-                viewFinderY: boundingBox.y + verticalScroll,
-                viewFinderX: changedX
-            }))
-        dispatch(changeMiniviewVisibility(
-            {
-                key: 'preview',
-                visible: true
-            }))
-
-        Math.round(beginning)
-
-    }
+    
 
     function showPreview(event) {
-        if(trackType !== "default") return
+        if (trackType !== "default") return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -464,23 +363,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
 
-    function handleClickEvent(e){
-        let type = e.type;
-        let clientX = e.clientX;
-        let targetOffsetLeft = e.target.offsetLeft;
-        let altKey = e.altKey;
-        let targetOffsetWidth  = e.target.offsetWidth;
-
-        let gt = window.gt;
-        if (gt){
-            gt.updateState({ Action: "handleBTClick", Event: {type, clientX, targetOffsetLeft, altKey, targetOffsetWidth}})
-            }else{
-                let event= {type, clientX, targetOffsetLeft, altKey, targetOffsetWidth};
-
-                handleClick(event)
-            }
-
-    }
     function handleClick(e) {
 
         if (e.type == 'mousedown') {
@@ -563,6 +445,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
     }
 
+
+
     //! TODO Changing length of text changes the location of ticks
     return (
         <div style={{ width: '100%', height: '100%' }}>
@@ -590,14 +474,14 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 className='miniview'
                 style={style}
                 onContextMenu={doSomething}
-                onMouseDown={(e) => handleClickEvent(e)}
-                onMouseUp={(e) => handleClickEvent(e)}
+                onMouseDown={(e) => handleClick(e)}
+                onMouseUp={(e) => handleClick(e)}
                 onMouseMove={(e) => {
                     if (dragging) {
-                        handlePanEvent(e)
+                        handlePan(e)
                     }
                     else {
-                        if(trackType !== "default") return
+                        if (trackType !== "default") return
                         let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
                         let found = false
@@ -621,9 +505,10 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         visible: false
                     })
                     )
+                    setDragging()
                 }
                 }
-                onWheel={handleScrollEvent}
+                onWheel={handleScroll}
                 {...props} />
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -5 }} />

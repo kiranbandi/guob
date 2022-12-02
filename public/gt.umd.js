@@ -27465,7 +27465,7 @@ class GT extends EventEmitter {
     // when a user updated their state via the reliable channel
     socket.on('user_updated_reliable', (id, payloadDelta) => {
 
-      console.log(`ID ${id} has updated their state:`, payloadDelta);
+      // console.log(`ID ${id} has updated their state:`, payloadDelta);
       let rootElement = $('#root');
       var currentWidth = rootElement.width();
       var currentHeight = rootElement.height();
@@ -27482,7 +27482,7 @@ class GT extends EventEmitter {
       
       let x = CursorScaleX(payloadDelta.x)
       let y = CursorScaleY(payloadDelta.y)
-      console.log(x , y)
+      // console.log(x , y)
 
 
       $('#' + id).css({ 'left': x + 'px', top: y + 'px' });

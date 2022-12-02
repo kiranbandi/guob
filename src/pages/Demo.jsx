@@ -7,7 +7,7 @@ import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews, clearComparisons } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { deleteAllDraggables, selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -19,7 +19,7 @@ import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, changeZoom, pan } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request";
 import $ from 'jquery';
@@ -30,7 +30,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import parseGFF from 'features/parsers/gffParser';
 import { CopyAll } from '@mui/icons-material';
-import _ from 'lodash'; 
+import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 // import './canola.gff'
 
@@ -62,12 +62,12 @@ export default function Demo({ isDark }) {
 
     // 85 px
     function addNewDraggable(key, trackType, data, normalizedLength, color) {
-      addNewBasicTrack(key, trackType, data, normalizedLength, color)
+        addNewBasicTrack(key, trackType, data, normalizedLength, color)
 
-      dispatch(addDraggable({
-          key: key
-      }))
-  }
+        dispatch(addDraggable({
+            key: key
+        }))
+    }
 
     function addNewAlternateDraggable() {
         let data = determineRandomArray()
@@ -101,19 +101,19 @@ export default function Demo({ isDark }) {
 
     function addNewBasicTrack(id, trackType, data, normalizedLength, color, start, end) {
 
-      dispatch(addBasicTrack({
-          key: id,
-          trackType,
-          array: data,
-          normalizedLength,
-          color,
-          start,
-          end,
-          zoom: 1.0,
-          pastZoom: 1.0,
-          offset: 0,
-      }))
-  }
+        dispatch(addBasicTrack({
+            key: id,
+            trackType,
+            array: data,
+            normalizedLength,
+            color,
+            start,
+            end,
+            zoom: 1.0,
+            pastZoom: 1.0,
+            offset: 0,
+        }))
+    }
     function removeADraggable() {
         let keys = draggableSelector
         let choice = keys[Math.floor((Math.random() * keys.length))]
@@ -137,11 +137,11 @@ export default function Demo({ isDark }) {
 
     function changeMargins(e) {
         let gt = window.gt;
-        if (gt){
-        gt.updateState({ Action: "changeMargins", Todo: e.target.checked})
-        }setDraggableSpacing(e.target.checked)
-           
-      }
+        if (gt) {
+            gt.updateState({ Action: "changeMargins", Todo: e.target.checked })
+        } setDraggableSpacing(e.target.checked)
+
+    }
 
     function removeAnAlternateDraggable() {
         let keys = Object.keys(alternateDraggableSelector)
@@ -263,94 +263,115 @@ export default function Demo({ isDark }) {
         setLoading(true)
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
-        parseGFF(demoFile).then(({chromosomalData, dataset}) => {
-          let  normalizedLength = 0;
-          let color;
-          let ColourScale = scaleOrdinal().domain([0,9])
-          .range(["#4e79a7","#f28e2c","#e15759","#76b7b2","#59a14f","#edc949","#af7aa1","#ff9da7","#9c755f","#bab0ab"])
-          
-          
-          normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-          chromosomalData.forEach((point, i) => {
-              if(point.trackType === 'default'){
-                color = ColourScale(i % 10)
-              }
-              else{
-                color = ColourScale(3)
-              }
-              
-              addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
+        parseGFF(demoFile).then(({ chromosomalData, dataset }) => {
+            let normalizedLength = 0;
+            let color;
+            let ColourScale = scaleOrdinal().domain([0, 9])
+                .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
 
-          })
+
+            normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+            chromosomalData.forEach((point, i) => {
+                if (point.trackType === 'default') {
+                    color = ColourScale(i % 10)
+                }
+                else {
+                    color = ColourScale(3)
+                }
+
+                addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
+
+            })
             dispatch(addDraggable({
                 key: 'links'
             }))
             setLoading(false)
         })
-    // })
-    setLoading(true)
-}, [demoFile])
+        // })
+        setLoading(true)
+    }, [demoFile])
 
 
 
 
+    let maxWidth = Math.round(document.querySelector('.draggable')?.getBoundingClientRect()?.width * 0.98);
+    function updateTrack(event) {
+        console.log(event)
+        dispatch(changeZoom({
+            key: event.id,
+            zoom: event.zoom
+        }))
 
-function changeNormalize(e) { 
-    
-    let gt = window.gt;
-    if (gt){
-    gt.updateState({ Action: "changeNormalize", Todo: e.target.checked})
-    }setNormalize(e.target.checked)
+        dispatch(pan({
+            key: event.id,
+            offset: event.ratio * maxWidth
+        }))
+    }
+
+    function changeNormalize(e) {
+
+        let gt = window.gt;
+        if (gt) {
+            gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
+        } setNormalize(e.target.checked)
+    }
+
+    if (window.gt) {
+        window.gt.on('state_updated_reliable', (userID, payload) => {
+
+            // TODO this feels like a hacky way of doing this
+            if (userID === document.title) return
+            switch (payload.Action){
+                case "handleTrackUpdate":
+                    updateTrack(payload.trackInfo)
+                    break
+                    case "changeNormalize":
+                        setNormalize(payload.Todo)
+                    break
+                    case "changeMargins":
+                        setDraggableSpacing(payload.Todo)
+                    break
+                    case "handleDragged":
+                        dispatch(setDraggables({
+                            order: payload.order
+                        }))
+                    break
+            }
+           
+        })
     }
 
 
-
-
-    if  (window.gt){
-    window.gt.on('state_updated_reliable', (id, payload) => {
-        console.log(payload)
-        if (payload.Action == "changeNormalize"){
-        setNormalize(payload.Todo) }
-        if (payload.Action == "changeMargins"){
-            setDraggableSpacing(payload.Todo) }
-      })
-
-
-      
-    }
-
-
-
-function enableGT(e){
+function enableGT(e) {
     console.log(e.target.checked)
 
-    if (e.target.checked){
-    let gt;
+    if (e.target.checked) {
+        let gt;
 
-    async function connect(){
-    try {
+        async function connect() {
+            try {
 
-        gt = window.createGt('hci-sandbox.usask.ca:3001')
-        await gt.connect();
-        await gt.auth();
-        await gt.join('gutb-test');
-      }
-      catch (e) {
-        console.error(e)
-      }
-      window.gt = gt;
+                gt = window.createGt('hci-sandbox.usask.ca:3001')
+                await gt.connect();
+                await gt.auth();
+                await gt.join('gutb-test');
+            }
+            catch (e) {
+                console.error(e)
+            }
+            window.gt = gt;
+        }
+        connect();
+
+
     }
-      connect();
-
-      
-    }
-    else{
+    else {
         let gt = window.gt;
         gt.disconnect();
         window.location.reload()
 
     }
-    
+
 }
 
 
@@ -366,6 +387,8 @@ const handleSlider = (event, newValue) => {
         setSliderHeight(newValue)
     }
 }
+
+
 
 return (
     <>
@@ -392,8 +415,8 @@ return (
                     setDemoFile("files/ta_hb_coordinate.gff")
                     setTitleState("Triticum aestivum")
                 }}>Triticum aestivum</Button>
-                <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing}/>} label={"Toggle Margins"} />
-                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize}/>} label={"Normalize"} />
+                <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
 
                 <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
 
@@ -465,7 +488,7 @@ return (
                         <CustomDragLayer groupID={groupSelector} />
                         <DragContainer startingList={draggableSelector}>
                             {draggableSelector.map(item => {
-                        
+
                                 return (
                                     <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
                                         {item !== 'links' && <BasicTrack
