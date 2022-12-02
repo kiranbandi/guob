@@ -185,16 +185,16 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 factor: 1.0
             }))
 
-            offsetX = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
+            let bottomOffset = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
             
             dispatch(pan({
                 key: bottomTrack.key,
-                offset: offsetX,
+                offset: bottomOffset,
             }))
             
             dispatch(panComparison({
                 key: bottomTrack.key,
-                offset: offsetX + boundingBox.x,
+                offset: bottomOffset + boundingBox.x,
                 zoom: Math.max(bottomTrack.zoom, 1.0),
                 width: maxWidth,
                 ratio: maxWidth / boundingBox.width,
@@ -202,6 +202,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 realWidth: boundingBox.width,
                 factor: 1.0
             }))
+            if (window.gt) updateTimer(topKey, offsetX / maxWidth, topTrack.zoom, bottomKey, bottomOffset / maxWidth, bottomTrack.zoom)
         }
     }
     
