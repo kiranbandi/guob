@@ -4,12 +4,13 @@ import { useDispatch, useSelector } from "react-redux"
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
-import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection } from "./basicTrackSlice";
+import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack } from "./basicTrackSlice";
 import { addAnnotation, selectAnnotations } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
 import CustomTooltip from "components/layout/CustomTooltip.jsx";
 import { EventNoteTwoTone } from "@mui/icons-material";
+import { zipObjectDeep } from "lodash";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
@@ -231,30 +232,18 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor = 1.0
             }
 
-            dispatch(changeZoom({
-                key: id,
-                zoom: Math.max(zoom * factor, 1.0)
-            }))
-
             //  Needs to be panned so that the zoom location remains the same
             let dx = ((normalizedLocation - offset) * (factor - 1))
             let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * zoom * factor) - maxWidth))
             if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
 
-            dispatch(pan({
+
+            dispatch(updateTrack({
                 key: id,
-                offset: offsetX
+                offset: offsetX,
+                zoom: Math.max(zoom * factor, 1.0)
             }))
-            dispatch(panComparison({
-                key: id,
-                offset: offsetX + trackBoundingRectangle.x,
-                zoom: Math.max(zoom * factor, 1.0),
-                width: maxWidth,
-                ratio: maxWidth / e.target.clientWidth,
-                left: trackBoundingRectangle.left,
-                realWidth: trackBoundingRectangle.width - (2 * 10),
-                factor: factor
-            }))
+
 
             if (window.gt) updateTimer(id, offsetX / maxWidth, Math.max(zoom * factor, 1.0))
             showPreview(e)
@@ -276,10 +265,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         // Either end of the track
         let westEnd = trackBoundingRectangle.x
         let eastEnd = westEnd + maxWidth
-        // debugger
-        dispatch(pan({
+  
+        dispatch(updateTrack({
             key: id,
             offset: offsetX,
+            zoom: zoom
         }))
         if (window.gt) updateTimer(id, offsetX / maxWidth, zoom)
         dispatch(moveMiniview(
@@ -290,24 +280,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 viewFinderX: e.clientX
             }))
 
-        /* Re-declaring these, because the track is adjusted from 2000px to the screen by css,
-        but comparison windows use absolute values. So the dx and offset need to be adjust to whatever
-        the css has made the track, not the maxWidth that the rest of the track can use.
-        */
-        dx = (e.movementX / maxWidth) * trackBoundingRectangle.width
-        offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
-        //! The comparison window location is a slightly off due to rounding error(?) or bad math
-        dispatch(panComparison({
-            key: id,
-            offset: offsetX,
-            zoom: Math.max(zoom, 1.0),
-            width: maxWidth,
-            ratio: 1.0,
-            left: trackBoundingRectangle.left + padding,
-            realWidth: trackBoundingRectangle.width - (2 * padding),
-            factor: 1.0
-        }))
     }
 
 
@@ -346,11 +319,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
 
         let width = widthScale(end - head)
-
-        // let previewArray = array.filter(item => {
-        //     return ((item.end >= head && item.start <= head) || (item.start >= head && item.end <= end) || (item.start <= end && item.end >= end))
-        // })
-
         let coordinateX = trackType === "default" ? Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)) : changedX - previewSelector.width / 2
 
         // TODO This is a lot of events, no?

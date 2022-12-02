@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from "react-redux"
 import { scaleLinear } from "d3-scale"
 import Links from 'components/layout/Links';
 import React, { useState, useEffect, useRef } from 'react';
-import { pan, changeZoom } from "./basicTrackSlice";
-import { panComparison } from "features/miniview/miniviewSlice";
+import { updateBothTracks, updateTrack } from "./basicTrackSlice";
+
 
 // import * as d3 from 'd3';
 
@@ -64,18 +64,14 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         clearTimeout(waiting)
         setWaiting(window.setTimeout(() => {
             let trackInfo = {
-                id: topKey,
-                ratio: topRatio,
-                zoom: topZoom
+                topKey,
+                topRatio,
+                topZoom,
+                bottomKey,
+                bottomRatio,
+                bottomZoom
             }
-            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-            trackInfo = {
-                id: bottomKey,
-                ratio: bottomRatio,
-                zoom: bottomZoom
-            }
-            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
-
+            gt.updateState({ Action: "handleBothTrackUpdate", trackInfo })
         }, 80))
     }
 
@@ -121,29 +117,21 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             let offsetX = Math.max(Math.min(topTrack.offset - dx, 0), -((maxWidth * topTrack.zoom * factor) - maxWidth))
             if (Math.max(topTrack.zoom * factor, 1.0) === 1.0) offsetX = 0
             
-            dispatch(pan({
-                key: topTrack.key,
-                offset: offsetX
-            }))
-            
             dx = ((normalizedLocation - bottomTrack.offset) * (factor - 1))
-            let BottomOffset = Math.max(Math.min(bottomTrack.offset - dx, 0), -((maxWidth * bottomTrack.zoom * factor) - maxWidth))
-            if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) BottomOffset = 0
+            let bottomOffset = Math.max(Math.min(bottomTrack.offset - dx, 0), -((maxWidth * bottomTrack.zoom * factor) - maxWidth))
+            if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) bottomOffset = 0
 
-            dispatch(pan({
-                key: bottomTrack.key,
-                offset: BottomOffset
+            dispatch(updateBothTracks({
+                topKey: topTrack.key,
+                bottomKey: bottomTrack.key,
+                topOffset: offsetX,
+                bottomOffset: bottomOffset,
+                topZoom: Math.max(topTrack.zoom * factor, 1.0),
+                bottomZoom: Math.max(bottomTrack.zoom * factor, 1.0)
             }))
-            
-            dispatch(changeZoom({
-                key: topTrack.key,
-                zoom: Math.max(topTrack.zoom * factor, 1.0)
-            }))
-            dispatch(changeZoom({
-                key: bottomTrack.key,
-                zoom: Math.max(bottomTrack.zoom * factor, 1.0)
-            }))
-            if (window.gt) updateTimer(topKey, offsetX / maxWidth, Math.max(topTrack.zoom * factor, 1.0), bottomKey, BottomOffset / maxWidth, Math.max(bottomTrack.zoom * factor, 1.0))
+
+
+            if (window.gt) updateTimer(topKey, offsetX / maxWidth, Math.max(topTrack.zoom * factor, 1.0), bottomKey, bottomOffset / maxWidth, Math.max(bottomTrack.zoom * factor, 1.0))
         }
     }
 
@@ -165,43 +153,20 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
             if (!topTrack || !bottomTrack) return
 
-
             let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
             let offsetX = Math.max(Math.min(topTrack.offset + e.movementX, 0), -((maxWidth * topTrack.zoom) - maxWidth))
 
-            dispatch(pan({
-                key: topTrack.key,
-                offset: offsetX,
-            }))
-     
-            dispatch(panComparison({
-                key: topTrack.key,
-                offset: offsetX + boundingBox.x,
-                zoom: Math.max(topTrack.zoom, 1.0),
-                width: maxWidth,
-                ratio: maxWidth / boundingBox.width,
-                left: boundingBox.left,
-                realWidth: boundingBox.width,
-                factor: 1.0
+            let bottomOffset = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
+  
+            dispatch(updateBothTracks({
+                topKey: topTrack.key,
+                bottomKey: bottomTrack.key,
+                topOffset: offsetX,
+                bottomOffset: bottomOffset,
+                topZoom: topTrack.zoom,
+                bottomZoom: bottomTrack.zoom
             }))
 
-            let bottomOffset = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
-            
-            dispatch(pan({
-                key: bottomTrack.key,
-                offset: bottomOffset,
-            }))
-            
-            dispatch(panComparison({
-                key: bottomTrack.key,
-                offset: bottomOffset + boundingBox.x,
-                zoom: Math.max(bottomTrack.zoom, 1.0),
-                width: maxWidth,
-                ratio: maxWidth / boundingBox.width,
-                left: boundingBox.left,
-                realWidth: boundingBox.width,
-                factor: 1.0
-            }))
             if (window.gt) updateTimer(topKey, offsetX / maxWidth, topTrack.zoom, bottomKey, bottomOffset / maxWidth, bottomTrack.zoom)
         }
     }
@@ -220,25 +185,30 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         let bottomRatio = bottomGene.start / belowCap
 
         // If near the bottom, snap to the bottom, if near the top, snap to top
+        let topOffset = topTrack.offset
+        let bottomOffset = bottomTrack.offset
+        let track, offset
         if (e.clientY > boundingBox.top +( boundingBox.height / 2)) {
             
             // Find location of gene on top track to snap
             let bottomLocation = bottomRatio * maxWidth * bottomTrack.zoom + bottomTrack.offset
-            dispatch(pan({
-                key: topTrack.key,
-                offset: -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
-            }))
-
+            offset = -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
+            track = topTrack
+            topOffset = offset
         }
         else {
-
             // Find location of gene on top track
             let topLocation = topRatio * maxWidth * topTrack.zoom + topTrack.offset
-            dispatch(pan({
-                key: bottomTrack.key,
-                offset: -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
-            }))
+            offset =  -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
+            track= bottomTrack
+            bottomOffset = offset
         }
+        dispatch(updateTrack({
+            key: track.key,
+            offset: offset,
+            zoom:track.zoom
+        }))
+        if (window.gt){ updateTimer(topTrack.key, topOffset / maxWidth, topTrack.zoom, bottomTrack.key, bottomOffset / maxWidth, bottomTrack.zoom)}
     }
     //######################################################################################
     
@@ -295,55 +265,6 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     let bottomColor = bottomTrack ? bottomTrack.color : undefined
 
     let gradient = [topColor, bottomColor]
-
-    function locate(e) {
-
-        const genes = e.target.id.split("-")
-        if (genes.length < 2) return
-
-        let boundingBox = e.target.getBoundingClientRect()
-
-        let topGene = searchTrack(genes[0], topTrack.array)
-        let bottomGene = searchTrack(genes[1], bottomTrack.array)
-
-        let topRatio = topGene.start / aboveCap
-        let bottomRatio = bottomGene.start / belowCap
-
-        // If near the bottom, snap to the bottom, if near the top, snap to top
-        let topOffset = topTrack.offset
-        let bottomOffset = bottomTrack.offset
-        if (e.clientY > boundingBox.top + (boundingBox.height / 2)) {
-
-            // Find location of gene on top track to snap
-            let bottomLocation = bottomRatio * maxWidth * bottomTrack.zoom + bottomTrack.offset
-            topOffset = -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
-            dispatch(pan({
-                key: topTrack.key,
-                offset: topOffset
-            }))
-
-            dispatch(panComparison({
-                key: topTrack.key,
-                offset: -(topRatio * maxWidth * topTrack.zoom) + bottomLocation,
-                zoom: Math.max(topTrack.zoom, 1.0),
-                width: maxWidth,
-                ratio: maxWidth / boundingBox.width,
-                left: boundingBox.left,
-                realWidth: boundingBox.width,
-                factor: 1.0
-            }))
-        }
-        else {
-            // Find location of gene on top track
-            let topLocation = topRatio * maxWidth * topTrack.zoom + topTrack.offset
-            bottomOffset = -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
-            dispatch(pan({
-                key: bottomTrack.key,
-                offset: bottomOffset
-            }))
-        }
-        if (window.gt) updateTimer(topTrack.key, topOffset / maxWidth, topTrack.zoom, bottomTrack.key, bottomOffset / maxWidth, bottomTrack.zoom)
-    }
 
 
     return (
