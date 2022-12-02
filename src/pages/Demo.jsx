@@ -28,6 +28,8 @@ import { useEffect, useRef } from "react"
 import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
+import Autocomplete from '@mui/material/Autocomplete'
+import TextField from '@mui/material/TextField'
 import parseGFF from 'features/parsers/gffParser';
 import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
@@ -264,6 +266,7 @@ ${'' /* .track {
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
         parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
+            window.dataset = dataset
             let normalizedLength = 0;
             let color;
             let ColourScale = scaleOrdinal().domain([0, 9])
@@ -341,7 +344,7 @@ ${'' /* .track {
                     setDraggableSpacing(payload.Todo)
                     break
                 case "handleAnnotation":
-                   dispatch(addAnnotation(payload.annotation))
+                    dispatch(addAnnotation(payload.annotation))
                     break
                 case "handleDragged":
                     dispatch(setDraggables({
@@ -400,7 +403,7 @@ ${'' /* .track {
         }
     }
 
-
+    const [searchTerms, setSearchTerms] = useState()
     let testIndex = -1
     return (
         <>
@@ -437,13 +440,58 @@ ${'' /* .track {
                     <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
 
                 </Stack>
-                <Slider
-                    step={1}
-                    min={75}
-                    max={300}
-                    valueLabelDisplay={"auto"}
-                    onChange={handleSlider}
-                />
+                <Stack mt={2} spacing={2}>
+                    <Stack direction='row' justifyContent={"flex-start"}>
+                        <Autocomplete sx={{ width: '80%' }}
+                            multiple
+                            onChange={(event, newValue) => {
+                                setSearchTerms(newValue)
+                            }}
+                            id="Gene Search"
+                            options={Object.keys(window.dataset)}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Search input"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        type: 'search',
+                                    }}
+                                />
+                            )}
+                        />
+                        <Button onClick={() => {
+                            let gt = window.gt;
+                         
+
+                            if (!searchTerms || searchTerms.length < 1) return
+                            searchTerms.forEach(term => {
+                                let gene = window.dataset[term]
+                                let annotation = {
+                                    key: gene.chromosome,
+                                    note: gene.key,
+                                    location: +gene.start
+                                }
+                                dispatch(addAnnotation(annotation))
+                                if (gt) {
+                                gt.updateState({ Action: "handleAnnotation", annotation })
+                            }
+                       })
+                        }
+
+                        }>
+                            Search
+                        </Button>
+                    </Stack>
+
+                    <Slider
+                        step={1}
+                        min={75}
+                        max={300}
+                        valueLabelDisplay={"auto"}
+                        onChange={handleSlider}
+                    />
+                </Stack>
 
                 {previewSelector.visible && <Miniview
                     className={'preview'}

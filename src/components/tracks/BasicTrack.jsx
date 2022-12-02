@@ -19,6 +19,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['newPreview']
+    const collabPreviews = useSelector(selectMiniviews)
     const comparisonSelector = useSelector(selectComparison)[title]
 
     const [endCap, setEndCap] = useState(0)
@@ -264,7 +265,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         // Either end of the track
         let westEnd = trackBoundingRectangle.x
         let eastEnd = westEnd + maxWidth
-  
+
         dispatch(updateTrack({
             key: id,
             offset: offsetX,
@@ -361,7 +362,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         dispatch(addAnnotation(annotation))
 
-        if (gt){
+        if (gt) {
             gt.updateState({ Action: "handleAnnotation", annotation })
         }
     }
@@ -529,19 +530,26 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     }}
                 >{trackTitle}</Typography>}
 
-            {previewSelector.visible &&
-                x >= canvasRef.current.offsetLeft &&
-                previewWidth > 0 &&
-                <Window
-                    key={"thisisthepreview"}
-                    coordinateX={x}
-                    coordinateY={canvasRef.current.offsetTop}
-                    height={canvasRef.current.offsetHeight + 2}
-                    width={previewWidth} // boxwidth
-                    preview={id == 'preview' ? false : true}
-                    text={Math.max(Math.round(beginning), 0)}
-                    grouped={grouped}
-                />}
+            {previewSelector.visible && Object.keys(collabPreviews).map(item => {
+                let collabX = viewFinderScale(collabPreviews[item].center)
+                let collabWidth = viewFinderWidth(100000)
+
+                if(collabX >= canvasRef.current.offsetLeft &&
+                    previewWidth > 0) 
+                    return(
+                    <Window
+                        key={item}
+                        coordinateX={collabX}
+                        coordinateY={canvasRef.current.offsetTop}
+                        height={canvasRef.current.offsetHeight + 2}
+                        width={collabWidth} // boxwidth
+                        preview={id == 'preview' ? false : true}
+                        text={Math.max(Math.round(beginning), 0)}
+                        grouped={grouped}
+                    />
+                    )
+            })
+            }
 
             {previewSelector.visible && comparisonSelector &&
                 comparisonSelector.map(comparison => {
@@ -549,7 +557,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     let width = viewFinderWidth(comparison.end - comparison.start)
                     let start = viewFinderScale(comparison.start) + offset + canvasRef.current.offsetLeft
 
-                    if ( width > 0 && start + width < canvasRef.current.offsetLeft + maxWidth) {
+                    if (width > 0 && start + width < canvasRef.current.offsetLeft + maxWidth) {
 
                         return (
                             <Window
@@ -569,7 +577,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
             {
                 annotationSelector && annotationSelector.map(note => {
-                    console.log("Here")
                     let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
                     if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
                         return (
