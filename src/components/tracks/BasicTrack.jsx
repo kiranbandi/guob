@@ -218,9 +218,9 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor = 1 / factor
             }
 
-              // Finding important markers of the track, since it's often in a container
-              let trackBoundingRectangle = e.target.getBoundingClientRect()
-              let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
+            // Finding important markers of the track, since it's often in a container
+            let trackBoundingRectangle = e.target.getBoundingClientRect()
+            let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
 
             // Finding the location of the mouse on the track, the rendered track is adjusted with css,
             // so the mouse location needs to be normalized to the canvas
@@ -256,7 +256,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor: factor
             }))
 
-            if(window.gt) updateTimer(id, offsetX/maxWidth, Math.max(zoom * factor, 1.0))
+            if (window.gt) updateTimer(id, offsetX / maxWidth, Math.max(zoom * factor, 1.0))
             showPreview(e)
         }
     }
@@ -281,7 +281,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             key: id,
             offset: offsetX,
         }))
-        if(window.gt) updateTimer(id, offsetX/maxWidth, zoom)
+        if (window.gt) updateTimer(id, offsetX / maxWidth, zoom)
         dispatch(moveMiniview(
             {
                 key: 'newPreview',
@@ -310,7 +310,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }))
     }
 
-    
+
 
     function showPreview(event) {
         if (trackType !== "default") return
@@ -574,13 +574,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
             {previewSelector.visible && comparisonSelector &&
                 comparisonSelector.map(comparison => {
-                    //Lolwhut?
                     let x = locationScale(comparison.center) + offset + canvasRef.current.offsetLeft + 3
                     let width = viewFinderWidth(comparison.end - comparison.start)
                     let start = viewFinderScale(comparison.start) + offset + canvasRef.current.offsetLeft
 
-                    if ((
-                        width > 0) && start + width < canvasRef.current.offsetLeft + maxWidth) {
+                    if ( width > 0 && start + width < canvasRef.current.offsetLeft + maxWidth) {
 
                         return (
                             <Window
@@ -601,17 +599,20 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             {
                 annotationSelector && annotationSelector.map(note => {
                     let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
-                    return (
-                        <Window
-                            coordinateX={x}
-                            coordinateY={canvasRef.current.offsetTop}
-                            height={canvasRef.current.offsetHeight + 2}
-                            width={2} // boxwidth
-                            preview={true}
-                            text={Math.max(Math.round(beginning), 0)}
-                            grouped={grouped}
-                            label={note.note}
-                        />)
+                    if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
+                        return (
+                            <Window
+                                coordinateX={x}
+                                coordinateY={canvasRef.current.offsetTop}
+                                height={canvasRef.current.offsetHeight + 2}
+                                width={2} // boxwidth
+                                preview={true}
+                                text={Math.max(Math.round(beginning), 0)}
+                                grouped={grouped}
+                                label={note.note}
+                            />)
+
+                    }
                 })
             }
 
