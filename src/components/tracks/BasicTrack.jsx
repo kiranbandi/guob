@@ -189,21 +189,38 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     const dispatch = useDispatch()
 
+    let [waiting, setWaiting] = useState()
+    function updateTimer(id, ratio, zoom) {
+        let gt = window.gt;
+        clearTimeout(waiting)
+        setWaiting(window.setTimeout(() => {
+            let trackInfo = {
+                id: id,
+                ratio: ratio,
+                zoom: zoom
+            }
+            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
+        }, 80))
+    }
+
     function handleScroll(e) {
 
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
         // e.stopPropagation()
-
+        if (e.target.id !== id) {
+            return
+        }
         if (e.altKey == true) {
             let factor = 0.8
+
             if (e.deltaY < 0) {
                 factor = 1 / factor
             }
 
-            // Finding important markers of the track, since it's often in a container
-            let trackBoundingRectangle = e.target.getBoundingClientRect()
-            let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
+              // Finding important markers of the track, since it's often in a container
+              let trackBoundingRectangle = e.target.getBoundingClientRect()
+              let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
 
             // Finding the location of the mouse on the track, the rendered track is adjusted with css,
             // so the mouse location needs to be normalized to the canvas
@@ -239,9 +256,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 factor: factor
             }))
 
+            if(window.gt) updateTimer(id, offsetX/maxWidth, Math.max(zoom * factor, 1.0))
             showPreview(e)
         }
     }
+
 
     //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
@@ -251,7 +270,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
 
         // Finding the offset
-        let dx = e.movementX * (maxWidth / e.target.clientWidth)
+        let dx = e.movementX * (maxWidth / e.targetClientWidth)
         let offsetX = Math.max(Math.min(offset + e.movementX, 0), -((maxWidth * zoom) - maxWidth))
 
         // Either end of the track
@@ -262,6 +281,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             key: id,
             offset: offsetX,
         }))
+        if(window.gt) updateTimer(id, offsetX/maxWidth, zoom)
         dispatch(moveMiniview(
             {
                 key: 'newPreview',
@@ -290,8 +310,10 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }))
     }
 
-    function showPreview(event) {
+    
 
+    function showPreview(event) {
+        if (trackType !== "default") return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -376,13 +398,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     function handleClick(e) {
-        console.log(e.shiftKey)
         if (e.type == 'mousedown') {
             setDragging(true)
-            setClickLocation(e.clientX - e.target.offsetLeft)
+            setClickLocation(e.clientX - e.targetOffsetLeft)
         }
         if (e.type == 'mouseup') {
             setDragging(false)
+
             if (e.clientX - e.target.offsetLeft == clickLocation) {
                 if (e.altKey) {
                     doSomething(e)
@@ -395,6 +417,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     return
                 }
                 let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
+
 
                 let found = false
                 drawnGenes.forEach(x => {
@@ -671,7 +694,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     {...props} />
                 {/* </Tooltip> */}
             </Tooltip>
-
 
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
                 <div width='2000' style={{ border: 'solid 1px', marginTop: -5 }} />

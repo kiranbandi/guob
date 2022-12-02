@@ -7,7 +7,7 @@ import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews, clearComparisons } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { deleteAllDraggables, selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -19,16 +19,16 @@ import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, changeZoom, pan } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
-import { text } from "d3-request"
+import { text } from "d3-request";
+import $ from 'jquery';
 import { scaleOrdinal } from 'd3-scale';
 import { useEffect, useRef } from "react"
 import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import parseGFF from 'features/parsers/gffParser';
-import { CopyAll, LocalConvenienceStoreOutlined } from '@mui/icons-material';
 import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 // import './canola.gff'
@@ -135,7 +135,11 @@ export default function Demo({ isDark }) {
     }
 
     function changeMargins(e) {
-        setDraggableSpacing(e.target.checked)
+
+        let gt = window.gt;
+        if (gt) {
+            gt.updateState({ Action: "changeMargins", Todo: e.target.checked })
+        } setDraggableSpacing(e.target.checked)
     }
 
     function removeAnAlternateDraggable() {
@@ -266,7 +270,6 @@ ${'' /* .track {
             let color;
             let ColourScale = scaleOrdinal().domain([0, 9])
                 .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
-
             normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
             chromosomalData.forEach((point, i) => {
                 if (point.trackType === 'default') {
@@ -288,7 +291,90 @@ ${'' /* .track {
         setLoading(true)
     }, [demoFile])
 
-    function changeNormalize(e) { setNormalize(e.target.checked) }
+
+
+
+
+    let maxWidth = Math.round(document.querySelector('.draggable')?.getBoundingClientRect()?.width * 0.98);
+    function updateTrack(event) {
+        console.log(event)
+        dispatch(changeZoom({
+            key: event.id,
+            zoom: event.zoom
+        }))
+
+        dispatch(pan({
+            key: event.id,
+            offset: event.ratio * maxWidth
+        }))
+    }
+
+    function changeNormalize(e) {
+
+        let gt = window.gt;
+        if (gt) {
+            gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
+        } setNormalize(e.target.checked)
+    }
+
+    if (window.gt) {
+        window.gt.on('state_updated_reliable', (userID, payload) => {
+
+            // TODO this feels like a hacky way of doing this
+            if (userID === document.title) return
+            switch (payload.Action){
+                case "handleTrackUpdate":
+                    updateTrack(payload.trackInfo)
+                    break
+                    case "changeNormalize":
+                        setNormalize(payload.Todo)
+                    break
+                    case "changeMargins":
+                        setDraggableSpacing(payload.Todo)
+                    break
+                    case "handleDragged":
+                        dispatch(setDraggables({
+                            order: payload.order
+                        }))
+                    break
+            }
+           
+        })
+    }
+
+
+function enableGT(e) {
+    console.log(e.target.checked)
+
+    if (e.target.checked) {
+        let gt;
+
+        async function connect() {
+            try {
+
+                gt = window.createGt('hci-sandbox.usask.ca:3001')
+                await gt.connect();
+                await gt.auth();
+                await gt.join('gutb-test');
+            }
+            catch (e) {
+                console.error(e)
+            }
+            window.gt = gt;
+        }
+        connect();
+
+
+    }
+    else {
+        let gt = window.gt;
+        gt.disconnect();
+        window.location.reload()
+
+    }
+
+}
+
 
     function clearComparisonTracks() {
         dispatch(clearComparisons({
@@ -303,48 +389,50 @@ ${'' /* .track {
         }
     }
 
-    let testIndex = -1
-    return (
-        <>
-            <div css={styling}>
 
-                <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                    <Button variant='outlined' onClick={() => {
-                        clearComparisonTracks()
-                        setDemoFile("files/bn_methylation_100k.bed")
-                        setTitleState("Canola Methylation")
-                        setDemoCollinearity()
-                    }}>Canola Methylation</Button>
-                    <Button variant='outlined' onClick={() => {
+let testIndex = -1
+return (
+    <>
+        <div css={styling}>
+
+            <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                <Button variant='outlined' onClick={() => {
+                    clearComparisonTracks()
+                    setDemoFile("files/bn_methylation_100k.bed")
+                    setTitleState("Canola Methylation")
+                    setDemoCollinearity()
+                }}>Methylation Test</Button>
+                <Button variant='outlined' onClick={() => {
                         clearComparisonTracks()
                         setDemoFile("files/at_coordinate.gff")
                         setTitleState("Aradopsis thaliana")
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
-                    }}>Aradopsis thaliana</Button>
-                    <Button variant='outlined' onClick={() => {
+                }}>Aradopsis thaliana</Button>
+                <Button variant='outlined' onClick={() => {
                         clearComparisonTracks()
                         setDemoFile("files/bn_coordinate.gff")
                         setTitleState("Brassica napus")
                         setDemoCollinearity()
-                    }}>Brassica napus</Button>
-                    <Button variant='outlined' onClick={() => {
+                }}>Brassica napus</Button>
+                <Button variant='outlined' onClick={() => {
                         clearComparisonTracks()
                         setDemoFile("files/ta_hb_coordinate.gff")
                         setTitleState("Triticum aestivum")
                         setDemoCollinearity()
-                    }}>Triticum aestivum</Button>
-                    <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
-                    <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
+                }}>Triticum aestivum</Button>
+                <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
 
-                </Stack>
-                <Slider
+                <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
+
+            </Stack>
+            <Slider
                     step={1}
                     min={75}
                     max={300}
                     valueLabelDisplay={"auto"}
                     onChange={handleSlider}
-
-                />
+            />
 
                 {previewSelector.visible && <Miniview
                     className={'preview'}
@@ -365,7 +453,7 @@ ${'' /* .track {
                 />}
 
 
-                {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, keyIndex) => {
+   {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, keyIndex) => {
 
                     if (comparableSelector[item]) {
 

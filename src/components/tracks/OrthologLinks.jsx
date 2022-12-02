@@ -11,8 +11,8 @@ import { panComparison } from "features/miniview/miniviewSlice";
 import { selectBasicTracks } from "./basicTrackSlice"
 
 
+var orthologs = window.orthologs;
 
-// var orthologs = window.orthologs;
 
 function findGene(geneSearched) {
 
@@ -40,6 +40,7 @@ function findOrthologs(c1, c2) {
 
     for (let gene of topOrthologs) {
         if(bottomOrthologs.some(t => t.siblings.includes(gene.key.toUpperCase()))){
+
 
             let match = gene.siblings.filter(x => x.slice(0, 3).toLowerCase() == c2.key)
             if(match.length < 2){
@@ -83,18 +84,16 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 return false;
             }
         }
-    }, [])
-
+    }, [topTrack, bottomTrack])
 
     function handleScroll(e) {
         if (e.altKey == true) {
+
             let factor = 0.8
             if (e.deltaY < 0) {
                 factor = 1 / factor
             }
-            
-            
-            
+           
             let boundingBox = e.target.getBoundingClientRect()
             let normalizedLocation = (e.clientX - boundingBox.x)
             let dx = ((normalizedLocation - topTrack.offset) * (factor - 1))
@@ -107,12 +106,12 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             }))
             
             dx = ((normalizedLocation - bottomTrack.offset) * (factor - 1))
-            offsetX = Math.max(Math.min(bottomTrack.offset - dx, 0), -((maxWidth * bottomTrack.zoom * factor) - maxWidth))
-            if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) offsetX = 0
-            
+            let BottomOffset = Math.max(Math.min(bottomTrack.offset - dx, 0), -((maxWidth * bottomTrack.zoom * factor) - maxWidth))
+            if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) BottomOffset = 0
+
             dispatch(pan({
                 key: bottomTrack.key,
-                offset: offsetX
+                offset: BottomOffset
             }))
             
             dispatch(changeZoom({
@@ -123,8 +122,11 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
                 key: bottomTrack.key,
                 zoom: Math.max(bottomTrack.zoom * factor, 1.0)
             }))
+            if (window.gt) updateTimer(topKey, offsetX / maxWidth, Math.max(topTrack.zoom * factor, 1.0), bottomKey, BottomOffset / maxWidth, Math.max(bottomTrack.zoom * factor, 1.0))
         }
     }
+
+
 
     function handleClick(e) {
         if (e.type == 'mousedown') {
@@ -136,17 +138,16 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
             setClickLocation(null)
         }
     }
-
     function handlePan(e) {
         // Panning both tracks
         if (dragging === true) {
 
             if (!topTrack || !bottomTrack) return
 
-            
+
             let boundingBox = e.target.parent ? e.target.parent.getBoundingClientRect() : e.target.getBoundingClientRect()
             let offsetX = Math.max(Math.min(topTrack.offset + e.movementX, 0), -((maxWidth * topTrack.zoom) - maxWidth))
-      
+
             dispatch(pan({
                 key: topTrack.key,
                 offset: offsetX,
@@ -273,6 +274,75 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
     let gradient = [topColor, bottomColor]
 
+    function locate(e) {
+
+        const genes = e.target.id.split("-")
+        if (genes.length < 2) return
+
+        let boundingBox = e.target.getBoundingClientRect()
+
+        let topGene = searchTrack(genes[0], topTrack.array)
+        let bottomGene = searchTrack(genes[1], bottomTrack.array)
+
+        let topRatio = topGene.start / aboveCap
+        let bottomRatio = bottomGene.start / belowCap
+
+        // If near the bottom, snap to the bottom, if near the top, snap to top
+        let topOffset = topTrack.offset
+        let bottomOffset = bottomTrack.offset
+        if (e.clientY > boundingBox.top + (boundingBox.height / 2)) {
+
+            // Find location of gene on top track to snap
+            let bottomLocation = bottomRatio * maxWidth * bottomTrack.zoom + bottomTrack.offset
+            topOffset = -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
+            dispatch(pan({
+                key: topTrack.key,
+                offset: topOffset
+            }))
+
+            dispatch(panComparison({
+                key: topTrack.key,
+                offset: -(topRatio * maxWidth * topTrack.zoom) + bottomLocation,
+                zoom: Math.max(topTrack.zoom, 1.0),
+                width: maxWidth,
+                ratio: maxWidth / boundingBox.width,
+                left: boundingBox.left,
+                realWidth: boundingBox.width,
+                factor: 1.0
+            }))
+        }
+        else {
+            // Find location of gene on top track
+            let topLocation = topRatio * maxWidth * topTrack.zoom + topTrack.offset
+            bottomOffset = -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
+            dispatch(pan({
+                key: bottomTrack.key,
+                offset: bottomOffset
+            }))
+        }
+        if (window.gt) updateTimer(topTrack.key, topOffset / maxWidth, topTrack.zoom, bottomTrack.key, bottomOffset / maxWidth, bottomTrack.zoom)
+    }
+
+    let [waiting, setWaiting] = useState()
+    function updateTimer(topKey, topRatio, topZoom, bottomKey, bottomRatio, bottomZoom) {
+        let gt = window.gt;
+        clearTimeout(waiting)
+        setWaiting(window.setTimeout(() => {
+            let trackInfo = {
+                id: topKey,
+                ratio: topTrack.offset / maxWidth,
+                zoom: topTrack.zoom
+            }
+            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
+            trackInfo = {
+                id: bottomKey,
+                ratio: bottomTrack.offset / maxWidth,
+                zoom: bottomTrack.zoom
+            }
+            gt.updateState({ Action: "handleTrackUpdate", trackInfo })
+
+        }, 80))
+    }
 
     return (
         <>

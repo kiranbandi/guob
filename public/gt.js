@@ -55,21 +55,12 @@ async function main() {
   }
 
 
-  try {
-
-    gt = createGt('localhost:3002')
-    await gt.connect();
-    await gt.auth();
-    await gt.join('synvisio-test');
-  }
-  catch (e) {
-    console.error(e)
-  }
+  
 
 
 
 
-  window.gt = gt;
+  window.createGt = createGt;
 
 
 // function to create a new cursor in a random color on the box to represent to a peer

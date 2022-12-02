@@ -10,11 +10,14 @@ import { Dashboard, Demo, Documentation, Home, NotFound, AgricultureDemo } from 
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useState } from 'react';
+import $ from 'jquery';
+
 
 
 
 
 export default function App() {
+
 
     const [ isDark, setIsDark ] = useState(false)
 

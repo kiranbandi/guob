@@ -5,7 +5,7 @@ import { ItemTypes } from "./ItemTypes"
 import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDispatch } from "react-redux"
-import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup } from "./draggableSlice"
+import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables } from "./draggableSlice"
 import { IconButton, Button } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import { teal } from '@mui/material/colors';
@@ -21,7 +21,19 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
     const secondRef = useRef(null)
 
     const dispatch = useDispatch()
-    // const groupSelector = useSelector(selectGroup)
+    const draggableSelector = useSelector(selectDraggables)
+
+    let [waiting, setWaiting] = useState()
+    let [change, setChange] = useState()
+
+    function updateTimer() {
+        clearTimeout(waiting)
+        setWaiting(window.setTimeout(() => {
+            setChange(true)
+        }, 500))
+    }
+
+
     const [, drop] = useDrop(() => ({
         accept: ItemTypes.BOUNDED,
         hover(item, monitor) {
@@ -75,7 +87,6 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
                 }
              // Need to change the item's index or it can't be placed back in the original position due to the conditional
             item.index = hoverIndex
-
         },
     }), [index, groupID])
 
@@ -96,14 +107,32 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
 
     drag(drop(ref))
     
-
     //#############################
     // Used without CustomDragLayer
     // drop(preview(secondRef))
-
+    
     // Used with CustomDragLayer
     drop((secondRef))
     //###################################
+    
+    
+    if(window.gt && change){
+        window.gt.updateState({ Action: "handleDragged", order:draggableSelector, id: id })
+        setChange()
+    }
+
+    if (window.gt) {
+        window.gt.on('state_updated_reliable', (userID, payload) => {
+            // TODO this feels like a hacky way of doing this
+            if (userID === document.title) return
+            if (payload.Action == "handleDragged") {
+                if(payload.id !== id) return
+                dispatch(setDraggables({
+                    order: payload.order
+                }))
+            }
+        })
+    }
 
     return (
         <div ref={secondRef} className={className}>
@@ -132,10 +161,14 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
                 }))
                 dispatch(sortGroup())
                 }
+               
             }}
              onMouseDown={(e) =>{
                 if (!e.ctrlKey && !grouped){
                     dispatch(clearGroup())
+                } 
+                if(window.gt){
+                updateTimer()
                 }
              }}
                >
