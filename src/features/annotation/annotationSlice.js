@@ -17,7 +17,7 @@ export const annotationSlice = createSlice({
                 state.annotations[action.payload.key] = [action.payload]
             }
             else{
-                state.annotations[action.payload.key].push([action.payload])
+                state.annotations[action.payload.key].push(action.payload)
             }
 
         },

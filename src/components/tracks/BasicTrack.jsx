@@ -187,12 +187,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
-
+    const gt = window.gt;
     const dispatch = useDispatch()
 
     let [waiting, setWaiting] = useState()
     function updateTimer(id, ratio, zoom) {
-        let gt = window.gt;
         clearTimeout(waiting)
         setWaiting(window.setTimeout(() => {
             let trackInfo = {
@@ -245,7 +244,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }))
 
 
-            if (window.gt) updateTimer(id, offsetX / maxWidth, Math.max(zoom * factor, 1.0))
+            if (gt) updateTimer(id, offsetX / maxWidth, Math.max(zoom * factor, 1.0))
             showPreview(e)
         }
     }
@@ -271,7 +270,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             offset: offsetX,
             zoom: zoom
         }))
-        if (window.gt) updateTimer(id, offsetX / maxWidth, zoom)
+        if (gt) updateTimer(id, offsetX / maxWidth, zoom)
         dispatch(moveMiniview(
             {
                 key: 'newPreview',
@@ -354,12 +353,17 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     function newAnnotation() {
         let note = prompt("Enter a message: ")
 
-        dispatch(addAnnotation({
+        let annotation = {
             key: id,
             note,
             location: previewSelector.center
+        }
 
-        }))
+        dispatch(addAnnotation(annotation))
+
+        if (gt){
+            gt.updateState({ Action: "handleAnnotation", annotation })
+        }
     }
 
     function handleClick(e) {
@@ -387,7 +391,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 drawnGenes.forEach(x => {
                     if (x.hovering(normalizedLocation)) {
                         setSelection(x)
-                        console.log(x)
                         dispatch(setSelection({
                             key: id,
                             selection: x.key,
@@ -566,6 +569,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
             {
                 annotationSelector && annotationSelector.map(note => {
+                    console.log("Here")
                     let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
                     if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
                         return (

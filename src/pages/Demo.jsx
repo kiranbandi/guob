@@ -31,6 +31,7 @@ import Box from '@mui/material/Box';
 import parseGFF from 'features/parsers/gffParser';
 import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
+import { addAnnotation } from 'features/annotation/annotationSlice';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -338,6 +339,9 @@ ${'' /* .track {
                     break
                 case "changeMargins":
                     setDraggableSpacing(payload.Todo)
+                    break
+                case "handleAnnotation":
+                   dispatch(addAnnotation(payload.annotation))
                     break
                 case "handleDragged":
                     dispatch(setDraggables({
