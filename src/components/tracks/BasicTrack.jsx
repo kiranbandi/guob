@@ -71,7 +71,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     // keep the old palette
     useEffect(() => {
         setDrawnGenes([])
-    }, [isDark, normalize])
+    }, [isDark, normalize, maxWidth])
 
     useEffect(() => {
 
