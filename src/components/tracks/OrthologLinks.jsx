@@ -65,14 +65,14 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         setWaiting(window.setTimeout(() => {
             let trackInfo = {
                 id: topKey,
-                ratio: topTrack.offset / maxWidth,
-                zoom: topTrack.zoom
+                ratio: topRatio,
+                zoom: topZoom
             }
             gt.updateState({ Action: "handleTrackUpdate", trackInfo })
             trackInfo = {
                 id: bottomKey,
-                ratio: bottomTrack.offset / maxWidth,
-                zoom: bottomTrack.zoom
+                ratio: bottomRatio,
+                zoom: bottomZoom
             }
             gt.updateState({ Action: "handleTrackUpdate", trackInfo })
 
