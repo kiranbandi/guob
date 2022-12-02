@@ -79,6 +79,7 @@ export const basicTrackSlice = createSlice({
     }
 })
 
+console.log(basicTrackSlice)
 export const {deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
 
 

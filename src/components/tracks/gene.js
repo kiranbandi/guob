@@ -39,9 +39,27 @@ export class gene {
         context.fill()
     }
 
+    highlight(context, coordinateX, coordinateY, width, height) {
+        this.coordinateX = coordinateX
+        this.coordinateY = coordinateY
+        this.width = width
+        this.height = height
+        context.fillStyle = "#800000"
+        context.beginPath()
+        if (this.trackType === 'scatter') {
+            let radius = width / 10,
+                // shift the start of the point draw so the point is drawn in the center of the allocated width for each rectangle
+                xShift = this.coordinateX + (width / 2) - radius;
+            drawPoint(context, xShift, this.coordinateY, width);
+        }
+        else {
+            context.rect(coordinateX, coordinateY, width, height)
+        }
+        context.fill()
+    }
+
     hovering(mouseX) {
-        if (mouseX >= this.coordinateX && mouseX <= this.coordinateX + this.width) return true;
-        return false
+        return (mouseX >= this.coordinateX && mouseX <= this.coordinateX + this.width)
     }
 
 }

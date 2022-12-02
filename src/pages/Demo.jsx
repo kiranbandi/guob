@@ -29,7 +29,6 @@ import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import parseGFF from 'features/parsers/gffParser';
-import { CopyAll } from '@mui/icons-material';
 import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 // import './canola.gff'
@@ -40,7 +39,7 @@ export default function Demo({ isDark }) {
 
 
     // Demo of redux miniview
-    const previewSelector = useSelector(selectMiniviews)['preview']
+    const previewSelector = useSelector(selectMiniviews)['newPreview']
     const miniviewSelector = useSelector(selectMiniviews)
     const draggableSelector = useSelector(selectDraggables)
     const alternateDraggableSelector = useSelector(selectAlternateDraggables)
@@ -53,11 +52,11 @@ export default function Demo({ isDark }) {
     const [startY, setStartY] = useState(900)
 
     const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
+    const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [titleState, setTitleState] = useState("Aradopsis thaliana")
     const [normalize, setNormalize] = useState(false)
 
     const [draggableSpacing, setDraggableSpacing] = useState(true)
-
     const dispatch = useDispatch()
 
     // 85 px
@@ -136,11 +135,11 @@ export default function Demo({ isDark }) {
     }
 
     function changeMargins(e) {
+
         let gt = window.gt;
         if (gt) {
             gt.updateState({ Action: "changeMargins", Todo: e.target.checked })
         } setDraggableSpacing(e.target.checked)
-
     }
 
     function removeAnAlternateDraggable() {
@@ -164,36 +163,35 @@ export default function Demo({ isDark }) {
             return
         }
         if (event.ctrlKey) {
-            dispatch(removeComparison())
+            dispatch(removeComparison({
+                target: event.target.id
+            }))
         }
         else {
             let y = event.target.offsetTop
             dispatch(addComparison({
                 key: testId,
-                array: previewSelector.array,
+                array: basicTrackSelector[previewSelector.linkedTrack].array,
                 color: previewSelector.color,
-                start: Math.round(previewSelector.start),
-                end: Math.round(previewSelector.end),
-                coordinateX: event.pageX,
-                coordinateY: y,
-                head: Math.round(previewSelector.start + (previewSelector.end - previewSelector.start) / 2),
+                start: Math.round(previewSelector.center - 50000),
+                end: Math.round(previewSelector.center + 50000),
+                // coordinateX: event.pageX,
+                // coordinateY: y,
+                // head: Math.round(previewSelector.start + (previewSelector.end - previewSelector.start) / 2),
                 target: event.target.id,
-                offset: basicTrackSelector[event.target.id].offset,
-                boxWidth: previewSelector.boxWidth,
-                originalBoxWidth: previewSelector.boxWidth,
-                beginning: Math.min(...basicTrackSelector[event.target.id].array.map(d => d.start)),
-                fin: Math.max(...basicTrackSelector[event.target.id].array.map(d => d.end)),
+                center: previewSelector.center,
+                trackType: basicTrackSelector[previewSelector.linkedTrack].trackType,
+                linkedTrack: previewSelector.linkedTrack
             }))
 
             setTestId(id => id + 1)
             setStartY(startY => startY + 50)
-
         }
     }
 
 
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
-    let [sliderHeight, setSliderHeight] = useState(50);
+    let [sliderHeight, setSliderHeight] = useState(75);
 
     //TODO fix some hacky stuff in here
 
@@ -203,13 +201,17 @@ export default function Demo({ isDark }) {
     border: 1px solid black;
 }
 .draggable {
-    /* cursor: crosshair; */
+    cursor: crosshair; 
     border: 1px solid grey;
     margin-bottom: ${draggableSpacing ? 0 : "1.5rem"};
     height: ${sliderHeight + 'px'};
     border:solid black 1px;
     flex-direction: row;
 }
+${'' /* .track {
+    width: 100%
+    
+} */}
 .body {
     overflow: hidden;
 }
@@ -263,13 +265,11 @@ export default function Demo({ isDark }) {
         setLoading(true)
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
-        parseGFF(demoFile).then(({ chromosomalData, dataset }) => {
+        parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
             let normalizedLength = 0;
             let color;
             let ColourScale = scaleOrdinal().domain([0, 9])
                 .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
-
-
             normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
             chromosomalData.forEach((point, i) => {
                 if (point.trackType === 'default') {
@@ -290,6 +290,7 @@ export default function Demo({ isDark }) {
         // })
         setLoading(true)
     }, [demoFile])
+
 
 
 
@@ -375,21 +376,21 @@ function enableGT(e) {
 }
 
 
-function clearComparisonTracks() {
-    dispatch(clearComparisons({
+    function clearComparisonTracks() {
+        dispatch(clearComparisons({
 
-    }))
-}
-
-const handleSlider = (event, newValue) => {
-    if (typeof newValue === 'number') {
-
-        setSliderHeight(newValue)
+        }))
     }
-}
+
+    const handleSlider = (event, newValue) => {
+        if (typeof newValue === 'number') {
+
+            setSliderHeight(newValue)
+        }
+    }
 
 
-
+let testIndex = -1
 return (
     <>
         <div css={styling}>
@@ -397,23 +398,27 @@ return (
             <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                 <Button variant='outlined' onClick={() => {
                     clearComparisonTracks()
-                    setDemoFile("files/bn_methylation.bed")
-                    setTitleState("Methylation test")
+                    setDemoFile("files/bn_methylation_100k.bed")
+                    setTitleState("Canola Methylation")
+                    setDemoCollinearity()
                 }}>Methylation Test</Button>
                 <Button variant='outlined' onClick={() => {
-                    clearComparisonTracks()
-                    setDemoFile("files/at_coordinate.gff")
-                    setTitleState("Aradopsis thaliana")
+                        clearComparisonTracks()
+                        setDemoFile("files/at_coordinate.gff")
+                        setTitleState("Aradopsis thaliana")
+                        setDemoCollinearity("files/at_vv_collinear.collinearity")
                 }}>Aradopsis thaliana</Button>
                 <Button variant='outlined' onClick={() => {
-                    clearComparisonTracks()
-                    setDemoFile("files/bn_coordinate.gff")
-                    setTitleState("Brassica napus")
+                        clearComparisonTracks()
+                        setDemoFile("files/bn_coordinate.gff")
+                        setTitleState("Brassica napus")
+                        setDemoCollinearity()
                 }}>Brassica napus</Button>
                 <Button variant='outlined' onClick={() => {
-                    clearComparisonTracks()
-                    setDemoFile("files/ta_hb_coordinate.gff")
-                    setTitleState("Triticum aestivum")
+                        clearComparisonTracks()
+                        setDemoFile("files/ta_hb_coordinate.gff")
+                        setTitleState("Triticum aestivum")
+                        setDemoCollinearity()
                 }}>Triticum aestivum</Button>
                 <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
                 <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
@@ -422,100 +427,111 @@ return (
 
             </Stack>
             <Slider
-                step={1}
-                min={35}
-                max={200}
-                valueLabelDisplay={"auto"}
-                onChange={handleSlider}
-
+                    step={1}
+                    min={75}
+                    max={300}
+                    valueLabelDisplay={"auto"}
+                    onChange={handleSlider}
             />
 
-            {previewSelector.visible && <Miniview
-                className={'preview'}
-                array={previewSelector.array}
-                coordinateX={previewSelector.coordinateX}
-                coordinateY={previewSelector.coordinateY}
-                width={previewSelector.width}
-                height={previewSelector.height}
-                beginning={previewSelector.start}
-                fin={previewSelector.end}
-                color={previewSelector.color}
-                id={previewSelector.id}
-                absolutePositioning={true}
-                preview={true}
-                isDark={isDark}
-            />}
-
-
-            {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, index) => {
-                let current = comparableSelector[item]
-                let parent = document.getElementById(current.target).getBoundingClientRect()
-                let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
-                let verticalScroll = document.documentElement.scrollTop
-                let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
-                return <Miniview
-
-                    className={'comparison preview'}
-                    key={item}
-                    array={current.array}
-                    color={current.color}
+                {previewSelector.visible && <Miniview
+                    className={'preview'}
+                    array={basicTrackSelector[previewSelector.linkedTrack].array}
                     coordinateX={previewSelector.coordinateX}
-                    coordinateY={previewSelector.coordinateY + 18 * (index + 1)}
+                    coordinateY={previewSelector.coordinateY}
                     width={previewSelector.width}
                     height={previewSelector.height}
-                    displayPreview={false}
-                    beginning={current.start}
-                    fin={current.end}
+                    beginning={previewSelector.start}
+                    fin={previewSelector.end}
+                    color={previewSelector.color}
+                    id={previewSelector.id}
                     absolutePositioning={true}
                     preview={true}
-                    boxLeft={what}
-                    boxTop={parent.y + verticalScroll}
-                    boxWidth={current.boxWidth}
-                    grouped={groupSelector.includes(comparableSelector[item].target)}
                     isDark={isDark}
-                />
-            }))
-            }
+                    trackType={basicTrackSelector[previewSelector.linkedTrack].trackType}
+                    center={previewSelector.center}
+                />}
 
-            {
-                loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
-                    <CircularProgress size={75} />
-                </Box> :
-                    <>
-                        <Typography variant={'h5'} sx={{
-                            WebkitUserSelect: 'none',
-                        }}>{titleState}</Typography>
-                        <CustomDragLayer groupID={groupSelector} />
-                        <DragContainer startingList={draggableSelector}>
-                            {draggableSelector.map(item => {
 
-                                return (
-                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
-                                        {item !== 'links' && <BasicTrack
-                                            array={basicTrackSelector[item].array}
-                                            color={basicTrackSelector[item].color}
-                                            normalizedLength={basicTrackSelector[item].normalizedLength}
-                                            trackType={basicTrackSelector[item].trackType}
-                                            title={item}
-                                            doSomething={handleClick}
-                                            id={item}
-                                            zoom={basicTrackSelector[item].zoom}
-                                            pastZoom={basicTrackSelector[item].pastZoom}
-                                            offset={basicTrackSelector[item].offset}
-                                            selection={basicTrackSelector[item].selection}
-                                            isDark={isDark}
-                                            normalize={normalize}
-                                        />}
-                                        {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
-                                    </Draggable>
+   {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, keyIndex) => {
 
-                                )
-                            })}
+                    if (comparableSelector[item]) {
 
-                        </DragContainer>
-                    </>
-            }
-        </div>
-    </>
-);
+                        return comparableSelector[item].map((current, index) => {
+                            testIndex++
+                            let parent = document.getElementById(current.target).getBoundingClientRect()
+                            let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
+                            let verticalScroll = document.documentElement.scrollTop
+                            let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
+                            return <Miniview
+
+                                className={'comparison preview'}
+                                key={current.key}
+                                id={current.key}
+                                array={current.array}
+                                color={current.color}
+                                coordinateX={previewSelector.coordinateX}
+                                coordinateY={previewSelector.coordinateY + 18 * (testIndex + 1)}
+                                width={previewSelector.width}
+                                height={previewSelector.height}
+                                displayPreview={false}
+                                beginning={current.start}
+                                fin={current.end}
+                                absolutePositioning={true}
+                                preview={true}
+                                boxLeft={what}
+                                boxTop={parent.y + verticalScroll}
+                                boxWidth={current.boxWidth}
+                                grouped={groupSelector.includes(current.target)}
+                                isDark={isDark}
+                                trackType={basicTrackSelector[current.linkedTrack].trackType}
+                                center={current.center}
+                            />
+                        })
+                    }
+
+                }))
+                }
+
+                {
+                    loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                        <CircularProgress size={75} />
+                    </Box> :
+                        <>
+                            <Typography variant={'h5'} sx={{
+                                WebkitUserSelect: 'none',
+                            }}>{titleState}</Typography>
+                            <CustomDragLayer groupID={groupSelector} />
+                            <DragContainer startingList={draggableSelector}>
+                                {draggableSelector.map(item => {
+
+                                    return (
+                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                                            {item !== 'links' && <BasicTrack
+                                                array={basicTrackSelector[item].array}
+                                                color={basicTrackSelector[item].color}
+                                                normalizedLength={basicTrackSelector[item].normalizedLength}
+                                                trackType={basicTrackSelector[item].trackType}
+                                                title={item}
+                                                doSomething={handleClick}
+                                                id={item}
+                                                zoom={basicTrackSelector[item].zoom}
+                                                pastZoom={basicTrackSelector[item].pastZoom}
+                                                offset={basicTrackSelector[item].offset}
+                                                selection={basicTrackSelector[item].selection}
+                                                isDark={isDark}
+                                                normalize={normalize}
+                                            />}
+                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
+                                        </Draggable>
+
+                                    )
+                                })}
+
+                            </DragContainer>
+                        </>
+                }
+            </div>
+        </>
+    );
 }

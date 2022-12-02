@@ -186,6 +186,7 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900, 
         })
 
 
+
         return (<svg ref={svgRef} width={width} height={height} className="LinksSVG" >
             {/* <rect x="0" y="0" width="950" height="100" style={{ fill: "none", stroke: "pink", strokeWidth: 5, fillOpacity: 0.1, strokeOpacity: 0.9 }} /> */}
             <g className="LinksSVGg" ref={svgGRef} onClick={locate}>
