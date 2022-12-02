@@ -415,7 +415,7 @@ ${'' /* .track {
                         setDemoFile("files/bn_methylation_100k.bed")
                         setTitleState("Canola Methylation")
                         setDemoCollinearity()
-                    }}>Methylation Test</Button>
+                    }}>Canola Methylation</Button>
                     <Button variant='outlined' onClick={() => {
                         clearComparisonTracks()
                         setDemoFile("files/at_coordinate.gff")
