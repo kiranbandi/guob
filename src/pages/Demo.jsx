@@ -5,7 +5,7 @@ import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
-import { addComparison, selectMiniviews, clearComparisons } from '../features/miniview/miniviewSlice';
+import { addComparison, selectMiniviews, clearComparisons, moveCollabPreview } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
 import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
@@ -333,6 +333,7 @@ ${'' /* .track {
             if (userID === document.title) return
             switch (payload.Action) {
                 case "handleTrackUpdate":
+                    console.log(payload)
                     updateSingleTrack(payload.trackInfo)
                     break
                 case "handleBothTrackUpdate":
@@ -357,6 +358,9 @@ ${'' /* .track {
                     dispatch(setDraggables({
                         order: payload.order
                     }))
+                    break
+                    case "handlePreviewPosition":
+                        dispatch(moveCollabPreview(payload.info))
                     break
             }
 
@@ -450,7 +454,7 @@ ${'' /* .track {
                 </Stack>
                 <Stack mt={2} spacing={2}>
                     <Stack direction='row' justifyContent={"flex-start"}>
-                    <Autocomplete sx={{ width: '15%' }}
+                    {/* <Autocomplete sx={{ width: '15%' }}
                             multiple
                             size="small"
                             onChange={(event, newValue) => {
@@ -468,15 +472,15 @@ ${'' /* .track {
                                     }}
                                 />
                             )}
-                        />
-                        <Autocomplete sx={{ width: '70%' }}
+                        /> */}
+                        {window.dataset && <Autocomplete sx={{ width: '70%' }}
                             multiple
                             size="small"
                             onChange={(event, newValue) => {
                                 setSearchTerms(newValue)
                             }}
                             id="Gene Search"
-                            options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome )}
+                            options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome)}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -487,7 +491,7 @@ ${'' /* .track {
                                     }}
                                 />
                             )}
-                        />
+                        />}
                         <Button onClick={() => {
                             let gt = window.gt;
 

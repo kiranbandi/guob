@@ -198,9 +198,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const dispatch = useDispatch()
 
     let [waiting, setWaiting] = useState()
+    let [posWaiting, setPosWaiting] = useState()
+   
     function updateTimer(id, ratio, zoom) {
-        clearTimeout(waiting)
-        setWaiting(window.setTimeout(() => {
+        clearTimeout(posWaiting)
+        setPosWaiting(window.setTimeout(() => {
             let trackInfo = {
                 id: id,
                 ratio: ratio,
@@ -208,6 +210,13 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }
             gt.updateState({ Action: "handleTrackUpdate", trackInfo })
         }, 80))
+    }
+
+    function updateCollabPosition(info) {
+            clearTimeout(waiting)
+            setWaiting(window.setTimeout(() => {
+                gt.updateState({ Action: "handlePreviewPosition", info })
+            },100))
     }
 
     function handleScroll(e) {
@@ -353,6 +362,18 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             }))
 
         Math.round(beginning)
+
+        if(window.gt){
+            let info = {
+                user: window.gt.id,
+                track: id,
+                trackType: trackType,
+                center: center,
+                cursorColor: window.gt.users[document.title].color
+            }
+            updateCollabPosition(info)
+            gt.updateState({ Action: "handlePreviewPosition", info })
+        }
 
     }
 
@@ -545,6 +566,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                     previewWidth > 0) 
                     return(
                     <Window
+                        color={collabPreviews[item].cursorColor}
                         key={item}
                         coordinateX={collabX}
                         coordinateY={canvasRef.current.offsetTop}
