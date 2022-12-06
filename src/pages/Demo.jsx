@@ -218,6 +218,10 @@ ${'' /* .track {
 .miniview {
   cursor: crosshair;
 }
+.genomeView {
+    flex-direction: row;
+    display: "flex"
+}
 .draggableItem {
     height: 100%;
     width: 98%;
@@ -267,12 +271,14 @@ ${'' /* .track {
         dispatch(deleteAllDraggables({}))
         parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
             window.dataset = dataset
+            window.chromosomalData = chromosomalData
             window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
             let normalizedLength = 0;
             let color;
             let ColourScale = scaleOrdinal().domain([0, 9])
                 .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
             normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+            window.maximumLength = 0
             chromosomalData.forEach((point, i) => {
                 if (point.trackType === 'default') {
                     color = ColourScale(i % 10)
@@ -282,7 +288,19 @@ ${'' /* .track {
                 }
 
                 addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
-
+                let end = Math.max(...point.data.map(d => d.end))
+                dispatch(addBasicTrack({
+                    key: "genome" + point.key.chromosome,
+                    trackType: point.trackType,
+                    array: point.data,
+                    normalizedLength,
+                    end,
+                    color,
+                    zoom: 1.0,
+                    pastZoom: 1.0,
+                    offset: 0,
+                }))
+                window.maximumLength += end;
             })
             dispatch(addDraggable({
                 key: 'links'
@@ -291,6 +309,7 @@ ${'' /* .track {
         })
         // })
         setLoading(true)
+
     }, [demoFile])
 
 
@@ -359,8 +378,8 @@ ${'' /* .track {
                         order: payload.order
                     }))
                     break
-                    case "handlePreviewPosition":
-                        dispatch(moveCollabPreview(payload.info))
+                case "handlePreviewPosition":
+                    dispatch(moveCollabPreview(payload.info))
                     break
             }
 
@@ -454,7 +473,7 @@ ${'' /* .track {
                 </Stack>
                 <Stack mt={2} spacing={2}>
                     <Stack direction='row' justifyContent={"flex-start"}>
-                    {/* <Autocomplete sx={{ width: '15%' }}
+                        {/* <Autocomplete sx={{ width: '15%' }}
                             multiple
                             size="small"
                             onChange={(event, newValue) => {
@@ -596,13 +615,39 @@ ${'' /* .track {
                             <Typography variant={'h5'} sx={{
                                 WebkitUserSelect: 'none',
                             }}>{titleState}</Typography>
+                            <Stack direction="row" marginBottom={5}>
+                                {Object.keys(basicTrackSelector).map(genomeItem => {
+                                    if (genomeItem !== 'genomeView' && genomeItem.includes('genome')) {
+                                        return (
+                                            <BasicTrack
+                                                array={basicTrackSelector[genomeItem].array}
+                                                color={basicTrackSelector[genomeItem].color}
+                                                genome={true}
+                                                width={window.chromosomalData ? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 100}
+                                                normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
+                                                trackType={basicTrackSelector[genomeItem].trackType}
+                                                title={genomeItem}
+                                                doSomething={handleClick}
+                                                id={genomeItem}
+                                                zoom={basicTrackSelector[genomeItem].zoom}
+                                                pastZoom={basicTrackSelector[genomeItem].pastZoom}
+                                                offset={basicTrackSelector[genomeItem].offset}
+                                                selection={basicTrackSelector[genomeItem].selection}
+                                                isDark={isDark}
+                                                normalize={normalize}
+                                            />
+                                        )
+
+                                    }
+                                })
+                                }
+                            </Stack>
                             <CustomDragLayer groupID={groupSelector} />
                             <DragContainer startingList={draggableSelector}>
                                 {draggableSelector.map(item => {
-
                                     return (
                                         <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
-                                            {item !== 'links' && <BasicTrack
+                                            {item !== 'links' && !item.includes('genome') && <BasicTrack
                                                 array={basicTrackSelector[item].array}
                                                 color={basicTrackSelector[item].color}
                                                 normalizedLength={basicTrackSelector[item].normalizedLength}
@@ -622,6 +667,9 @@ ${'' /* .track {
 
                                     )
                                 })}
+                                {/* <Draggable key="Test">
+                                    Test
+                                </Draggable> */}
 
                             </DragContainer>
                         </>

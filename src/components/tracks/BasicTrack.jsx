@@ -12,7 +12,7 @@ import { selectDraggables } from "features/draggable/draggableSlice.js";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
-const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
+const BasicTrack = ({ array, genome=false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -43,7 +43,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     // If no height is present default to 100 pixel tall tracks
     // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
     let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height,
-        parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
+        parentWrapperWidth = genome ? width : document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
 
     const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
 
@@ -53,9 +53,11 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         left: coordinateX
     }
 
-    const maxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
+    const definitelyMaxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
+
+    let maxWidth = normalize ? definitelyMaxWidth * cap/normalizedLength : definitelyMaxWidth
 
     useEffect(() => {
         canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
@@ -221,6 +223,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
     function handleScroll(e) {
 
+        if(genome) return
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
         // e.stopPropagation()
@@ -269,6 +272,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
 
+        if(genome) return
         // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
@@ -301,7 +305,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
 
     function showPreview(event) {
-       
+       if(genome) return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -395,6 +399,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     }
 
     function handleClick(e) {
+        if(genome) return
         if (e.type == 'mousedown') {
             setDragging(true)
             setClickLocation(e.clientX - e.target.offsetLeft)
@@ -514,6 +519,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     else {
         info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end + "\nValue: " + hovered.value : ''
     }
+    if (genome) info = ""
 
     const positionRef = React.useRef({
         x: 0,
@@ -536,8 +542,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
-            {title &&
+        <div style={{ width: maxWidth, height: '100%' }}>
+            {title && !genome &&
                 <Typography
                     variant="h6"
                     alignJustify
@@ -721,7 +727,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             </Tooltip>
 
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
-                <div width='2000' style={{ border: 'solid 1px', marginTop: -5 }} />
+                <div width={maxWidth} style={{ border: 'solid 1px', marginTop: -5 }} />
                 <Stack direction='row' justifyContent="space-between" className="scale">
                     <div style={{ WebkitUserSelect: 'none', borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
                     <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
