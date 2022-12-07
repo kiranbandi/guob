@@ -34,6 +34,7 @@ import parseGFF from 'features/parsers/gffParser';
 import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
+import { removeAnnotation } from '../features/annotation/annotationSlice';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -305,6 +306,7 @@ ${'' /* .track {
             dispatch(addDraggable({
                 key: 'links'
             }))
+
             setLoading(false)
         })
         // })
@@ -367,6 +369,8 @@ ${'' /* .track {
                 case "handleAnnotation":
                     dispatch(addAnnotation(payload.annotation))
                     break
+                case "handleDeleteAnnotation":
+                    dispatch(removeAnnotation(payload.annotation))
                 case "handleSearch":
                     dispatch(addSearch(payload.annotation))
                     break
@@ -473,14 +477,14 @@ ${'' /* .track {
                 </Stack>
                 <Stack mt={2} spacing={2}>
                     <Stack direction='row' justifyContent={"flex-start"}>
-                        {/* <Autocomplete sx={{ width: '15%' }}
+                        <Autocomplete sx={{ width: '15%' }}
                             multiple
                             size="small"
                             onChange={(event, newValue) => {
                                 setSearchingChromosome(newValue)
                             }}
                             id="Chromosome Category"
-                            options={window.chromosomes}
+                            options={window.chromosomes ? window.chromosomes : []}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -491,7 +495,7 @@ ${'' /* .track {
                                     }}
                                 />
                             )}
-                        /> */}
+                        />
                         {window.dataset && <Autocomplete sx={{ width: '70%' }}
                             multiple
                             size="small"
@@ -614,16 +618,21 @@ ${'' /* .track {
                         <>
                             <Typography variant={'h5'} sx={{
                                 WebkitUserSelect: 'none',
-                            }}>{titleState}</Typography>
+                            }}>
+                            {titleState}
+                            </Typography>
                             <Stack direction="row" marginBottom={5}>
                                 {Object.keys(basicTrackSelector).map(genomeItem => {
-                                    if (genomeItem !== 'genomeView' && genomeItem.includes('genome')) {
+                                    if (genomeItem.includes('genome')) {
+                                        console.log(document.querySelector('.draggableItem')?.getBoundingClientRect()?.width)
+                                        console.log(basicTrackSelector[genomeItem].end)
                                         return (
                                             <BasicTrack
+                                                key={genomeItem}
                                                 array={basicTrackSelector[genomeItem].array}
                                                 color={basicTrackSelector[genomeItem].color}
                                                 genome={true}
-                                                width={window.chromosomalData ? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 100}
+                                                width={document.querySelector('.draggableItem')?.getBoundingClientRect()?.width? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
                                                 normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
                                                 trackType={basicTrackSelector[genomeItem].trackType}
                                                 title={genomeItem}

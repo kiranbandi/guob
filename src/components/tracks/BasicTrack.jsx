@@ -5,7 +5,7 @@ import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
 import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack } from "./basicTrackSlice";
-import { addAnnotation, selectAnnotations, selectSearch } from "features/annotation/annotationSlice";
+import { addAnnotation, selectAnnotations, selectSearch, removeAnnotation } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
 import { selectDraggables } from "features/draggable/draggableSlice.js";
@@ -53,11 +53,9 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
         left: coordinateX
     }
 
-    const definitelyMaxWidth = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
+    const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
+        maxWidth = normalize ? raw_width * cap/normalizedLength : raw_width,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
-
-
-    let maxWidth = normalize ? definitelyMaxWidth * cap/normalizedLength : definitelyMaxWidth
 
     useEffect(() => {
         canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
@@ -193,7 +191,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
             }
 
         }
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight, startOfTrack])
 
 
     const gt = window.gt;
@@ -218,7 +216,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
             clearTimeout(waiting)
             setWaiting(window.setTimeout(() => {
                 gt.updateState({ Action: "handlePreviewPosition", info })
-            },100))
+            },80))
     }
 
     function handleScroll(e) {
@@ -384,7 +382,6 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
     function newAnnotation() {
         let note = prompt("Enter a message: ")
-
         let annotation = {
             key: id,
             note,
@@ -395,6 +392,19 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
         if (gt) {
             gt.updateState({ Action: "handleAnnotation", annotation })
+        }
+    }
+
+    function deleteAnnotation() {
+
+        let annotation = {
+            key:id,
+            location: previewSelector.center
+        }
+        dispatch(removeAnnotation(annotation))
+
+        if (gt) {
+            gt.updateState({ Action: "handleDeleteAnnotation", annotation })
         }
     }
 
@@ -413,9 +423,15 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                     return
                 }
                 if (e.shiftKey) {
+                    if(e.ctrlKey){
+                        deleteAnnotation()
+                        setClickLocation(null)
+                        return 
+                    } 
                     newAnnotation()
                     setClickLocation(null)
                     return
+
                 }
                 let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 

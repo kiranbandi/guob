@@ -140,7 +140,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
                     opacity: opacity,
                     borderStyle: borderGroup,
                     border: highlightGroup,
-                    display: "flex"
+                    // display: "flex"
                 }}>
                 {children}
             </div>
