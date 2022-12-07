@@ -191,7 +191,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
             }
 
         }
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight, startOfTrack])
+    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
     const gt = window.gt;
@@ -382,6 +382,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
     function newAnnotation() {
         let note = prompt("Enter a message: ")
+        if (!note) return
         let annotation = {
             key: id,
             note,

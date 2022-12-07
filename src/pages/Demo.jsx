@@ -621,11 +621,9 @@ ${'' /* .track {
                             }}>
                             {titleState}
                             </Typography>
-                            <Stack direction="row" marginBottom={5}>
+                            <Stack direction="row" marginBottom={5} >
                                 {Object.keys(basicTrackSelector).map(genomeItem => {
                                     if (genomeItem.includes('genome')) {
-                                        console.log(document.querySelector('.draggableItem')?.getBoundingClientRect()?.width)
-                                        console.log(basicTrackSelector[genomeItem].end)
                                         return (
                                             <BasicTrack
                                                 key={genomeItem}
