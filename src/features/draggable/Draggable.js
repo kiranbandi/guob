@@ -17,7 +17,7 @@ import { useSelector } from "react-redux"
 import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
 
-const Draggable = ({ children, id, index, grouped, groupID, className }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className, showControls = false }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
@@ -136,18 +136,18 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
             }
         })
     }
-
     return (
         <div ref={secondRef} className={className}>
-            <div className='draggableItem' style=
+            <div className={'draggableItem ' + (showControls ? "smaller" : '')} style=
                 {{
                     opacity: opacity,
                     borderStyle: borderGroup,
-                    border: highlightGroup
+                    border: highlightGroup,
+                    // display: "flex"
                 }}>
                 {children}
             </div>
-            <div className='handle' style={{ paddingTop: '1%' }}>
+            {showControls && <div className='handle smaller' style={{ paddingTop: '1%' }}>
 
                 <IconButton ref={ref} className='halfHandle' sx={{
                     backgroundColor: deepOrange[100],
@@ -177,8 +177,10 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
                 </IconButton>
 
             </div>
+            }
 
-            <IconButton ref={ref} className='handle' sx={{
+
+            <IconButton ref={ref} className={'handle ' + (showControls ? "smaller" : '')} sx={{
                 backgroundColor: teal[100],
                 borderRadius: 1,
                 '&:hover': {
@@ -209,7 +211,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
             >
                 <DragHandleIcon fontSize="small" className="handle_image" />
             </IconButton>
-        </div>
+        </div >
 
     )
 }

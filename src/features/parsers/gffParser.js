@@ -13,7 +13,7 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
         // BED file processor for methylation data
         if (demoFile.indexOf('.bed') > -1) {
 
-            trackType = 'scatter'
+            trackType = 'histogram'
 
             temporary.forEach(d => {
                 let info = d.split('\t')
@@ -117,25 +117,10 @@ function buildModel(dataset, trackType) {
             return d[1].chromosome == chr.chromosome
         }).map(x => x[1])
 
-        //   temporary stub for demo purposes 
-        let tempTrackType = trackType;
-        if (trackType === 'scatter') {
-
-            if (chrIndex % 3 === 1) {
-                tempTrackType = 'scatter';
-            }
-            else if (chrIndex % 3 === 2) {
-                tempTrackType = 'line';
-            }
-            else {
-                tempTrackType = 'histogram';
-            }
-        }
-
         var temp = {
             key: chr,
             data: subset,
-            trackType: tempTrackType,
+            trackType
         }
         chromosomalData.push(temp)
     })

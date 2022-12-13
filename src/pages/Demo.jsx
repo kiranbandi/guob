@@ -5,7 +5,7 @@ import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
-import { addComparison, selectMiniviews, clearComparisons } from '../features/miniview/miniviewSlice';
+import { addComparison, selectMiniviews, clearComparisons, moveCollabPreview } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
 import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
@@ -34,6 +34,7 @@ import parseGFF from 'features/parsers/gffParser';
 import _ from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
+import { removeAnnotation } from '../features/annotation/annotationSlice';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -208,30 +209,38 @@ export default function Demo({ isDark }) {
     border:solid black 1px;
     flex-direction: row;
 }
-${'' /* .track {
-    width: 100%
-    
-} */}
 .body {
     overflow: hidden;
 }
 .miniview {
   cursor: crosshair;
 }
+.genomeView {
+    flex-direction: row;
+    display: "flex"
+}
 .draggableItem {
     height: 100%;
-    width: 95%;
+    width: 98%;
     float: left;
     margin: 0px;
     overflow: hidden;
+
+    &.smaller {
+      width: 95%;
+    }
   }
   .handle {
     width: 2%;
     float: left;
     height: 100%;
-    margin: 0% 0.5% 0% 0%;
+    margin:0%;
     padding: 0%;
     cursor: grab;
+
+    &.smaller {
+      margin: 0% 0.5% 0% 0%;
+    }
   }
   .halfHandle {
     height: 45%;
@@ -245,7 +254,6 @@ ${'' /* .track {
   border:solid black 1px;
   flex-direction: row;
   left: 2%;
-  
 }
 .preview {
     border: 1px solid black;
@@ -272,11 +280,14 @@ ${'' /* .track {
         dispatch(deleteAllDraggables({}))
         parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
             window.dataset = dataset
+            window.chromosomalData = chromosomalData
+            window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
             let normalizedLength = 0;
             let color;
             let ColourScale = scaleOrdinal().domain([0, 9])
                 .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
             normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+            window.maximumLength = 0
             chromosomalData.forEach((point, i) => {
                 if (point.trackType === 'default') {
                     color = ColourScale(i % 10)
@@ -286,15 +297,29 @@ ${'' /* .track {
                 }
 
                 addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
-
+                let end = Math.max(...point.data.map(d => d.end))
+                dispatch(addBasicTrack({
+                    key: "genome" + point.key.chromosome,
+                    trackType: point.trackType,
+                    array: point.data,
+                    normalizedLength,
+                    end,
+                    color,
+                    zoom: 1.0,
+                    pastZoom: 1.0,
+                    offset: 0,
+                }))
+                window.maximumLength += end;
             })
             dispatch(addDraggable({
                 key: 'links'
             }))
+
             setLoading(false)
         })
         // })
         setLoading(true)
+
     }, [demoFile])
 
 
@@ -337,6 +362,7 @@ ${'' /* .track {
             if (userID === document.title) return
             switch (payload.Action) {
                 case "handleTrackUpdate":
+                    console.log(payload)
                     updateSingleTrack(payload.trackInfo)
                     break
                 case "handleBothTrackUpdate":
@@ -351,6 +377,8 @@ ${'' /* .track {
                 case "handleAnnotation":
                     dispatch(addAnnotation(payload.annotation))
                     break
+                case "handleDeleteAnnotation":
+                    dispatch(removeAnnotation(payload.annotation))
                 case "handleSearch":
                     dispatch(addSearch(payload.annotation))
                     break
@@ -361,6 +389,9 @@ ${'' /* .track {
                     dispatch(setDraggables({
                         order: payload.order
                     }))
+                    break
+                case "handlePreviewPosition":
+                    dispatch(moveCollabPreview(payload.info))
                     break
             }
 
@@ -415,6 +446,7 @@ ${'' /* .track {
     }
 
     const [searchTerms, setSearchTerms] = useState()
+    const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
     return (
         <>
@@ -453,14 +485,33 @@ ${'' /* .track {
                 </Stack>
                 <Stack mt={2} spacing={2}>
                     <Stack direction='row' justifyContent={"flex-start"}>
-                        <Autocomplete sx={{ width: '80%' }}
+                        <Autocomplete sx={{ width: '15%' }}
+                            multiple
+                            size="small"
+                            onChange={(event, newValue) => {
+                                setSearchingChromosome(newValue)
+                            }}
+                            id="Chromosome Category"
+                            options={window.chromosomes ? window.chromosomes : []}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Chromosome"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        type: 'search',
+                                    }}
+                                />
+                            )}
+                        />
+                        {window.dataset && <Autocomplete sx={{ width: '70%' }}
                             multiple
                             size="small"
                             onChange={(event, newValue) => {
                                 setSearchTerms(newValue)
                             }}
                             id="Gene Search"
-                            options={Object.keys(window.dataset)}
+                            options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome)}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -471,7 +522,7 @@ ${'' /* .track {
                                     }}
                                 />
                             )}
-                        />
+                        />}
                         <Button onClick={() => {
                             let gt = window.gt;
 
@@ -507,6 +558,7 @@ ${'' /* .track {
                         valueLabelDisplay={"auto"}
                         onChange={handleSlider}
                     />
+
                 </Stack>
 
                 {previewSelector.visible && <Miniview
@@ -575,14 +627,43 @@ ${'' /* .track {
                         <>
                             <Typography variant={'h5'} sx={{
                                 WebkitUserSelect: 'none',
-                            }}>{titleState}</Typography>
+                            }}>
+                                {titleState}
+                            </Typography>
+                            <Stack direction="row" marginBottom={5} >
+                                {Object.keys(basicTrackSelector).map(genomeItem => {
+                                    if (genomeItem.includes('genome')) {
+                                        return (
+                                            <BasicTrack
+                                                key={genomeItem}
+                                                array={basicTrackSelector[genomeItem].array}
+                                                color={basicTrackSelector[genomeItem].color}
+                                                genome={true}
+                                                width={document.querySelector('.draggableItem')?.getBoundingClientRect()?.width ? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
+                                                normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
+                                                trackType={basicTrackSelector[genomeItem].trackType}
+                                                title={genomeItem}
+                                                doSomething={handleClick}
+                                                id={genomeItem}
+                                                zoom={basicTrackSelector[genomeItem].zoom}
+                                                pastZoom={basicTrackSelector[genomeItem].pastZoom}
+                                                offset={basicTrackSelector[genomeItem].offset}
+                                                selection={basicTrackSelector[genomeItem].selection}
+                                                isDark={isDark}
+                                                normalize={normalize}
+                                            />
+                                        )
+
+                                    }
+                                })
+                                }
+                            </Stack>
                             <CustomDragLayer groupID={groupSelector} />
                             <DragContainer startingList={draggableSelector}>
                                 {draggableSelector.map(item => {
-
                                     return (
                                         <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
-                                            {item !== 'links' && <BasicTrack
+                                            {item !== 'links' && !item.includes('genome') && <BasicTrack
                                                 array={basicTrackSelector[item].array}
                                                 color={basicTrackSelector[item].color}
                                                 normalizedLength={basicTrackSelector[item].normalizedLength}
@@ -602,6 +683,9 @@ ${'' /* .track {
 
                                     )
                                 })}
+                                {/* <Draggable key="Test">
+                                    Test
+                                </Draggable> */}
 
                             </DragContainer>
                         </>

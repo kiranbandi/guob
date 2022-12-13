@@ -190,18 +190,26 @@ export default function Dashboard({ isDark }) {
 
 .draggableItem {
     height: 100%;
-    width: 95%;
+    width: 98%;
     float: left;
     margin: 0px;
     overflow: hidden;
+
+    &.smaller {
+      width: 95%;
+    }
   }
   .handle {
     width: 2%;
     float: left;
     height: 100%;
-    margin: 0% 0.5% 0% 0%;
+    margin:0%;
     padding: 0%;
     cursor: grab;
+
+    &.smaller {
+      margin: 0% 0.5% 0% 0%;
+    }
   }
 
   .halfHandle {
@@ -275,7 +283,7 @@ export default function Dashboard({ isDark }) {
 
       <Stack my={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
-      <Button variant='outlined' onClick={() => {
+        <Button variant='outlined' onClick={() => {
           setDemoFile("files/bn_ge_smallrna_methylation.bed")
           setTitleState("Canola All")
         }}> Canola All</Button>
@@ -374,7 +382,7 @@ export default function Dashboard({ isDark }) {
             <DragContainer startingList={draggableSelector}>
               {draggableSelector.map(item => {
                 return (
-                  <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                  <Draggable showControls={true} key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
                     <BasicTrack
                       array={basicTrackSelector[item].array}
                       color={basicTrackSelector[item].color}
