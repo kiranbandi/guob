@@ -220,7 +220,7 @@ ${'' /* .track {
 }
 .draggableItem {
     height: 100%;
-    width: 98%;
+    width: 95%;
     float: left;
     margin: 0px;
     overflow: hidden;
@@ -229,9 +229,14 @@ ${'' /* .track {
     width: 2%;
     float: left;
     height: 100%;
-    margin: 0%;
+    margin: 0% 0.5% 0% 0%;
     padding: 0%;
     cursor: grab;
+  }
+  .halfHandle {
+    height: 45%;
+    border-radius: 50%;
+    width: fit-content;
   }
 .alternateDraggable{
   height: 50px;

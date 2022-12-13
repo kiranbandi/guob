@@ -190,7 +190,7 @@ export default function Dashboard({ isDark }) {
 
 .draggableItem {
     height: 100%;
-    width: 98%;
+    width: 95%;
     float: left;
     margin: 0px;
     overflow: hidden;
@@ -199,10 +199,18 @@ export default function Dashboard({ isDark }) {
     width: 2%;
     float: left;
     height: 100%;
-    margin: 0%;
+    margin: 0% 0.5% 0% 0%;
     padding: 0%;
     cursor: grab;
   }
+
+  .halfHandle {
+    margin-top: 2%;
+    height: 45%;
+    border-radius: 50%;
+    width: fit-content;
+  }
+
 .track {
     width: 100%
 }

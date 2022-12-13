@@ -3,8 +3,14 @@ import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
-import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
-import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack } from "./basicTrackSlice";
+import {
+    panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor,
+    changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison
+} from 'features/miniview/miniviewSlice.js'
+import {
+    changeZoom, pan, selectBasicTracks, setSelection,
+    clearSelection, updateTrack
+} from "./basicTrackSlice";
 import { addAnnotation, selectAnnotations, selectSearch } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
@@ -29,7 +35,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     const [start, setStart] = useState(0)
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
-
 
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
@@ -69,16 +74,17 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         }
     }, [])
 
-    const [ annotationY, setAnnotationY ] = useState()
+    const [annotationY, setAnnotationY] = useState()
     useEffect(() => {
         setAnnotationY(canvasRef.current.offsetTop)
     }, [order])
 
     // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
     // keep the old palette
+    // piling on another hack - clear draw genes when switching track type
     useEffect(() => {
         setDrawnGenes([])
-    }, [isDark, normalize, maxWidth])
+    }, [isDark, trackType, normalize, maxWidth])
 
     useEffect(() => {
 
@@ -115,7 +121,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
         setAnnotationY(canvasRef.current.offsetTop)
         if (drawnGenes.length === 0) {
-
             if (trackType == 'line') {
                 let pathArray = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset),
@@ -132,9 +137,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 ctx.stroke();
                 setDrawnGenes([...array]);
             }
-
             else {
-
                 let holding = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset)
                     let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
@@ -145,8 +148,8 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                 })
                 setDrawnGenes(holding)
             }
-
         }
+
         else {
 
             if (trackType == 'line') {
@@ -185,13 +188,16 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
                         drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
                     }
                     else {
-                        drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
+                        if (drawGene.draw) {
+                            drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
+                        }
+
                     }
                 })
             }
 
         }
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
+    }, [array, trackType, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
     const gt = window.gt;
@@ -292,7 +298,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
 
     function showPreview(event) {
-       
+
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -518,16 +524,16 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
         <div style={{ width: '100%', height: '100%' }}>
             {title &&
                 <Typography
-                    variant="h6"
+                    variant="body1"
                     className={"title"}
                     style={{
                         WebkitUserSelect: 'none',
                         position: 'relative',
                         top: 0,
-                        // justify: 'center',
+                        fontWeight:100,
+                        textAlign: 'center',
                         marginLeft: 'auto',
                         marginRight: 0,
-                        width: '60%',
                         height: 25,
                         zIndex: 1,
                         pointerEvents: 'none',
@@ -537,22 +543,22 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
 
             {previewSelector.visible && Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
-                
+
                 let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
 
-                if(collabX >= canvasRef.current.offsetLeft &&
-                    previewWidth > 0) 
-                    return(
-                    <Window
-                        key={item}
-                        coordinateX={collabX}
-                        coordinateY={canvasRef.current.offsetTop}
-                        height={canvasRef.current.offsetHeight + 2}
-                        width={collabWidth} // boxwidth
-                        preview={id == 'preview' ? false : true}
-                        text={Math.max(Math.round(beginning), 0)}
-                        grouped={grouped}
-                    />
+                if (collabX >= canvasRef.current.offsetLeft &&
+                    previewWidth > 0)
+                    return (
+                        <Window
+                            key={item}
+                            coordinateX={collabX}
+                            coordinateY={canvasRef.current.offsetTop}
+                            height={canvasRef.current.offsetHeight + 2}
+                            width={collabWidth} // boxwidth
+                            preview={id == 'preview' ? false : true}
+                            text={Math.max(Math.round(beginning), 0)}
+                            grouped={grouped}
+                        />
                     )
             })
             }
