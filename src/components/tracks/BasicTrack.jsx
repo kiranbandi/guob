@@ -586,7 +586,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                 let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
 
                 if(collabX >= canvasRef.current.offsetLeft &&
-                    previewWidth > 0) 
+                    collabX <= canvasRef.current.offsetLeft + maxWidth) 
                     return(
                     <Window
                         color={collabPreviews[item].cursorColor}
