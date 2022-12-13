@@ -676,7 +676,6 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                 </Typography> : ''}
                 arrow
                 placement='top'
-                zoom
                 PopperProps={{
                     popperRef,
                     anchorEl: {
