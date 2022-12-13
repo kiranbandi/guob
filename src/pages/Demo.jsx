@@ -209,10 +209,6 @@ export default function Demo({ isDark }) {
     border:solid black 1px;
     flex-direction: row;
 }
-${'' /* .track {
-    width: 100%
-    
-} */}
 .body {
     overflow: hidden;
 }
@@ -245,7 +241,6 @@ ${'' /* .track {
   border:solid black 1px;
   flex-direction: row;
   left: 2%;
-  
 }
 .preview {
     border: 1px solid black;
@@ -550,6 +545,7 @@ ${'' /* .track {
                         valueLabelDisplay={"auto"}
                         onChange={handleSlider}
                     />
+
                 </Stack>
 
                 {previewSelector.visible && <Miniview
@@ -619,7 +615,7 @@ ${'' /* .track {
                             <Typography variant={'h5'} sx={{
                                 WebkitUserSelect: 'none',
                             }}>
-                            {titleState}
+                                {titleState}
                             </Typography>
                             <Stack direction="row" marginBottom={5} >
                                 {Object.keys(basicTrackSelector).map(genomeItem => {
@@ -630,7 +626,7 @@ ${'' /* .track {
                                                 array={basicTrackSelector[genomeItem].array}
                                                 color={basicTrackSelector[genomeItem].color}
                                                 genome={true}
-                                                width={document.querySelector('.draggableItem')?.getBoundingClientRect()?.width? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
+                                                width={document.querySelector('.draggableItem')?.getBoundingClientRect()?.width ? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
                                                 normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
                                                 trackType={basicTrackSelector[genomeItem].trackType}
                                                 title={genomeItem}

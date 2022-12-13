@@ -54,7 +54,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     }
 
     const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
-        maxWidth = normalize ? raw_width * cap/normalizedLength : raw_width,
+        maxWidth = normalize && !genome ? raw_width * cap/normalizedLength : raw_width,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
     useEffect(() => {
@@ -84,7 +84,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
         if (!array) return
 
-        normalize ? setCap(normalizedLength) : setCap(Math.max(...array.map(d => d.end)))
+        normalize && !genome ? setCap(normalizedLength) : setCap(Math.max(...array.map(d => d.end)))
 
         setStart(Math.min(...array.map(d => d.start)))
 
@@ -447,6 +447,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                         }))
                         found = true;
                         //! Proof of concept following gene
+                        //TODO pull this into a function
                         let index;
                         let trackID;
                         let orthologInformation;
@@ -456,13 +457,15 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                         if (x.siblings != 0 && x.siblings.length > 0) {
                             for (const [key, value] of Object.entries(trackSelector)) {
                                 index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
-                                orthologInformation = value.array[index]
-                                orthologChromosome = value.array
-                                trackID = key
-                                matched = true
-                                break  // just finding the first ortholog as a proof of concept  
+                                if (index > -1){
+                                    orthologInformation = value.array[index]
+                                    orthologChromosome = value.array
+                                    trackID = key
+                                    matched = true
+                                    break  // just finding the first ortholog as a proof of concept  
+                                }
+                   
                             }
-
                             if (matched == true && index > -1) {
 
 
@@ -474,19 +477,16 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                                 // Should almost certainly use a web worker for this
                                 let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
                                 let calculatedZoom = x.width / relatedWidthScale(orthologInformation.end - orthologInformation.start) //the size of the ortholog
-
+                       
                                 // Aligning related tracks with the selected block
-                                dispatch(changeZoom({
+                                dispatch(updateTrack({
                                     key: trackID,
-                                    zoom: calculatedZoom
+                                    zoom: calculatedZoom,
+                                    offset: -(ratio * maxWidth * calculatedZoom) + x.coordinateX
                                 }))
                                 dispatch(setSelection({
                                     key: trackID,
                                     selection: orthologInformation.key
-                                }))
-                                dispatch(pan({
-                                    key: trackID,
-                                    offset: -(ratio * maxWidth * calculatedZoom) + x.coordinateX
                                 }))
                             }
                         }
