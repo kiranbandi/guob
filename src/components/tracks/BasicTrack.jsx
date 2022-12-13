@@ -509,7 +509,7 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
     };
 
 
-    let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", Gene Density Track" : "Chromosome: " + title.toUpperCase() + ", Methylation Track"
+    let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", GFF" : "Chromosome: " + title + ", BED"
 
     let locationScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
@@ -519,7 +519,6 @@ const BasicTrack = ({ array, color, trackType = 'default', normalizedLength = 0,
             {title &&
                 <Typography
                     variant="h6"
-                    alignJustify
                     className={"title"}
                     style={{
                         WebkitUserSelect: 'none',

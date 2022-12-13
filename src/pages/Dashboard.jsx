@@ -243,9 +243,9 @@ export default function Dashboard({ isDark }) {
       let ColourScale = scaleOrdinal().domain([0, 9])
         .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
 
-    
-        normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-     
+
+      normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+
       chromosomalData.forEach((point, i) => {
         if (point.trackType === 'default') {
           color = ColourScale(i % 10)
@@ -266,6 +266,21 @@ export default function Dashboard({ isDark }) {
     <div className='pageWrapper' css={styling}>
 
       <Stack my={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+
+      <Button variant='outlined' onClick={() => {
+          setDemoFile("files/bn_ge_smallrna_methylation.bed")
+          setTitleState("Canola All")
+        }}> Canola All</Button>
+
+        <Button variant='outlined' onClick={() => {
+          setDemoFile("files/bn_smallrna_100k.bed")
+          setTitleState("Canola smallRNA")
+        }}> Canola smallRNA</Button>
+
+        <Button variant='outlined' onClick={() => {
+          setDemoFile("files/bn_geneexpression_100k.bed")
+          setTitleState("Canola GE")
+        }}> Canola GE</Button>
 
         <Button variant='outlined' onClick={() => {
           setDemoFile("files/bn_methylation_100k.bed")
