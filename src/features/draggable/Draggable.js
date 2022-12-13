@@ -133,14 +133,14 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
             }
         })
     }
-
     return (
         <div ref={secondRef} className={className}>
             <div className='draggableItem' style=
                 {{
                     opacity: opacity,
                     borderStyle: borderGroup,
-                    border: highlightGroup
+                    border: highlightGroup,
+                    // display: "flex"
                 }}>
                 {children}
             </div>

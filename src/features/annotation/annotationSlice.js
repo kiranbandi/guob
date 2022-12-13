@@ -30,7 +30,13 @@ export const annotationSlice = createSlice({
 
         },
         removeAnnotation: (state, action) => {
-            let trash = state.annotations[action.payload.key].pop()
+            if(state.annotations[action.payload.key]){
+                let index = state.annotations[action.payload.key].findIndex(x => {
+                    return Math.abs(x.location - action.payload.location) < 100000
+                })
+                state.annotations[action.payload.key].splice(index,1)
+            }
+            // let trash = state.annotations[action.payload.key].pop()
         },
         addSearch: (state, action) => {
             if (!state.searches[action.payload.key]) {

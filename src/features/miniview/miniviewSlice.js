@@ -10,16 +10,6 @@ import { scaleLinear } from 'd3-scale';
 const initialState = {
     // Currently just a placeholder 
     miniviews: {
-        // 'preview': {
-        //     color: 0,
-        //     coordinateX: 0,
-        //     coordinateY: 0,
-        //     height: "1rem",
-        //     width: 400,
-        //     id: 'preview',
-        //     visible: false,
-        //     trackType: "default"
-        // },
         'newPreview': {
             color: 0,
             coordinateX: 0,
@@ -124,13 +114,22 @@ export const miniviewSlice = createSlice({
         },
         changePreviewVisibility: (state, action) => {
             state.miniviews['newPreview'].visible = action.payload.visible
-        }
+        },
+        moveCollabPreview: (state, action) => {
+
+            if(! state.miniviews[action.payload.user]) state.miniviews[action.payload.user] = {}
+                state.miniviews[action.payload.user].center = action.payload.center
+                state.miniviews[action.payload.user].track = action.payload.track
+                state.miniviews[action.payload.user].trackType = action.payload.trackType
+                state.miniviews[action.payload.user].cursorColor = action.payload.cursorColor
+            
+        },
 
 
     }
 })
 
-export const { addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility, addComparison, removeComparison, increaseZoom, decreaseZoom, pan, panComparison, zoomComparison, clearComparisons, movePreview, updatePreview, changePreviewVisibility } = miniviewSlice.actions;
+export const { moveCollabPreview, addMiniview, removeMiniview, moveMiniview, updateData, changeMiniviewColor, changeMiniviewVisibility, addComparison, removeComparison, increaseZoom, decreaseZoom, pan, panComparison, zoomComparison, clearComparisons, movePreview, updatePreview, changePreviewVisibility } = miniviewSlice.actions;
 
 export const selectMiniviews = (state) => state.miniview.miniviews
 export const selectComparison = (state) => state.miniview.comparison
