@@ -47,6 +47,8 @@ export default function Dashboard({ isDark }) {
   const [titleState, setTitleState] = useState("Aradopsis thaliana")
   const [normalize, setNormalize] = useState(false)
 
+  const [groupByChromosome, setGrouping] = useState(false)
+
   // This is being used to change css, when the "Toggle Margins" switch is clicked.
   const [draggableSpacing, setDraggableSpacing] = useState(false)
 
@@ -120,6 +122,7 @@ export default function Dashboard({ isDark }) {
   }
 
   function changeNormalize(e) { setNormalize(e.target.checked) }
+  function changeGrouping(e) { setGrouping(e.target.checked) }
 
   function removeAnAlternateDraggable() {
     let keys = Object.keys(alternateDraggableSelector)
@@ -183,7 +186,7 @@ export default function Dashboard({ isDark }) {
     cursor: crosshair; 
     border: 1px solid grey;
     margin-bottom: ${draggableSpacing ? 0 : "1.5rem"};
-    height: 6rem;
+    height: 7rem;
     border:solid black 1px;
     flex-direction: row;
 }
@@ -194,15 +197,31 @@ export default function Dashboard({ isDark }) {
     float: left;
     margin: 0px;
     overflow: hidden;
+
+    &.smaller {
+      width: 95%;
+    }
   }
   .handle {
     width: 2%;
     float: left;
     height: 100%;
-    margin: 0%;
+    margin:0%;
     padding: 0%;
     cursor: grab;
+
+    &.smaller {
+      margin: 0% 0.5% 0% 0%;
+    }
   }
+
+  .halfHandle {
+    margin-top: 2%;
+    height: 33%;
+    border-radius: 50%;
+    width: fit-content;
+  }
+
 .track {
     width: 100%
 }
@@ -243,10 +262,12 @@ export default function Dashboard({ isDark }) {
       let ColourScale = scaleOrdinal().domain([0, 9])
         .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
 
-    
-        normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-     
-      chromosomalData.forEach((point, i) => {
+
+      normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+
+      let dataArray = groupByChromosome ? _.flatMap(_.groupBy(chromosomalData, e => e.key.chromosome.split("-").slice(-1))) : [...chromosomalData];
+
+      dataArray.forEach((point, i) => {
         if (point.trackType === 'default') {
           color = ColourScale(i % 10)
         }
@@ -259,13 +280,28 @@ export default function Dashboard({ isDark }) {
       setLoading(false)
     })
     setLoading(true)
-  }, [demoFile])
+  }, [demoFile, groupByChromosome])
 
 
   return (
     <div className='pageWrapper' css={styling}>
 
       <Stack my={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+
+        <Button variant='outlined' onClick={() => {
+          setDemoFile("files/bn_ge_smallrna_methylation.bed")
+          setTitleState("Canola All")
+        }}> Canola All</Button>
+
+        <Button variant='outlined' onClick={() => {
+          setDemoFile("files/bn_smallrna_100k.bed")
+          setTitleState("Canola smallRNA")
+        }}> Canola smallRNA</Button>
+
+        <Button variant='outlined' onClick={() => {
+          setDemoFile("files/bn_geneexpression_100k.bed")
+          setTitleState("Canola GE")
+        }}> Canola GE</Button>
 
         <Button variant='outlined' onClick={() => {
           setDemoFile("files/bn_methylation_100k.bed")
@@ -287,6 +323,7 @@ export default function Dashboard({ isDark }) {
         }}>Triticum aestivum</Button>
         <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
         <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
+        {(demoFile.indexOf('bn_ge_smallrna_methylation') > -1) && <FormControlLabel control={<Switch onChange={changeGrouping} />} label={"Group by Chromosome"} />}
 
       </Stack>
 
@@ -351,7 +388,9 @@ export default function Dashboard({ isDark }) {
             <DragContainer startingList={draggableSelector}>
               {draggableSelector.map(item => {
                 return (
-                  <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                  <Draggable
+                    color={basicTrackSelector[item].color}
+                    showControls={true} key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
                     <BasicTrack
                       array={basicTrackSelector[item].array}
                       color={basicTrackSelector[item].color}

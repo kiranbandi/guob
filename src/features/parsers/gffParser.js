@@ -1,5 +1,4 @@
 
-import { ConnectingAirportsOutlined } from "@mui/icons-material"
 import { text } from "d3-fetch"
 
 
@@ -13,7 +12,7 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
         // BED file processor for methylation data
         if (demoFile.indexOf('.bed') > -1) {
 
-            trackType = 'scatter'
+            trackType = 'histogram'
 
             temporary.forEach(d => {
                 let info = d.split('\t')
@@ -117,25 +116,10 @@ function buildModel(dataset, trackType) {
             return d[1].chromosome == chr.chromosome
         }).map(x => x[1])
 
-        //   temporary stub for demo purposes 
-        let tempTrackType = trackType;
-        if (trackType === 'scatter') {
-
-            if (chrIndex % 3 === 1) {
-                tempTrackType = 'scatter';
-            }
-            else if (chrIndex % 3 === 2) {
-                tempTrackType = 'line';
-            }
-            else {
-                tempTrackType = 'histogram';
-            }
-        }
-
         var temp = {
             key: chr,
             data: subset,
-            trackType: tempTrackType,
+            trackType
         }
         chromosomalData.push(temp)
     })
@@ -147,7 +131,6 @@ function process(collinearityData) {
     // The first 11 lines contain information regarding the MCSCANX Parameters
     // and can be processed seperately 
     var FileLines = collinearityData.split('\n'),
-        information = parseInformation(FileLines.slice(0, 11)),
         alignmentList = [],
         alignmentBuffer = {};
     // remove the first 11 lines and then process the file line by line
@@ -170,27 +153,9 @@ function process(collinearityData) {
     // get the unique list of IDs of all chromosomes or scaffolds that have alignments mapped to them
     let uniqueIDList = [];
     alignmentList.map((d) => { uniqueIDList.push(d.source, d.target) });
-    return { "information": information, "alignmentList": alignmentList, 'uniqueIDList': uniqueIDList.filter(onlyUnique) };
+    return { "information": {}, "alignmentList": alignmentList, 'uniqueIDList': uniqueIDList.filter(onlyUnique) };
 };
 
-
-function parseInformation(informationLines) {
-    return {
-        'parameters': [
-            ['match score', informationLines[1].split(':')[1].trim()],
-            ['match size', informationLines[2].split(':')[1].trim()],
-            ['gap penality', informationLines[3].split(':')[1].trim()],
-            ['overlap wndow', informationLines[4].split(':')[1].trim()],
-            ['e value', informationLines[5].split(':')[1].trim()],
-            ['maximum gaps', informationLines[6].split(':')[1].trim()]
-        ],
-        'stats': {
-            'no_of_collinear_genes': informationLines[8].split(',')[0].split(":")[1].trim(),
-            'percentage': Number(informationLines[8].split(',')[1].split(":")[1].trim()),
-            'no_of_all_genes': informationLines[8].split(',')[1].split(":")[1].trim()
-        }
-    };
-}
 
 function parseAlignmentDetails(alignmentDetails) {
     let alignmentDetailsList = alignmentDetails.split(' ');
