@@ -47,6 +47,8 @@ export default function Dashboard({ isDark }) {
   const [titleState, setTitleState] = useState("Aradopsis thaliana")
   const [normalize, setNormalize] = useState(false)
 
+  const [groupByChromosome, setGrouping] = useState(false)
+
   // This is being used to change css, when the "Toggle Margins" switch is clicked.
   const [draggableSpacing, setDraggableSpacing] = useState(false)
 
@@ -120,6 +122,7 @@ export default function Dashboard({ isDark }) {
   }
 
   function changeNormalize(e) { setNormalize(e.target.checked) }
+  function changeGrouping(e) { setGrouping(e.target.checked) }
 
   function removeAnAlternateDraggable() {
     let keys = Object.keys(alternateDraggableSelector)
@@ -183,7 +186,7 @@ export default function Dashboard({ isDark }) {
     cursor: crosshair; 
     border: 1px solid grey;
     margin-bottom: ${draggableSpacing ? 0 : "1.5rem"};
-    height: 6rem;
+    height: 7rem;
     border:solid black 1px;
     flex-direction: row;
 }
@@ -214,7 +217,7 @@ export default function Dashboard({ isDark }) {
 
   .halfHandle {
     margin-top: 2%;
-    height: 45%;
+    height: 33%;
     border-radius: 50%;
     width: fit-content;
   }
@@ -262,7 +265,9 @@ export default function Dashboard({ isDark }) {
 
       normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
 
-      chromosomalData.forEach((point, i) => {
+      let dataArray = groupByChromosome ? _.flatMap(_.groupBy(chromosomalData, e => e.key.chromosome.split("-").slice(-1))) : [...chromosomalData];
+
+      dataArray.forEach((point, i) => {
         if (point.trackType === 'default') {
           color = ColourScale(i % 10)
         }
@@ -275,7 +280,7 @@ export default function Dashboard({ isDark }) {
       setLoading(false)
     })
     setLoading(true)
-  }, [demoFile])
+  }, [demoFile, groupByChromosome])
 
 
   return (
@@ -318,6 +323,7 @@ export default function Dashboard({ isDark }) {
         }}>Triticum aestivum</Button>
         <FormControlLabel control={<Switch onChange={changeMargins} />} label={"Toggle Margins"} />
         <FormControlLabel control={<Switch onChange={changeNormalize} />} label={"Normalize"} />
+        {(demoFile.indexOf('bn_ge_smallrna_methylation') > -1) && <FormControlLabel control={<Switch onChange={changeGrouping} />} label={"Group by Chromosome"} />}
 
       </Stack>
 
@@ -382,7 +388,9 @@ export default function Dashboard({ isDark }) {
             <DragContainer startingList={draggableSelector}>
               {draggableSelector.map(item => {
                 return (
-                  <Draggable showControls={true} key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                  <Draggable
+                    color={basicTrackSelector[item].color}
+                    showControls={true} key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
                     <BasicTrack
                       array={basicTrackSelector[item].array}
                       color={basicTrackSelector[item].color}

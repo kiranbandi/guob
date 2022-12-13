@@ -6,18 +6,20 @@ import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDispatch } from "react-redux"
 import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables, removeDraggable } from "./draggableSlice"
-import { toggleTrackType, removeBasicTrack } from "../../components/tracks/basicTrackSlice"
+import { toggleTrackType, removeBasicTrack, changeBasicTrackColor } from "../../components/tracks/basicTrackSlice"
 import { IconButton, Button } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import { teal, deepOrange } from '@mui/material/colors';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import MultilineChartIcon from '@mui/icons-material/MultilineChart';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import ColorLensIcon from '@mui/icons-material/ColorLens';
 import { useSelector } from "react-redux"
 import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
+import { ChromePicker } from 'react-color';
 
-const Draggable = ({ children, id, index, grouped, groupID, className, showControls = false }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className, showControls = false, color }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
@@ -28,6 +30,14 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
 
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
+    let [showColorPicker, setColorPickerVisibility] = useState(false)
+
+    // let [color, setColor] = useState({
+    //     r: '241',
+    //     g: '112',
+    //     b: '19',
+    //     a: '1',
+    // })
 
     function updateTimer() {
         clearTimeout(waiting)
@@ -136,6 +146,20 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
             }
         })
     }
+
+    const popover = {
+        position: 'absolute',
+        zIndex: '2',
+    }
+    const cover = {
+        position: 'fixed',
+        top: '0px',
+        right: '0px',
+        bottom: '0px',
+        left: '0px',
+    }
+
+
     return (
         <div ref={secondRef} className={className}>
             <div className={'draggableItem ' + (showControls ? "smaller" : '')} style=
@@ -147,7 +171,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
                 }}>
                 {children}
             </div>
-            {showControls && <div className='handle smaller' style={{ paddingTop: '1%' }}>
+            {showControls && <div className='handle smaller'>
 
                 <IconButton ref={ref} className='halfHandle' sx={{
                     backgroundColor: deepOrange[100],
@@ -175,9 +199,20 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
                 >
                     <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
                 </IconButton>
-
-            </div>
-            }
+                <IconButton ref={ref} className='halfHandle' sx={{
+                    backgroundColor: deepOrange[100],
+                    borderRadius: 1,
+                    '&:hover': {
+                        backgroundColor: deepOrange[500]
+                    }
+                }} onClick={(e) => { setColorPickerVisibility(true) }}>
+                    <ColorLensIcon fontSize="small" className="handle_image" />
+                </IconButton>
+                {showColorPicker ? <div style={popover}>
+                    <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
+                    <ChromePicker disableAlpha={true} color={{ 'hex': color }} onChangeComplete={(c) => { dispatch(changeBasicTrackColor({ 'key': id, 'color': c.hex })) }} />
+                </div> : null}
+            </div>}
 
 
             <IconButton ref={ref} className={'handle ' + (showControls ? "smaller" : '')} sx={{

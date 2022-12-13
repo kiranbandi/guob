@@ -12,7 +12,7 @@ import { selectDraggables } from "features/draggable/draggableSlice.js";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
-const BasicTrack = ({ array, genome=false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
+const BasicTrack = ({ array, genome = false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -53,7 +53,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     }
 
     const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
-        maxWidth = normalize && !genome ? raw_width * cap/normalizedLength : raw_width,
+        maxWidth = normalize && !genome ? raw_width * cap / normalizedLength : raw_width,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
     useEffect(() => {
@@ -78,7 +78,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     // piling on another hack - clear draw genes when switching track type
     useEffect(() => {
         setDrawnGenes([])
-    }, [isDark, trackType, normalize, maxWidth])
+    }, [isDark, color, trackType, normalize, maxWidth])
 
     useEffect(() => {
 
@@ -199,7 +199,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
     let [waiting, setWaiting] = useState()
     let [posWaiting, setPosWaiting] = useState()
-   
+
     function updateTimer(id, ratio, zoom) {
         clearTimeout(posWaiting)
         setPosWaiting(window.setTimeout(() => {
@@ -213,15 +213,15 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     }
 
     function updateCollabPosition(info) {
-            clearTimeout(waiting)
-            setWaiting(window.setTimeout(() => {
-                gt.updateState({ Action: "handlePreviewPosition", info })
-            },80))
+        clearTimeout(waiting)
+        setWaiting(window.setTimeout(() => {
+            gt.updateState({ Action: "handlePreviewPosition", info })
+        }, 80))
     }
 
     function handleScroll(e) {
 
-        if(genome) return
+        if (genome) return
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
         // e.stopPropagation()
@@ -270,7 +270,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
 
-        if(genome) return
+        if (genome) return
         // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
@@ -303,7 +303,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
 
     function showPreview(event) {
-       if(genome) return
+        if (genome) return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -365,7 +365,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
         Math.round(beginning)
 
-        if(window.gt){
+        if (window.gt) {
             let info = {
                 user: window.gt.id,
                 track: id,
@@ -399,7 +399,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     function deleteAnnotation() {
 
         let annotation = {
-            key:id,
+            key: id,
             location: previewSelector.center
         }
         dispatch(removeAnnotation(annotation))
@@ -410,7 +410,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     }
 
     function handleClick(e) {
-        if(genome) return
+        if (genome) return
         if (e.type == 'mousedown') {
             setDragging(true)
             setClickLocation(e.clientX - e.target.offsetLeft)
@@ -424,11 +424,11 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                     return
                 }
                 if (e.shiftKey) {
-                    if(e.ctrlKey){
+                    if (e.ctrlKey) {
                         deleteAnnotation()
                         setClickLocation(null)
-                        return 
-                    } 
+                        return
+                    }
                     newAnnotation()
                     setClickLocation(null)
                     return
@@ -457,14 +457,14 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                         if (x.siblings != 0 && x.siblings.length > 0) {
                             for (const [key, value] of Object.entries(trackSelector)) {
                                 index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
-                                if (index > -1){
+                                if (index > -1) {
                                     orthologInformation = value.array[index]
                                     orthologChromosome = value.array
                                     trackID = key
                                     matched = true
                                     break  // just finding the first ortholog as a proof of concept  
                                 }
-                   
+
                             }
                             if (matched == true && index > -1) {
 
@@ -477,7 +477,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                                 // Should almost certainly use a web worker for this
                                 let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
                                 let calculatedZoom = x.width / relatedWidthScale(orthologInformation.end - orthologInformation.start) //the size of the ortholog
-                       
+
                                 // Aligning related tracks with the selected block
                                 dispatch(updateTrack({
                                     key: trackID,
@@ -568,7 +568,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                         WebkitUserSelect: 'none',
                         position: 'relative',
                         top: 0,
-                        fontWeight:100,
+                        fontWeight: 100,
                         textAlign: 'center',
                         marginLeft: 'auto',
                         marginRight: 0,
@@ -584,20 +584,20 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
                 let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
 
-                if(collabX >= canvasRef.current.offsetLeft &&
-                    previewWidth > 0) 
-                    return(
-                    <Window
-                        color={collabPreviews[item].cursorColor}
-                        key={item}
-                        coordinateX={collabX}
-                        coordinateY={canvasRef.current.offsetTop}
-                        height={canvasRef.current.offsetHeight + 2}
-                        width={collabWidth} // boxwidth
-                        preview={id == 'preview' ? false : true}
-                        text={Math.max(Math.round(beginning), 0)}
-                        grouped={grouped}
-                    />
+                if (collabX >= canvasRef.current.offsetLeft &&
+                    previewWidth > 0)
+                    return (
+                        <Window
+                            color={collabPreviews[item].cursorColor}
+                            key={item}
+                            coordinateX={collabX}
+                            coordinateY={canvasRef.current.offsetTop}
+                            height={canvasRef.current.offsetHeight + 2}
+                            width={collabWidth} // boxwidth
+                            preview={id == 'preview' ? false : true}
+                            text={Math.max(Math.round(beginning), 0)}
+                            grouped={grouped}
+                        />
                     )
             })
             }
