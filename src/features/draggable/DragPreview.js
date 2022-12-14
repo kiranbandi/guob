@@ -16,6 +16,7 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
             <div className={className}>
                 <BasicTrack
                     array={basicTrackSelector[item].array}
+                    // genome={true}
                     color={basicTrackSelector[item].color}
                     id={nanoid()}
                     zoom={basicTrackSelector[item].zoom}

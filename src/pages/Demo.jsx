@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
 import { addAlternateDraggable, removeAlternateDraggable } from '../features/draggable/alternateDraggableSlice';
 import { addMiniview, removeMiniview, selectComparison, removeComparison } from '../features/miniview/miniviewSlice';
-import { Switch, Button, Stack, Divider, FormControl, FormControlLabel } from '@mui/material'
+import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
 import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
@@ -54,6 +54,7 @@ export default function Demo({ isDark }) {
 
     const [testId, setTestId] = useState(5)
     const [startY, setStartY] = useState(900)
+    const [drawerOpen, setDrawerOpen] =  useState(false)
 
     const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
@@ -432,13 +433,34 @@ export default function Demo({ isDark }) {
         }
     }
 
+    const toggleDrawer = () => {
+        setDrawerOpen(drawerOpen => !drawerOpen)
+    }
+
     const [searchTerms, setSearchTerms] = useState()
     const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
     return (
         <>
             <div css={styling}>
-
+                <Drawer
+                    open={drawerOpen}
+                    onClose={toggleDrawer}>
+                    <Typography variant="h2" m={5}>
+                        Upload Files
+                    </Typography>
+                    <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
+                        <Button variant="outlined">
+                            Upload GFF File
+                        </Button>
+                        <Button variant="outlined">
+                            Upload BED File
+                        </Button>
+                        <Button variant="outlined">
+                            Upload Collinearity File
+                        </Button>
+                    </Stack>
+                </Drawer>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
                         clearComparisonTracks()
@@ -546,6 +568,9 @@ export default function Demo({ isDark }) {
                         onChange={handleSlider}
                     />
 
+                        <Button variant="outline"  onClick={toggleDrawer}>
+                            Upload files
+                            </Button>
                 </Stack>
 
                 {previewSelector.visible && <Miniview

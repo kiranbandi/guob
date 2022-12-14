@@ -586,18 +586,20 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                 let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
 
                 if(collabX >= canvasRef.current.offsetLeft &&
-                    previewWidth > 0) 
+                    collabX <= canvasRef.current.offsetLeft + maxWidth) 
                     return(
                     <Window
                         color={collabPreviews[item].cursorColor}
                         key={item}
                         coordinateX={collabX}
                         coordinateY={canvasRef.current.offsetTop}
-                        height={canvasRef.current.offsetHeight + 2}
+                        height={canvasRef.current.offsetHeight}
                         width={collabWidth} // boxwidth
                         preview={id == 'preview' ? false : true}
                         text={Math.max(Math.round(beginning), 0)}
                         grouped={grouped}
+                        isDark={isDark}
+                        style={genome ? "genome" : undefined}
                     />
                     )
             })
@@ -605,7 +607,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
             {previewSelector.visible && comparisonSelector &&
                 comparisonSelector.map(comparison => {
-                    let x = locationScale(comparison.center) + offset + canvasRef.current.offsetLeft + 3
+                    let x = locationScale(comparison.center) + offset + canvasRef.current.offsetLeft
                     let width = viewFinderWidth(comparison.end - comparison.start)
                     let start = viewFinderScale(comparison.start) + offset + canvasRef.current.offsetLeft
 
@@ -616,12 +618,14 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                                 key={comparison.key}
                                 coordinateX={x}
                                 coordinateY={canvasRef.current.offsetTop}
-                                height={canvasRef.current.offsetHeight + 2}
+                                height={canvasRef.current.offsetHeight}
                                 width={width} // boxwidth
                                 preview={true}
                                 text={Math.max(Math.round(beginning), 0)}
                                 grouped={grouped}
                                 label={title.toUpperCase() + "-" + comparison.key}
+                                isDark={isDark}
+                                // style={"caret"}
                             />
                         )
                     }
