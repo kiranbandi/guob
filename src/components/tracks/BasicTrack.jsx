@@ -12,7 +12,7 @@ import { selectDraggables } from "features/draggable/draggableSlice.js";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
-const BasicTrack = ({ array, genome=false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
+const BasicTrack = ({ array, genome = false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -29,7 +29,6 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     const [start, setStart] = useState(0)
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
-
 
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
@@ -54,7 +53,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     }
 
     const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
-        maxWidth = normalize && !genome ? raw_width * cap/normalizedLength : raw_width,
+        maxWidth = normalize && !genome ? raw_width * cap / normalizedLength : raw_width,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
     useEffect(() => {
@@ -69,16 +68,17 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
         }
     }, [])
 
-    const [ annotationY, setAnnotationY ] = useState()
+    const [annotationY, setAnnotationY] = useState()
     useEffect(() => {
         setAnnotationY(canvasRef.current.offsetTop)
     }, [order])
 
     // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
     // keep the old palette
+    // piling on another hack - clear draw genes when switching track type
     useEffect(() => {
         setDrawnGenes([])
-    }, [isDark, normalize, maxWidth])
+    }, [isDark, color, trackType, normalize, maxWidth])
 
     useEffect(() => {
 
@@ -115,7 +115,6 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
         setAnnotationY(canvasRef.current.offsetTop)
         if (drawnGenes.length === 0) {
-
             if (trackType == 'line') {
                 let pathArray = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset),
@@ -132,9 +131,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                 ctx.stroke();
                 setDrawnGenes([...array]);
             }
-
             else {
-
                 let holding = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset)
                     let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
@@ -145,8 +142,8 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                 })
                 setDrawnGenes(holding)
             }
-
         }
+
         else {
 
             if (trackType == 'line') {
@@ -185,13 +182,16 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                         drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
                     }
                     else {
-                        drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
+                        if (drawGene.draw) {
+                            drawGene.draw(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value));
+                        }
+
                     }
                 })
             }
 
         }
-    }, [array, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
+    }, [array, trackType, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
     const gt = window.gt;
@@ -199,7 +199,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
     let [waiting, setWaiting] = useState()
     let [posWaiting, setPosWaiting] = useState()
-   
+
     function updateTimer(id, ratio, zoom) {
         clearTimeout(posWaiting)
         setPosWaiting(window.setTimeout(() => {
@@ -213,15 +213,15 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     }
 
     function updateCollabPosition(info) {
-            clearTimeout(waiting)
-            setWaiting(window.setTimeout(() => {
-                gt.updateState({ Action: "handlePreviewPosition", info })
-            },80))
+        clearTimeout(waiting)
+        setWaiting(window.setTimeout(() => {
+            gt.updateState({ Action: "handlePreviewPosition", info })
+        }, 80))
     }
 
     function handleScroll(e) {
 
-        if(genome) return
+        if (genome) return
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
         // e.stopPropagation()
@@ -270,7 +270,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     //TODO Normalizing the tracks leads to the ability to pan off the edge of the track - need to fix
     function handlePan(e) {
 
-        if(genome) return
+        if (genome) return
         // Finding important markers of the track, since it's often in a container
         let trackBoundingRectangle = e.target.getBoundingClientRect()
         let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
@@ -303,7 +303,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
 
     function showPreview(event) {
-       if(genome) return
+        if (genome) return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -365,7 +365,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
         Math.round(beginning)
 
-        if(window.gt){
+        if (window.gt) {
             let info = {
                 user: window.gt.id,
                 track: id,
@@ -399,7 +399,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     function deleteAnnotation() {
 
         let annotation = {
-            key:id,
+            key: id,
             location: previewSelector.center
         }
         dispatch(removeAnnotation(annotation))
@@ -410,7 +410,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     }
 
     function handleClick(e) {
-        if(genome) return
+        if (genome) return
         if (e.type == 'mousedown') {
             setDragging(true)
             setClickLocation(e.clientX - e.target.offsetLeft)
@@ -424,11 +424,11 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                     return
                 }
                 if (e.shiftKey) {
-                    if(e.ctrlKey){
+                    if (e.ctrlKey) {
                         deleteAnnotation()
                         setClickLocation(null)
-                        return 
-                    } 
+                        return
+                    }
                     newAnnotation()
                     setClickLocation(null)
                     return
@@ -457,14 +457,14 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                         if (x.siblings != 0 && x.siblings.length > 0) {
                             for (const [key, value] of Object.entries(trackSelector)) {
                                 index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
-                                if (index > -1){
+                                if (index > -1) {
                                     orthologInformation = value.array[index]
                                     orthologChromosome = value.array
                                     trackID = key
                                     matched = true
                                     break  // just finding the first ortholog as a proof of concept  
                                 }
-                   
+
                             }
                             if (matched == true && index > -1) {
 
@@ -477,7 +477,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                                 // Should almost certainly use a web worker for this
                                 let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
                                 let calculatedZoom = x.width / relatedWidthScale(orthologInformation.end - orthologInformation.start) //the size of the ortholog
-                       
+
                                 // Aligning related tracks with the selected block
                                 dispatch(updateTrack({
                                     key: trackID,
@@ -553,7 +553,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
     };
 
 
-    let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", Gene Density Track" : "Chromosome: " + title.toUpperCase() + ", Methylation Track"
+    let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", GFF" : "Chromosome: " + title + ", BED"
 
     let locationScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
@@ -562,17 +562,16 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
         <div style={{ width: maxWidth, height: '100%' }}>
             {title && !genome &&
                 <Typography
-                    variant="h6"
-                    alignJustify
+                    variant="body1"
                     className={"title"}
                     style={{
                         WebkitUserSelect: 'none',
                         position: 'relative',
                         top: 0,
-                        // justify: 'center',
+                        fontWeight: 100,
+                        textAlign: 'center',
                         marginLeft: 'auto',
                         marginRight: 0,
-                        width: '60%',
                         height: 25,
                         zIndex: 1,
                         pointerEvents: 'none',
@@ -582,7 +581,7 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
 
             {previewSelector.visible && Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
-                
+
                 let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
 
                 if(collabX >= canvasRef.current.offsetLeft &&
@@ -681,7 +680,6 @@ const BasicTrack = ({ array, genome=false, color, trackType = 'default', normali
                 </Typography> : ''}
                 arrow
                 placement='top'
-                zoom
                 PopperProps={{
                     popperRef,
                     anchorEl: {

@@ -191,8 +191,8 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900, 
             {/* <rect x="0" y="0" width="950" height="100" style={{ fill: "none", stroke: "pink", strokeWidth: 5, fillOpacity: 0.1, strokeOpacity: 0.9 }} /> */}
             <g className="LinksSVGg" ref={svgGRef} onClick={locate}>
             <linearGradient id={'link-gradient'} x1={0} x2={0} y1={0} y2={1}>
-            <stop offset=".25" stop-color={gradient[1]}></stop>
-            <stop offset=".75" stop-color={gradient[0]}></stop>
+            <stop offset=".25" stopColor={gradient[1]}></stop>
+            <stop offset=".75" stopColor={gradient[0]}></stop>
             </linearGradient>
                 {pathList}
             </g>

@@ -5,16 +5,21 @@ import { ItemTypes } from "./ItemTypes"
 import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDispatch } from "react-redux"
-import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables } from "./draggableSlice"
+import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables, removeDraggable } from "./draggableSlice"
+import { toggleTrackType, removeBasicTrack, changeBasicTrackColor } from "../../components/tracks/basicTrackSlice"
 import { IconButton, Button } from "@mui/material"
 import { styled } from "@mui/material/styles"
-import { teal } from '@mui/material/colors';
+import { teal, deepOrange } from '@mui/material/colors';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
+import MultilineChartIcon from '@mui/icons-material/MultilineChart';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import ColorLensIcon from '@mui/icons-material/ColorLens';
 import { useSelector } from "react-redux"
 import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
+import { ChromePicker } from 'react-color';
 
-const Draggable = ({ children, id, index, grouped, groupID, className }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className, showControls = false, color }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
@@ -25,6 +30,14 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
 
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
+    let [showColorPicker, setColorPickerVisibility] = useState(false)
+
+    // let [color, setColor] = useState({
+    //     r: '241',
+    //     g: '112',
+    //     b: '19',
+    //     a: '1',
+    // })
 
     function updateTimer() {
         clearTimeout(waiting)
@@ -63,29 +76,29 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
             // Updating the redux store - using conditional to keep calls to a minimum
             if (dragIndex != hoverIndex) {
                 dispatch(switchDraggable({
-                        startKey: item.id,
-                        switchKey: id
-                    })
-                    )
+                    startKey: item.id,
+                    switchKey: id
+                })
+                )
 
                 if (!grouped) {
                     // If outside the group, the entire group needs to be moved as opposed to just switching two
                     let offset = 1;
                     groupID.forEach((x) => {
-                        if(x != item.id){
+                        if (x != item.id) {
                             dispatch(insertDraggable({
-                            startKey: item.id,
-                            id: x,
-                            index: offset
-                        })
-                        )
-                        offset += 1;
+                                startKey: item.id,
+                                id: x,
+                                index: offset
+                            })
+                            )
+                            offset += 1;
                         }
                     })
                 }
                 dispatch(sortGroup())
-                }
-             // Need to change the item's index or it can't be placed back in the original position due to the conditional
+            }
+            // Need to change the item's index or it can't be placed back in the original position due to the conditional
             item.index = hoverIndex
         },
     }), [index, groupID])
@@ -106,18 +119,18 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
     const borderGroup = grouped ? "outset" : "none"
 
     drag(drop(ref))
-    
+
     //#############################
     // Used without CustomDragLayer
     // drop(preview(secondRef))
-    
+
     // Used with CustomDragLayer
     drop((secondRef))
     //###################################
-    
-    
-    if(window.gt && change){
-        window.gt.updateState({ Action: "handleDragged", order:draggableSelector, id: id })
+
+
+    if (window.gt && change) {
+        window.gt.updateState({ Action: "handleDragged", order: draggableSelector, id: id })
         setChange()
     }
 
@@ -126,16 +139,30 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
             // TODO this feels like a hacky way of doing this
             if (userID === document.title) return
             if (payload.Action == "handleDragged") {
-                if(payload.id !== id) return
+                if (payload.id !== id) return
                 dispatch(setDraggables({
                     order: payload.order
                 }))
             }
         })
     }
+
+    const popover = {
+        position: 'absolute',
+        zIndex: '2',
+    }
+    const cover = {
+        position: 'fixed',
+        top: '0px',
+        right: '0px',
+        bottom: '0px',
+        left: '0px',
+    }
+
+
     return (
         <div ref={secondRef} className={className}>
-            <div className='draggableItem' style=
+            <div className={'draggableItem ' + (showControls ? "smaller" : '')} style=
                 {{
                     opacity: opacity,
                     borderStyle: borderGroup,
@@ -144,37 +171,82 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
                 }}>
                 {children}
             </div>
-            <IconButton ref={ref} className='handle' sx={{
+            {showControls && <div className='handle smaller'>
+
+                <IconButton ref={ref} className='halfHandle' sx={{
+                    backgroundColor: deepOrange[100],
+                    borderRadius: 1,
+                    '&:hover': {
+                        backgroundColor: deepOrange[500]
+                    }
+                }} onClick={(e) => {
+                    dispatch(toggleTrackType({ id }))
+                }}
+                >
+                    <MultilineChartIcon fontSize="small" className="handle_image" />
+                </IconButton>
+
+                <IconButton ref={ref} className='halfHandle' sx={{
+                    backgroundColor: deepOrange[100],
+                    borderRadius: 1,
+                    '&:hover': {
+                        backgroundColor: deepOrange[500]
+                    }
+                }} onClick={(e) => {
+                    dispatch(removeDraggable({ 'key': id }))
+                    dispatch(removeBasicTrack({ 'key': id }))
+                }}
+                >
+                    <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
+                </IconButton>
+                <IconButton ref={ref} className='halfHandle' sx={{
+                    backgroundColor: deepOrange[100],
+                    borderRadius: 1,
+                    '&:hover': {
+                        backgroundColor: deepOrange[500]
+                    }
+                }} onClick={(e) => { setColorPickerVisibility(true) }}>
+                    <ColorLensIcon fontSize="small" className="handle_image" />
+                </IconButton>
+                {showColorPicker ? <div style={popover}>
+                    <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
+                    <ChromePicker disableAlpha={true} color={{ 'hex': color }} onChangeComplete={(c) => { dispatch(changeBasicTrackColor({ 'key': id, 'color': c.hex })) }} />
+                </div> : null}
+            </div>}
+
+
+            <IconButton ref={ref} className={'handle ' + (showControls ? "smaller" : '')} sx={{
                 backgroundColor: teal[100],
                 borderRadius: 1,
                 '&:hover': {
                     backgroundColor: teal[500]
                 }
-            }} onClick={(e) => {
-                if (!e.ctrlKey && !grouped){
-                    dispatch(clearGroup())
-                }
-                else{
-                    if(!e.ctrlKey) return 
-                     dispatch(toggleGroup({
-                    id: id
-                }))
-                dispatch(sortGroup())
-                }
-               
             }}
-             onMouseDown={(e) =>{
-                if (!e.ctrlKey && !grouped){
-                    dispatch(clearGroup())
-                } 
-                if(window.gt){
-                updateTimer()
-                }
-             }}
-               >
+                onClick={(e) => {
+                    if (!e.ctrlKey && !grouped) {
+                        dispatch(clearGroup())
+                    }
+                    else {
+                        if (!e.ctrlKey) return
+                        dispatch(toggleGroup({
+                            id: id
+                        }))
+                        dispatch(sortGroup())
+                    }
+
+                }}
+                onMouseDown={(e) => {
+                    if (!e.ctrlKey && !grouped) {
+                        dispatch(clearGroup())
+                    }
+                    if (window.gt) {
+                        updateTimer()
+                    }
+                }}
+            >
                 <DragHandleIcon fontSize="small" className="handle_image" />
             </IconButton>
-        </div>
+        </div >
 
     )
 }

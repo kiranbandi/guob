@@ -226,14 +226,27 @@ export default function Demo({ isDark }) {
     float: left;
     margin: 0px;
     overflow: hidden;
+
+    &.smaller {
+      width: 95%;
+    }
   }
   .handle {
     width: 2%;
     float: left;
     height: 100%;
-    margin: 0%;
+    margin:0%;
     padding: 0%;
     cursor: grab;
+
+    &.smaller {
+      margin: 0% 0.5% 0% 0%;
+    }
+  }
+  .halfHandle {
+    height: 45%;
+    border-radius: 50%;
+    width: fit-content;
   }
 .alternateDraggable{
   height: 50px;

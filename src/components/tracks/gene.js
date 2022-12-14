@@ -28,7 +28,7 @@ export class gene {
         context.fillStyle = this.color
         context.beginPath()
         if (this.trackType === 'scatter') {
-            let radius = width / 10,
+            let radius = width / 15,
                 // shift the start of the point draw so the point is drawn in the center of the allocated width for each rectangle
                 xShift = this.coordinateX + (width / 2) - radius;
             drawPoint(context, xShift, this.coordinateY, width);
