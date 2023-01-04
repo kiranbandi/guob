@@ -3,10 +3,6 @@ import { ItemTypes } from './ItemTypes.js'
 import { DragPreview } from './DragPreview.js'
 import { nanoid } from '@reduxjs/toolkit'
 import OrthologLinks from 'components/tracks/OrthologLinks.jsx'
-import { useEffect, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { selectDraggables, setDraggables } from './draggableSlice.js'
-
 
 const layerStyle = {
     position: 'fixed',
@@ -21,22 +17,6 @@ const layerStyle = {
 
 export const CustomDragLayer = (props) => {
 
-    // const [waiting, setWaiting] = useState()
-    // const [change, setChange] = useState()
-    // const draggableSelector = useSelector(selectDraggables)
-    // const dispatch = useDispatch()
-
-    // function updateTimer() {
-    //     clearTimeout(waiting)
-    //     setWaiting(window.setTimeout(() => {
-    //         setChange(true)
-    //     }, 1000))
-    // }
-
-    // // Nope, that won't work
-    // useEffect(() => {
-    //     updateTimer()
-    // }, [draggableSelector])
 
     const { isDragging, item, itemType, initialOffset, currentOffset } =
         useDragLayer((monitor) => ({
@@ -105,22 +85,6 @@ export const CustomDragLayer = (props) => {
             WebkitTransform: transform,
         }
     }
-
-    // if (window.gt) {
-    //     if (change) {
-    //         window.gt.updateState({ Action: "handleDragged", order: draggableSelector })
-    //         setChange()
-    //     }
-    //     window.gt.on('state_updated_reliable', (userID, payload) => {
-    //         // TODO this feels like a hacky way of doing this
-    //         if (userID === document.title) return
-    //         if (payload.Action == "handleDragged") {
-    //             dispatch(setDraggables({
-    //                 order: payload.order
-    //             }))
-    //         }
-    //     })
-    // }
 
     if (!isDragging) {
         return null

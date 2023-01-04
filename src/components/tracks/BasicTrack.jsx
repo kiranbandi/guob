@@ -178,6 +178,11 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     if (x + rectWidth < 10 || x > maxWidth - 10) {
                         return
                     }
+                    if(x < 10){
+                        let difference = -10 + x
+                        rectWidth += difference
+                        x = 10
+                    }
                     if (hovered && drawGene.key === hovered.key) {
                         drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
                     }
@@ -506,6 +511,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     let viewFinderWidth = undefined
     let x = 0
     let previewWidth = 0
+    let difference = 0
 
     if (previewSelector.visible) {
 
@@ -515,13 +521,14 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
         previewWidth = viewFinderWidth(100000)
 
         if (x - previewWidth / 2 < canvasRef.current.offsetLeft + paddingLeft) {
-            let difference = (x - previewWidth / 2) - (canvasRef.current.offsetLeft + paddingLeft)
-            previewWidth += difference * 2
+            difference = -((x - previewWidth / 2) - (canvasRef.current.offsetLeft + paddingLeft))
+            previewWidth -= difference
         }
         else if (x + previewWidth / 2 > canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight) {
-            let difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight - (x + previewWidth / 2)
-            previewWidth += difference * 2
+            difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight - (x + previewWidth / 2)
+            previewWidth += difference
         }
+        
 
     }
 
@@ -581,16 +588,17 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
 
             {previewSelector.visible && Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
-
-                let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
+                
+                let collabWidth = trackType == 'default' ? previewWidth : 3
 
                 if(collabX >= canvasRef.current.offsetLeft &&
-                    collabX <= canvasRef.current.offsetLeft + maxWidth) 
+                    collabX <= canvasRef.current.offsetLeft + maxWidth - paddingLeft) 
                     return(
                     <Window
                         color={collabPreviews[item].cursorColor}
                         key={item}
-                        coordinateX={collabX}
+                        coordinateX={collabX + difference/2}
+                        // coordinateX={x}
                         coordinateY={canvasRef.current.offsetTop}
                         height={canvasRef.current.offsetHeight}
                         width={collabWidth} // boxwidth

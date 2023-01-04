@@ -31,10 +31,12 @@ import Box from '@mui/material/Box';
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import parseGFF from 'features/parsers/gffParser';
-import _ from 'lodash';
+import { parseSubmittedGFF, parseSubmittedCollinearity } from 'features/parsers/gffParser';
+import _, { reject } from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
 import { removeAnnotation } from '../features/annotation/annotationSlice';
+import { resolveConfig } from 'prettier';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -54,7 +56,7 @@ export default function Demo({ isDark }) {
 
     const [testId, setTestId] = useState(5)
     const [startY, setStartY] = useState(900)
-    const [drawerOpen, setDrawerOpen] =  useState(false)
+    const [drawerOpen, setDrawerOpen] = useState(false)
 
     const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
@@ -163,7 +165,7 @@ export default function Demo({ isDark }) {
     }
 
     // TODO - navigation?
-    function handleClick(event) {
+    function addNewComparison(event) {
         if (event.type === 'contextmenu') {
             return
         }
@@ -273,53 +275,58 @@ export default function Demo({ isDark }) {
     margin-bottom: 1ch;
 }`)
 
-    let [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        setLoading(true)
+    const buildDemo = (chromosomalData, dataset) => {
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({}))
-        parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
-            window.dataset = dataset
-            window.chromosomalData = chromosomalData
-            window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
-            let normalizedLength = 0;
-            let color;
-            let ColourScale = scaleOrdinal().domain([0, 9])
-                .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
-            normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-            window.maximumLength = 0
-            chromosomalData.forEach((point, i) => {
-                if (point.trackType === 'default') {
-                    color = ColourScale(i % 10)
-                }
-                else {
-                    color = ColourScale(3)
-                }
+        // debugger
+        window.dataset = dataset
+        window.chromosomalData = chromosomalData
+        window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
+        let normalizedLength = 0;
+        let color;
+        let ColourScale = scaleOrdinal().domain([0, 9])
+            .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
+        normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+        window.maximumLength = 0
+        chromosomalData.forEach((point, i) => {
+            if (point.trackType === 'default') {
+                color = ColourScale(i % 10)
+            }
+            else {
+                color = ColourScale(3)
+            }
 
-                addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
-                let end = Math.max(...point.data.map(d => d.end))
-                dispatch(addBasicTrack({
-                    key: "genome" + point.key.chromosome,
-                    trackType: point.trackType,
-                    array: point.data,
-                    normalizedLength,
-                    end,
-                    color,
-                    zoom: 1.0,
-                    pastZoom: 1.0,
-                    offset: 0,
-                }))
-                window.maximumLength += end;
-            })
-            dispatch(addDraggable({
-                key: 'links'
+            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
+            let end = Math.max(...point.data.map(d => d.end))
+            dispatch(addBasicTrack({
+                key: "genome" + point.key.chromosome,
+                trackType: point.trackType,
+                array: point.data,
+                normalizedLength,
+                end,
+                color,
+                zoom: 1.0,
+                pastZoom: 1.0,
+                offset: 0,
             }))
-
-            setLoading(false)
+            window.maximumLength += end;
         })
-        // })
-        setLoading(true)
+        dispatch(addDraggable({
+            key: 'links'
+        }))
+
+        setLoading(false)
+    }
+
+    let [loading, setLoading] = useState(true)
+    let [submittedData, setSubmittedData] = useState(false)
+
+    useEffect(() => {
+        if (demoFile) {
+            parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
+                buildDemo(chromosomalData, dataset)
+            })
+        }
 
     }, [demoFile])
 
@@ -432,16 +439,13 @@ export default function Demo({ isDark }) {
 
     }
 
-
     function clearComparisonTracks() {
         dispatch(clearComparisons({
-
         }))
     }
 
     const handleSlider = (event, newValue) => {
         if (typeof newValue === 'number') {
-
             setSliderHeight(newValue)
         }
     }
@@ -450,12 +454,74 @@ export default function Demo({ isDark }) {
         setDrawerOpen(drawerOpen => !drawerOpen)
     }
 
+    const updateFiles = () => {
+        setLoading(true)
+        setDemoCollinearity()
+        const gff = document.getElementById("gff_file").files[0]
+        const bed = document.getElementById("bed_file").files[0]
+        const collinearity = document.getElementById("collinearity_file").files[0]
+
+        let file, test
+        if (gff) {
+            file = gff
+        }
+        else if (bed) {
+            file = bed
+        }
+        if (!file) return
+
+        let reader = new FileReader()
+        reader.readAsText(file)
+        reader.onload = function () {
+            if (collinearity) {
+                let collinearity_reader = new FileReader()
+                collinearity_reader.readAsText(collinearity)
+                collinearity_reader.onload = function () {
+                    parseSubmittedGFF(reader.result, collinearity_reader.result).
+                        then(_ => {
+                            buildDemo(_.chromosomalData, _.dataset)
+                        })
+                }
+                collinearity_reader.onerror = function () {
+                    console.log(collinearity_reader.error);
+                };
+            }
+            else {
+
+                parseSubmittedGFF(reader.result).then(_ => {
+                    buildDemo(_.chromosomalData, _.dataset)
+                })
+            }
+            
+            setDemoFile()
+            setTitleState("Uploaded Dataset")
+            // setDemoFile()
+        };
+
+        reader.onerror = function () {
+            console.log(reader.error);
+        };
+
+    }
+
+    function handleClick(e) {
+        let goal = e.target
+        while (goal) {
+            if (goal.id === 'eventListener') return
+            else if (goal.type === 'button') {
+                break
+            }
+            goal = goal.parentElement
+        }
+
+    }
+
     const [searchTerms, setSearchTerms] = useState()
     const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
     return (
         <>
-            <div css={styling}>
+            <div css={styling} onClick={handleClick} id={"eventListener"}>
                 <Drawer
                     open={drawerOpen}
                     onClose={toggleDrawer}>
@@ -463,37 +529,51 @@ export default function Demo({ isDark }) {
                         Upload Files
                     </Typography>
                     <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
-                        <Button variant="outlined">
+                        <Button variant="outlined" component="label" >
                             Upload GFF File
+                            <input hidden type="file" id="gff_file" />
                         </Button>
-                        <Button variant="outlined">
+                        <Button variant="outlined" component="label" >
                             Upload BED File
+                            <input hidden type="file" id="bed_file" />
                         </Button>
-                        <Button variant="outlined">
+                        <Button variant="outlined" component="label" >
                             Upload Collinearity File
+                            <input hidden type="file" id="collinearity_file" />
                         </Button>
+                        {loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                            <CircularProgress size={75} />
+                        </Box> :
+                            <Button onClick={updateFiles}>
+                                Update Tracks
+                            </Button>
+                        }
                     </Stack>
                 </Drawer>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/bn_methylation_100k.bed")
                         setTitleState("Canola Methylation")
                         setDemoCollinearity()
                     }}>Canola Methylation</Button>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/at_coordinate.gff")
                         setTitleState("Aradopsis thaliana")
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
                     }}>Aradopsis thaliana</Button>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/bn_coordinate.gff")
                         setTitleState("Brassica napus")
                         setDemoCollinearity()
                     }}>Brassica napus</Button>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/ta_hb_coordinate.gff")
                         setTitleState("Triticum aestivum")
@@ -571,6 +651,7 @@ export default function Demo({ isDark }) {
                         }>
                             Update Search
                         </Button>
+
                     </Stack>
 
                     <Slider
@@ -581,9 +662,9 @@ export default function Demo({ isDark }) {
                         onChange={handleSlider}
                     />
 
-                        <Button variant="outline"  onClick={toggleDrawer}>
-                            Upload files
-                            </Button>
+                    <Button variant="outline" onClick={toggleDrawer} >
+                        Upload files
+                    </Button>
                 </Stack>
 
                 {previewSelector.visible && <Miniview
@@ -666,9 +747,9 @@ export default function Demo({ isDark }) {
                                                 genome={true}
                                                 width={document.querySelector('.draggableItem')?.getBoundingClientRect()?.width ? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
                                                 normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
-                                                trackType={basicTrackSelector[genomeItem].trackType}
+                                                // trackType={basicTrackSelector[genomeItem].trackType}
                                                 title={genomeItem}
-                                                doSomething={handleClick}
+                                                doSomething={addNewComparison}
                                                 id={genomeItem}
                                                 zoom={basicTrackSelector[genomeItem].zoom}
                                                 pastZoom={basicTrackSelector[genomeItem].pastZoom}
@@ -694,7 +775,7 @@ export default function Demo({ isDark }) {
                                                 normalizedLength={basicTrackSelector[item].normalizedLength}
                                                 trackType={basicTrackSelector[item].trackType}
                                                 title={item}
-                                                doSomething={handleClick}
+                                                doSomething={addNewComparison}
                                                 id={item}
                                                 zoom={basicTrackSelector[item].zoom}
                                                 pastZoom={basicTrackSelector[item].pastZoom}
