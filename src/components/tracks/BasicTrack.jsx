@@ -9,6 +9,7 @@ import { addAnnotation, selectAnnotations, selectSearch, removeAnnotation } from
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
 import { selectDraggables } from "features/draggable/draggableSlice.js";
+import TrackControls from "./TrackControls.jsx";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
@@ -53,7 +54,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     }
 
     const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
-        maxWidth = normalize && !genome ? raw_width * cap / normalizedLength : raw_width,
+        maxWidth = normalize && !genome ? raw_width * cap / normalizedLength - 20 : genome ? raw_width : raw_width - 20,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
     useEffect(() => {
@@ -566,7 +567,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
 
     return (
-        <div style={{ width: maxWidth, height: '100%' }}>
+        <div style={{ width: raw_width, height: '100%', }}>
             {title && !genome &&
                 <Typography
                     variant="body1"
@@ -702,6 +703,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     },
                 }}
             >
+
                 <canvas
                     tabIndex={-1}
                     id={id}
@@ -752,10 +754,11 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     onWheel={handleScroll}
                     {...props} />
             </Tooltip>
+            {!genome && <TrackControls id={id} height={maxHeight} />}
 
-            {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
-                <div width={maxWidth} style={{ border: 'solid 1px', marginTop: -5 }} />
-                <Stack direction='row' justifyContent="space-between" className="scale">
+            {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: genome ? '10px' : '30px' }}>
+                <div width={maxWidth - paddingLeft*2} style={{ border: 'solid 1px', marginTop: -5, }} />
+                <Stack direction='row' justifyContent="space-between" className="scale" width={maxWidth - paddingLeft*2}>
                     <div style={{ WebkitUserSelect: 'none', borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
                     <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                     <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>

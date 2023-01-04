@@ -159,7 +159,6 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
         left: '0px',
     }
 
-
     return (
         <div ref={secondRef} className={className}>
             <div className={'draggableItem ' + (showControls ? "smaller" : '')} style=
@@ -173,33 +172,28 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
             </div>
             {showControls && <div className='handle smaller'>
 
-                <IconButton ref={ref} className='halfHandle' sx={{
+                <IconButton ref={ref} className='halfHandle' id={"toggleTrackType_"+id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
                     '&:hover': {
                         backgroundColor: deepOrange[500]
                     }
-                }} onClick={(e) => {
-                    dispatch(toggleTrackType({ id }))
                 }}
                 >
                     <MultilineChartIcon fontSize="small" className="handle_image" />
                 </IconButton>
 
-                <IconButton ref={ref} className='halfHandle' sx={{
+                <IconButton ref={ref} className='halfHandle' id={"deleteTrack_"+id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
                     '&:hover': {
                         backgroundColor: deepOrange[500]
                     }
-                }} onClick={(e) => {
-                    dispatch(removeDraggable({ 'key': id }))
-                    dispatch(removeBasicTrack({ 'key': id }))
                 }}
                 >
                     <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
                 </IconButton>
-                <IconButton ref={ref} className='halfHandle' sx={{
+                <IconButton ref={ref} className='halfHandle'  id={"pickColor_"+id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
                     '&:hover': {

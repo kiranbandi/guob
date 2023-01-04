@@ -19,7 +19,7 @@ import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, changeZoom, pan, updateBothTracks } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request";
 import $ from 'jquery';
@@ -246,9 +246,14 @@ export default function Demo({ isDark }) {
     }
   }
   .halfHandle {
-    height: 45%;
-    border-radius: 50%;
-    width: fit-content;
+    ${'' /* height: 45%; */}
+    ${'' /* border-radius: 50%; */}
+    width: 20px;
+    margin: 0%;
+    padding: 0%;
+    ${'' /* paddingLeft: 0px; */}
+    
+
   }
 .alternateDraggable{
   height: 50px;
@@ -513,7 +518,20 @@ export default function Demo({ isDark }) {
             }
             goal = goal.parentElement
         }
-
+        console.log(goal.id)
+        let buttonInfo = goal.id.split("_")
+        switch(buttonInfo[0]){
+            case "deleteTrack":
+                dispatch(removeDraggable({ 'key': buttonInfo[1] }))
+                dispatch(removeBasicTrack({ 'key': buttonInfo[1] }))
+                break
+            case "toggleTrackType":
+                dispatch(toggleTrackType({'id': buttonInfo[1]}))
+                break
+            case "pickColor":
+                // This needs a bit more logic
+                break
+        }
     }
 
     const [searchTerms, setSearchTerms] = useState()
