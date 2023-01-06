@@ -9,9 +9,11 @@ import MultilineChartIcon from '@mui/icons-material/MultilineChart';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 function TrackControls(props) {
+
     const buttonHeight = props.height/3
+
     return (
-        <Stack marginTop={-props.height - 10 + "px"} marginBottom={ "10px"} alignItems={"flex-end"}>
+        <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"}>
                 <IconButton className='halfHandle' id={"toggleTrackType_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
@@ -45,6 +47,7 @@ function TrackControls(props) {
                 }}>
                     <ColorLensIcon fontSize="small" className="handle_image" />
                 </IconButton>
+
         </Stack>
     )
 }

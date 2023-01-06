@@ -89,7 +89,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     let bottomTrack = trackSelector[indexSelector[index + 1]]
 
     const parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
-    const maxWidth = Math.round(parentWrapperWidth)
+    const maxWidth = Math.round(parentWrapperWidth) - 20
 
     useEffect(() => {
         linkRef.current.addEventListener('wheel', preventScroll, { passive: false });

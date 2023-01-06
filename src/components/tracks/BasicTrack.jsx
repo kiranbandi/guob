@@ -754,7 +754,6 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     onWheel={handleScroll}
                     {...props} />
             </Tooltip>
-            {!genome && <TrackControls id={id} height={maxHeight} />}
 
             {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: genome ? '10px' : '30px' }}>
                 <div width={maxWidth - paddingLeft*2} style={{ border: 'solid 1px', marginTop: -5, }} />
@@ -767,6 +766,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
             </div>}
+            {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={maxHeight + 25 + 5} />}
 
         </div>
     )

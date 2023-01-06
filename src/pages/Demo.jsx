@@ -19,7 +19,7 @@ import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks, changeBasicTrackColor } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request";
 import $ from 'jquery';
@@ -36,6 +36,7 @@ import _, { reject } from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
 import { removeAnnotation } from '../features/annotation/annotationSlice';
+import TrackListener from 'components/tracks/TrackListener';
 import { resolveConfig } from 'prettier';
 // import './canola.gff'
 
@@ -62,6 +63,10 @@ export default function Demo({ isDark }) {
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [titleState, setTitleState] = useState("Aradopsis thaliana")
     const [normalize, setNormalize] = useState(false)
+
+    const [ showGff, setShowGff ] = useState(false)
+    const [ showCollinearity, setShowCollinearity ] = useState(false)
+
 
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const dispatch = useDispatch()
@@ -457,22 +462,25 @@ export default function Demo({ isDark }) {
 
     const toggleDrawer = () => {
         setDrawerOpen(drawerOpen => !drawerOpen)
+        setShowGff(false)
+        setShowCollinearity(false)
     }
 
     const updateFiles = () => {
+
         setLoading(true)
         setDemoCollinearity()
         const gff = document.getElementById("gff_file").files[0]
-        const bed = document.getElementById("bed_file").files[0]
+        // const bed = document.getElementById("bed_file").files[0]
         const collinearity = document.getElementById("collinearity_file").files[0]
 
         let file, test
         if (gff) {
             file = gff
         }
-        else if (bed) {
-            file = bed
-        }
+        // else if (bed) {
+        //     file = bed
+        // }
         if (!file) return
 
         let reader = new FileReader()
@@ -497,7 +505,7 @@ export default function Demo({ isDark }) {
                     buildDemo(_.chromosomalData, _.dataset)
                 })
             }
-            
+
             setDemoFile()
             setTitleState("Uploaded Dataset")
             // setDemoFile()
@@ -509,37 +517,14 @@ export default function Demo({ isDark }) {
 
     }
 
-    function handleClick(e) {
-        let goal = e.target
-        while (goal) {
-            if (goal.id === 'eventListener') return
-            else if (goal.type === 'button') {
-                break
-            }
-            goal = goal.parentElement
-        }
-        console.log(goal.id)
-        let buttonInfo = goal.id.split("_")
-        switch(buttonInfo[0]){
-            case "deleteTrack":
-                dispatch(removeDraggable({ 'key': buttonInfo[1] }))
-                dispatch(removeBasicTrack({ 'key': buttonInfo[1] }))
-                break
-            case "toggleTrackType":
-                dispatch(toggleTrackType({'id': buttonInfo[1]}))
-                break
-            case "pickColor":
-                // This needs a bit more logic
-                break
-        }
-    }
-
     const [searchTerms, setSearchTerms] = useState()
     const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
+
+
+
     return (
         <>
-            <div css={styling} onClick={handleClick} id={"eventListener"}>
                 <Drawer
                     open={drawerOpen}
                     onClose={toggleDrawer}>
@@ -547,18 +532,24 @@ export default function Demo({ isDark }) {
                         Upload Files
                     </Typography>
                     <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
-                        <Button variant="outlined" component="label" >
+                        <Stack>
+                        <Button variant="outlined" component="label" onClick={() => setShowGff(false)}>
                             Upload GFF File
-                            <input hidden type="file" id="gff_file" />
+                            <input hidden type="file" id="gff_file" onChange={() => setShowGff(true)}/>
                         </Button>
-                        <Button variant="outlined" component="label" >
+                        {showGff && document.getElementById("gff_file").files.length > 0 && <Typography>{document.getElementById("gff_file").files[0].name}</Typography>}
+                        </Stack>
+                        {/* <Button variant="outlined" component="label" >
                             Upload BED File
                             <input hidden type="file" id="bed_file" />
-                        </Button>
-                        <Button variant="outlined" component="label" >
+                        </Button> */}
+                        <Stack>
+                        <Button variant="outlined" component="label" onClick={() => setShowCollinearity(false)}>
                             Upload Collinearity File
-                            <input hidden type="file" id="collinearity_file" />
+                            <input hidden type="file" id="collinearity_file" onChange={() => setShowCollinearity(true)}/>
                         </Button>
+                        {showCollinearity && document.getElementById("collinearity_file").files.length > 0 && <Typography>{document.getElementById("collinearity_file").files[0].name}</Typography>}
+                        </Stack>
                         {loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
                             <CircularProgress size={75} />
                         </Box> :
@@ -568,6 +559,9 @@ export default function Demo({ isDark }) {
                         }
                     </Stack>
                 </Drawer>
+         <TrackListener>
+            <div css={styling}>
+ 
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
                         setLoading(true)
@@ -815,6 +809,8 @@ export default function Demo({ isDark }) {
                         </>
                 }
             </div>
+                        
+         </TrackListener>
         </>
     );
 }

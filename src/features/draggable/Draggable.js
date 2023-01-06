@@ -19,7 +19,7 @@ import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
 import { ChromePicker } from 'react-color';
 
-const Draggable = ({ children, id, index, grouped, groupID, className, showControls = false, color }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
@@ -30,14 +30,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
 
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
-    let [showColorPicker, setColorPickerVisibility] = useState(false)
 
-    // let [color, setColor] = useState({
-    //     r: '241',
-    //     g: '112',
-    //     b: '19',
-    //     a: '1',
-    // })
 
     function updateTimer() {
         clearTimeout(waiting)
@@ -161,7 +154,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
 
     return (
         <div ref={secondRef} className={className}>
-            <div className={'draggableItem ' + (showControls ? "smaller" : '')} style=
+            <div className={'draggableItem'} style=
                 {{
                     opacity: opacity,
                     borderStyle: borderGroup,
@@ -170,46 +163,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
                 }}>
                 {children}
             </div>
-            {showControls && <div className='handle smaller'>
-
-                <IconButton ref={ref} className='halfHandle' id={"toggleTrackType_"+id} sx={{
-                    backgroundColor: deepOrange[100],
-                    borderRadius: 1,
-                    '&:hover': {
-                        backgroundColor: deepOrange[500]
-                    }
-                }}
-                >
-                    <MultilineChartIcon fontSize="small" className="handle_image" />
-                </IconButton>
-
-                <IconButton ref={ref} className='halfHandle' id={"deleteTrack_"+id} sx={{
-                    backgroundColor: deepOrange[100],
-                    borderRadius: 1,
-                    '&:hover': {
-                        backgroundColor: deepOrange[500]
-                    }
-                }}
-                >
-                    <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
-                </IconButton>
-                <IconButton ref={ref} className='halfHandle'  id={"pickColor_"+id} sx={{
-                    backgroundColor: deepOrange[100],
-                    borderRadius: 1,
-                    '&:hover': {
-                        backgroundColor: deepOrange[500]
-                    }
-                }} onClick={(e) => { setColorPickerVisibility(true) }}>
-                    <ColorLensIcon fontSize="small" className="handle_image" />
-                </IconButton>
-                {showColorPicker ? <div style={popover}>
-                    <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
-                    <ChromePicker disableAlpha={true} color={{ 'hex': color }} onChangeComplete={(c) => { dispatch(changeBasicTrackColor({ 'key': id, 'color': c.hex })) }} />
-                </div> : null}
-            </div>}
-
-
-            <IconButton ref={ref} className={'handle ' + (showControls ? "smaller" : '')} sx={{
+            <IconButton ref={ref} className={'handle'} sx={{
                 backgroundColor: teal[100],
                 borderRadius: 1,
                 '&:hover': {
