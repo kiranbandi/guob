@@ -8,12 +8,12 @@ import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updat
 import { addAnnotation, selectAnnotations, selectSearch, removeAnnotation } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
-import { selectDraggables } from "features/draggable/draggableSlice.js";
+import { selectDraggables, addSecond, clearSeconds } from "features/draggable/draggableSlice.js";
 import TrackControls from "./TrackControls.jsx";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
-const BasicTrack = ({ array, genome = false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
+const BasicTrack = ({ array, genome = false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -77,9 +77,10 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
     // keep the old palette
     // piling on another hack - clear draw genes when switching track type
+    // and another - clear drawn genes when the array is changed
     useEffect(() => {
         setDrawnGenes([])
-    }, [isDark, color, trackType, normalize, maxWidth])
+    }, [isDark, color, trackType, normalize, maxWidth, array, max])
 
     useEffect(() => {
 
@@ -106,7 +107,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
         setEndCap(Math.min(scalingIncrements.invert(maxWidth - offset), cap))
 
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
-        let minValue = 0, maxValue = 100;
+        let minValue = 0, maxValue = max ? max : 100;
 
         // Deal with color palette switch in dark mode;
         let zeroColor = isDark ? '#121212' : '#ffffff';
@@ -440,8 +441,10 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     return
 
                 }
+                dispatch(clearSeconds())
                 let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
+               
 
                 let found = false
                 drawnGenes.forEach(x => {
@@ -452,53 +455,71 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                             selection: x.key,
                         }))
                         found = true;
-                        //! Proof of concept following gene
+                        //! Proof of concept following gene change this for the view later
                         //TODO pull this into a function
                         let index;
-                        let trackID;
-                        let orthologInformation;
-                        let orthologChromosome;
+                        let trackID = [];
+                        let orthologInformation = [];
+                        let orthologChromosome = [];
+                        let key;
+                        index = []
                         let matched;
                         // Iterating through the tracks with an ortholog
                         if (x.siblings != 0 && x.siblings.length > 0) {
-                            for (const [key, value] of Object.entries(trackSelector)) {
-                                index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
-                                if (index > -1) {
-                                    orthologInformation = value.array[index]
-                                    orthologChromosome = value.array
-                                    trackID = key
-                                    matched = true
-                                    break  // just finding the first ortholog as a proof of concept  
+                            for(let sibling of x.siblings){
+                                
+                                if(sibling){
+                                   key = sibling.toLowerCase().split("g")[0]
+                                   index = trackSelector[key].array.findIndex((d) => { return d.key.toLowerCase() == sibling.toLowerCase() })
+                                   if (index > -1) {
+                                       orthologInformation.push(trackSelector[key].array[index])
+                                       orthologChromosome.push(trackSelector[key].array)
+                                       trackID.push(key)
+                                       matched = true
+                                    }
                                 }
 
                             }
                             if (matched == true && index > -1) {
 
+                                for(let i = 0; i < orthologInformation.length; i++){
+                                    if(trackID !== id){
+                                        let orthologCap = Math.max(...orthologChromosome[i].map(d => d.end))
+        
+                                        // Location of the ortholog 
+                                        let ratio = orthologInformation[i].start / orthologCap
+        
+                                        // Should almost certainly use a web worker for this
+                                        let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
+                                        let calculatedZoom = x.width / relatedWidthScale(orthologInformation[i].end - orthologInformation[i].start) //the size of the ortholog
+        
+                                        // Aligning related tracks with the selected block
+                                        dispatch(updateTrack({
+                                            key: trackID[i],
+                                            zoom: calculatedZoom,
+                                            offset: -(ratio * maxWidth * calculatedZoom) + x.coordinateX
+                                        }))
+                                        dispatch(setSelection({
+                                            key: trackID[i],
+                                            selection: orthologInformation[i].key
+                                        }))
 
-                                let orthologCap = Math.max(...orthologChromosome.map(d => d.end))
+                                        dispatch(addSecond({
+                                            key:trackID[i]+"ortholog"
+                                        }))
+                                        dispatch(addSecond({
+                                            key:"links"
+                                        }))
 
-                                // Location of the ortholog 
-                                let ratio = orthologInformation.start / orthologCap
+                                    }
+                                }
 
-                                // Should almost certainly use a web worker for this
-                                let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
-                                let calculatedZoom = x.width / relatedWidthScale(orthologInformation.end - orthologInformation.start) //the size of the ortholog
-
-                                // Aligning related tracks with the selected block
-                                dispatch(updateTrack({
-                                    key: trackID,
-                                    zoom: calculatedZoom,
-                                    offset: -(ratio * maxWidth * calculatedZoom) + x.coordinateX
-                                }))
-                                dispatch(setSelection({
-                                    key: trackID,
-                                    selection: orthologInformation.key
-                                }))
-                            }
+                                }
                         }
                     }
                 })
                 if (found == false) {
+
                     dispatch(clearSelection({
                         key: id,
                     }))
@@ -513,9 +534,22 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     let x = 0
     let previewWidth = 0
     let difference = 0
+    
+    const positionRef = React.useRef({
+        x: 0,
+        y: 0,
+    });
+    const popperRef = React.useRef(null);
 
-    if (previewSelector.visible) {
+    const handleMouseMove = (event) => {
+        positionRef.current = { x: event.clientX, y: event.clientY };
 
+        if (popperRef.current != null) {
+            popperRef.current.update();
+        }
+    };
+
+    if (previewSelector.visible && canvasRef.current) {
         viewFinderScale = scaleLinear().domain([startOfTrack, endCap]).range([canvasRef.current.offsetLeft + paddingLeft, canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight])
         viewFinderWidth = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
         x = viewFinderScale(previewSelector.center)
@@ -539,26 +573,13 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     //! TODO Changing length of text changes the location of ticks
     if (trackType === "default") {
         let orthologInfo = (hovered && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nOrhologs: " + orthologInfo : ''
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nOrthologs: " + orthologInfo : ''
     }
     else {
         info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end + "\nValue: " + hovered.value : ''
     }
     if (genome) info = ""
 
-    const positionRef = React.useRef({
-        x: 0,
-        y: 0,
-    });
-    const popperRef = React.useRef(null);
-
-    const handleMouseMove = (event) => {
-        positionRef.current = { x: event.clientX, y: event.clientY };
-
-        if (popperRef.current != null) {
-            popperRef.current.update();
-        }
-    };
 
 
     let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", GFF" : "Chromosome: " + title + ", BED"
@@ -587,7 +608,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     }}
                 >{trackTitle}</Typography>}
 
-            {previewSelector.visible && Object.keys(collabPreviews).map(item => {
+            {previewSelector.visible && canvasRef.current &&  Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
                 
                 let collabWidth = trackType == 'default' ? previewWidth : 3

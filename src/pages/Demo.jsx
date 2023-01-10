@@ -7,7 +7,7 @@ import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews, clearComparisons, moveCollabPreview } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup, selectSecondDraggables, setDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -49,6 +49,7 @@ export default function Demo({ isDark }) {
     const previewSelector = useSelector(selectMiniviews)['newPreview']
     const miniviewSelector = useSelector(selectMiniviews)
     const draggableSelector = useSelector(selectDraggables)
+    const orthologDraggableSelector = useSelector(selectSecondDraggables)
     const alternateDraggableSelector = useSelector(selectAlternateDraggables)
     const comparableSelector = useSelector(selectComparison)
     const groupSelector = useSelector(selectGroup)
@@ -280,9 +281,14 @@ export default function Demo({ isDark }) {
 .groupedComparison {
   height : 2.5rem;
 }
+.genomeMath {
+    width: 100%;
+}
 .Container{
     border: 2px solid grey;
     margin-bottom: 1ch;
+    float: left;
+    width: ${orthologDraggableSelector.length > 0 ? "50%" : "100%" };
 }`)
 
     const buildDemo = (chromosomalData, dataset) => {
@@ -666,7 +672,7 @@ export default function Demo({ isDark }) {
 
                     </Stack>
 
-                    <Slider
+                    <Slider className="widthSlider"
                         step={1}
                         min={75}
                         max={300}
@@ -757,7 +763,7 @@ export default function Demo({ isDark }) {
                                                 array={basicTrackSelector[genomeItem].array}
                                                 color={basicTrackSelector[genomeItem].color}
                                                 genome={true}
-                                                width={document.querySelector('.draggableItem')?.getBoundingClientRect()?.width ? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
+                                                width={document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
                                                 normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
                                                 // trackType={basicTrackSelector[genomeItem].trackType}
                                                 title={genomeItem}
@@ -777,10 +783,11 @@ export default function Demo({ isDark }) {
                                 }
                             </Stack>
                             <CustomDragLayer groupID={groupSelector} />
-                            <DragContainer startingList={draggableSelector}>
+                            <div>
+                            <DragContainer startingList={draggableSelector} style={{float: "left"}}>
                                 {draggableSelector.map(item => {
                                     return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} test={"draggable"}>
                                             {item !== 'links' && !item.includes('genome') && <BasicTrack
                                                 array={basicTrackSelector[item].array}
                                                 color={basicTrackSelector[item].color}
@@ -806,6 +813,38 @@ export default function Demo({ isDark }) {
                                 </Draggable> */}
 
                             </DragContainer>
+                            {orthologDraggableSelector.length > 0 && <DragContainer startingList={orthologDraggableSelector} style={{float: "left"}}>
+                                {orthologDraggableSelector.map(item => {
+                                    return (
+                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} test={"ortholog"}>
+                                            {item !== 'links' && !item.includes('genome') && <BasicTrack
+                                                array={basicTrackSelector[item.split("o")[0]].array}
+                                                color={basicTrackSelector[item.split('o')[0]].color}
+                                                normalizedLength={basicTrackSelector[item.split('o')[0]].normalizedLength}
+                                                trackType={basicTrackSelector[item.split('o')[0]].trackType}
+                                                title={item}
+                                                doSomething={addNewComparison}
+                                                id={item}
+                                                zoom={basicTrackSelector[item.split('o')[0]].zoom}
+                                                pastZoom={basicTrackSelector[item.split('o')[0]].pastZoom}
+                                                offset={basicTrackSelector[item.split('o')[0]].offset}
+                                                selection={basicTrackSelector[item.split('o')[0]].selection}
+                                                isDark={isDark}
+                                                normalize={normalize}
+                                                key={item}
+                                            />}
+                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
+                                        </Draggable>
+
+                                    )
+                                })}
+                                {/* <Draggable key="Test">
+                                    Test
+                                </Draggable> */}
+
+                            </DragContainer>}
+
+                            </div>
                         </>
                 }
             </div>

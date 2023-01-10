@@ -61,6 +61,15 @@ export const basicTrackSlice = createSlice({
         },
         updateTrack: (state, action) => {
             if (action.payload.key === undefined) return
+            if (state.BasicTracks[action.payload.key].meta && state.BasicTracks[action.payload.key].zoom > 3) {
+                let temp = state.BasicTracks[action.payload.key].complicated
+                let tempMax = state.BasicTracks[action.payload.key].max
+                state.BasicTracks[action.payload.key].complicated = state.BasicTracks[action.payload.key].complicatedZoomedFirst
+                state.BasicTracks[action.payload.key].max = state.BasicTracks[action.payload.key].complicatedZoomedMax
+                state.BasicTracks[action.payload.key].offset = 0
+                state.BasicTracks[action.payload.key].zoom = 1
+                return   
+            }
             state.BasicTracks[action.payload.key].offset = action.payload.offset
             state.BasicTracks[action.payload.key].zoom = action.payload.zoom
 
@@ -99,12 +108,78 @@ export const basicTrackSlice = createSlice({
         },
         deleteAllBasicTracks: (state, action) => {
             state.BasicTracks = {}
-        }
+        },
+        addComplicatedTrack: (state, action) => {
+            if (!state.BasicTracks[action.payload.key]) {
+                //! All of this SHOULD NOT BE HERE
+                // Proof of concept ONLY move out to be done with web workers for some
+                // semblence of asynchronocity
+                let cap = Math.max(...action.payload.array.map(d => d.end))
+                let increment = cap / 1000
+                let max = 0
+                let densityView = []
+                for (let i = 1; i <= 1000; i++) {
+                    let start = increment * (i - 1)
+                    let end = increment * i
+                    let value = action.payload.array.filter(d => d.end >= start && d.start <= end).length
+                    max = value > max ? value : max
+                    var temp = {
+                        start,
+                        end,
+                        key: Math.round(start) + '-' + Math.round(end),
+                        value
+                    }
+                    densityView.push(temp)
+                } 
+                
+                state.BasicTracks[action.payload.key] = action.payload
+                state.BasicTracks[action.payload.key].meta = true
+                state.BasicTracks[action.payload.key].complicated = densityView
+                state.BasicTracks[action.payload.key].max = max
+                state.BasicTracks[action.payload.key].trackType = 'heatmap'
+                increment = cap /3000
+                max = 0
+                densityView = []
+                for (let i = 1; i <= 1500; i++) {
+                    let start = increment * (i - 1)
+                    let end = increment * i
+                    let value = action.payload.array.filter(d => d.end >= start && d.start <= end).length
+                    max = value > max ? value : max
+                    var temp = {
+                        start,
+                        end,
+                        key: Math.round(start) + '-' + Math.round(end),
+                        value
+                    }
+                    densityView.push(temp)
+                }
+                state.BasicTracks[action.payload.key].complicatedZoomedFirst = densityView
+                state.BasicTracks[action.payload.key].complicatedZoomedMax = max
+                max = 0
+                densityView = []
+                for (let i = 1501; i <= 3000; i++) {
+                    let start = increment * (i - 1)
+                    let end = increment * i
+                    let value = action.payload.array.filter(d => d.end >= start && d.start <= end).length
+                    max = value > max ? value : max
+                    var temp = {
+                        start,
+                        end,
+                        key: Math.round(start) + '-' + Math.round(end),
+                        value
+                    }
+                    densityView.push(temp)
+                }
+                state.BasicTracks[action.payload.key].complicatedZoomedSecond = densityView
+                state.BasicTracks[action.payload.key].complicatedZoomedSecondMax = max
+            }
+
+        },
     }
 })
 
 
-export const { updateTrack, toggleTrackType, updateBothTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
+export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
 
 
 export const selectBasicTracks = (state) => state.basictrack.BasicTracks

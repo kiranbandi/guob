@@ -4,6 +4,7 @@ import _ from 'lodash';
 const initialState = {
     // currently a placeholder
     draggables: ['dh1', 'dh2', 'dh3'],
+    ortholog: [],
     group: [],
 }
 
@@ -26,25 +27,29 @@ export const draggableSlice = createSlice({
         },
         switchDraggable: (state, action) => {
 
-            // Switch Index is passed in, but the index of the item being dragged is... fuzzier. Better to take it from the store
-            let switchIndex = state.draggables.indexOf(action.payload.switchKey)
-            let startIndex = state.draggables.indexOf(action.payload.startKey)
-            let startKey = action.payload.startKey
-            state.draggables.splice(startIndex, 1)
-            state.draggables.splice(switchIndex,0, startKey)
+            if(action.payload.draggable == "draggable"){
+                // Switch Index is passed in, but the index of the item being dragged is... fuzzier. Better to take it from the store
+                let switchIndex = state.draggables.indexOf(action.payload.switchKey)
+                let startIndex = state.draggables.indexOf(action.payload.startKey)
+                let startKey = action.payload.startKey
+                state.draggables.splice(startIndex, 1)
+                state.draggables.splice(switchIndex,0, startKey)
+    
+                if(state.group.length > 1){
+                    state.group.sort((a,b)=> state.draggables.indexOf(a) - state.draggables.indexOf(b))
+                }
 
-            if(state.group.length > 1){
-                state.group.sort((a,b)=> state.draggables.indexOf(a) - state.draggables.indexOf(b))
             }
-
-
         },
         insertDraggable: (state, action) => {
+
+            if(action.payload.draggable == "draggable"){
             let moving = state.draggables.indexOf(action.payload.id)
             let reference = state.draggables.indexOf(action.payload.startKey)
             let index = reference > moving ? -1 : action.payload.index
             state.draggables.splice(moving,1)
             state.draggables.splice(reference + index, 0, action.payload.id)
+            }
         }
         ,
         toggleGroup: (state, action) => {
@@ -67,14 +72,22 @@ export const draggableSlice = createSlice({
         setDraggables: (state, action) => {
             state.draggables.length = 0
             state.draggables = action.payload.order
+        },
+        addSecond: (state, action) => {
+            state.ortholog.push(action.payload.key)
+        },
+        clearSeconds: (state, action) => {
+            state.ortholog.length = 0
         }
 
     }
 })
 
-export const { deleteAllDraggables, moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup, setDraggables } = draggableSlice.actions
+export const { deleteAllDraggables, moveDraggable, addSecond, clearSeconds, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup, setDraggables } = draggableSlice.actions
 
 export const selectDraggables = (state) => state.draggable.draggables
+export const selectSecondDraggables = (state) => state.draggable.ortholog
+export const selectAll = (state) => state.draggable
 export const selectGroup = (state) => state.draggable.group
 
 

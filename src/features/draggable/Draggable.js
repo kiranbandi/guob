@@ -5,7 +5,7 @@ import { ItemTypes } from "./ItemTypes"
 import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDispatch } from "react-redux"
-import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables, removeDraggable } from "./draggableSlice"
+import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, selectAll, setDraggables, removeDraggable } from "./draggableSlice"
 import { toggleTrackType, removeBasicTrack, changeBasicTrackColor } from "../../components/tracks/basicTrackSlice"
 import { IconButton, Button } from "@mui/material"
 import { styled } from "@mui/material/styles"
@@ -19,14 +19,14 @@ import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
 import { ChromePicker } from 'react-color';
 
-const Draggable = ({ children, id, index, grouped, groupID, className }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className, test }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
     const secondRef = useRef(null)
 
     const dispatch = useDispatch()
-    const draggableSelector = useSelector(selectDraggables)
+    const draggableSelector = useSelector(selectAll)[test]
 
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
@@ -69,6 +69,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
             // Updating the redux store - using conditional to keep calls to a minimum
             if (dragIndex != hoverIndex) {
                 dispatch(switchDraggable({
+                    draggable: test,
                     startKey: item.id,
                     switchKey: id
                 })
@@ -80,6 +81,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className }) => {
                     groupID.forEach((x) => {
                         if (x != item.id) {
                             dispatch(insertDraggable({
+                                draggable: test,
                                 startKey: item.id,
                                 id: x,
                                 index: offset
