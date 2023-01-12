@@ -5,7 +5,7 @@ import { ItemTypes } from "./ItemTypes"
 import { useRef, useState } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDispatch } from "react-redux"
-import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, selectAll, setDraggables, removeDraggable } from "./draggableSlice"
+import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables, removeDraggable } from "./draggableSlice"
 import { toggleTrackType, removeBasicTrack, changeBasicTrackColor } from "../../components/tracks/basicTrackSlice"
 import { IconButton, Button } from "@mui/material"
 import { styled } from "@mui/material/styles"
@@ -19,14 +19,14 @@ import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
 import { ChromePicker } from 'react-color';
 
-const Draggable = ({ children, id, index, grouped, groupID, className, test }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
     const secondRef = useRef(null)
 
     const dispatch = useDispatch()
-    const draggableSelector = useSelector(selectAll)[test]
+    const draggableSelector = useSelector(selectDraggables)[dragGroup]
 
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
@@ -43,9 +43,9 @@ const Draggable = ({ children, id, index, grouped, groupID, className, test }) =
     const [, drop] = useDrop(() => ({
         accept: ItemTypes.BOUNDED,
         hover(item, monitor) {
+            
 
             if (!ref.current) return
-
 
             const dragIndex = item.index
             const hoverIndex = index
@@ -69,7 +69,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, test }) =
             // Updating the redux store - using conditional to keep calls to a minimum
             if (dragIndex != hoverIndex) {
                 dispatch(switchDraggable({
-                    draggable: test,
+                    dragGroup: dragGroup,
                     startKey: item.id,
                     switchKey: id
                 })
@@ -81,7 +81,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, test }) =
                     groupID.forEach((x) => {
                         if (x != item.id) {
                             dispatch(insertDraggable({
-                                draggable: test,
+                                dragGroup: dragGroup,
                                 startKey: item.id,
                                 id: x,
                                 index: offset
@@ -102,7 +102,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, test }) =
     const [{ isDragging }, drag, preview] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,
-            item: () => { return { id, index, grouped, groupID, ref, className } },
+            item: () => { return { id, index, grouped, groupID, ref, className, dragGroup } },
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
@@ -136,6 +136,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, test }) =
             if (payload.Action == "handleDragged") {
                 if (payload.id !== id) return
                 dispatch(setDraggables({
+                    dragGroup,
                     order: payload.order
                 }))
             }

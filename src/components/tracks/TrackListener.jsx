@@ -27,6 +27,7 @@ const TrackListener = ({ children }) => {
             goal = goal.parentElement
         }
         let buttonInfo = goal.id.split("_")
+        console.log(buttonInfo)
         switch (buttonInfo[0]) {
             case "deleteTrack":
                 dispatch(removeDraggable({ 'key': buttonInfo[1] }))
@@ -42,6 +43,7 @@ const TrackListener = ({ children }) => {
                 let buttonLocation = goal.getBoundingClientRect()
                 setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y })
                 break
+            
         }
     }
 

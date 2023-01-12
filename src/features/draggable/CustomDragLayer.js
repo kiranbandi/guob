@@ -4,6 +4,7 @@ import { DragPreview } from './DragPreview.js'
 import { nanoid } from '@reduxjs/toolkit'
 import OrthologLinks from 'components/tracks/OrthologLinks.jsx'
 
+
 const layerStyle = {
     position: 'fixed',
     pointerEvents: 'none',
@@ -16,7 +17,6 @@ const layerStyle = {
 
 
 export const CustomDragLayer = (props) => {
-
 
     const { isDragging, item, itemType, initialOffset, currentOffset } =
         useDragLayer((monitor) => ({
@@ -51,7 +51,7 @@ export const CustomDragLayer = (props) => {
                         )
                     }
                     else {
-                        return <OrthologLinks index={item.index}></OrthologLinks>
+                        return <OrthologLinks index={item.index} dragGroup={item.dragGroup}></OrthologLinks>
                     }
                 }
             default:

@@ -61,15 +61,15 @@ export const basicTrackSlice = createSlice({
         },
         updateTrack: (state, action) => {
             if (action.payload.key === undefined) return
-            if (state.BasicTracks[action.payload.key].meta && state.BasicTracks[action.payload.key].zoom > 3) {
-                let temp = state.BasicTracks[action.payload.key].complicated
-                let tempMax = state.BasicTracks[action.payload.key].max
-                state.BasicTracks[action.payload.key].complicated = state.BasicTracks[action.payload.key].complicatedZoomedFirst
-                state.BasicTracks[action.payload.key].max = state.BasicTracks[action.payload.key].complicatedZoomedMax
-                state.BasicTracks[action.payload.key].offset = 0
-                state.BasicTracks[action.payload.key].zoom = 1
-                return   
-            }
+            // if (state.BasicTracks[action.payload.key].meta && state.BasicTracks[action.payload.key].zoom > 3) {
+            //     let temp = state.BasicTracks[action.payload.key].complicated
+            //     let tempMax = state.BasicTracks[action.payload.key].max
+            //     state.BasicTracks[action.payload.key].complicated = state.BasicTracks[action.payload.key].complicatedZoomedFirst
+            //     state.BasicTracks[action.payload.key].max = state.BasicTracks[action.payload.key].complicatedZoomedMax
+            //     state.BasicTracks[action.payload.key].offset = 0
+            //     state.BasicTracks[action.payload.key].zoom = 1
+            //     return   
+            // }
             state.BasicTracks[action.payload.key].offset = action.payload.offset
             state.BasicTracks[action.payload.key].zoom = action.payload.zoom
 
@@ -108,6 +108,13 @@ export const basicTrackSlice = createSlice({
         },
         deleteAllBasicTracks: (state, action) => {
             state.BasicTracks = {}
+        },
+        deleteAllOrthologTracks: (state,action) => {
+            Object.keys(state.BasicTracks).forEach(x =>{
+                if(x.includes("ortholog")){
+                    delete state.BasicTracks[x]
+                }
+            })
         },
         addComplicatedTrack: (state, action) => {
             if (!state.BasicTracks[action.payload.key]) {
@@ -179,7 +186,7 @@ export const basicTrackSlice = createSlice({
 })
 
 
-export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
+export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllOrthologTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
 
 
 export const selectBasicTracks = (state) => state.basictrack.BasicTracks

@@ -7,7 +7,7 @@ import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews, clearComparisons, moveCollabPreview } from '../features/miniview/miniviewSlice';
 import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { deleteAllDraggables, selectDraggables, selectGroup, selectSecondDraggables, setDraggables } from '../features/draggable/draggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
@@ -38,6 +38,7 @@ import { addAnnotation, clearSearches, addSearch } from 'features/annotation/ann
 import { removeAnnotation } from '../features/annotation/annotationSlice';
 import TrackListener from 'components/tracks/TrackListener';
 import { resolveConfig } from 'prettier';
+import { addGenome, deleteAllGenome, selectGenome } from 'components/tracks/genomeSlice';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -48,12 +49,13 @@ export default function Demo({ isDark }) {
     // Demo of redux miniview
     const previewSelector = useSelector(selectMiniviews)['newPreview']
     const miniviewSelector = useSelector(selectMiniviews)
-    const draggableSelector = useSelector(selectDraggables)
-    const orthologDraggableSelector = useSelector(selectSecondDraggables)
+    const draggableSelector = useSelector(selectDraggables)['draggables']
+    const orthologDraggableSelector = useSelector(selectDraggables)['ortholog']
     const alternateDraggableSelector = useSelector(selectAlternateDraggables)
     const comparableSelector = useSelector(selectComparison)
     const groupSelector = useSelector(selectGroup)
     const basicTrackSelector = useSelector(selectBasicTracks)
+    const genomeSelector = useSelector(selectGenome)
 
 
     const [testId, setTestId] = useState(5)
@@ -73,11 +75,12 @@ export default function Demo({ isDark }) {
     const dispatch = useDispatch()
 
     // 85 px
-    function addNewDraggable(key, trackType, data, normalizedLength, color) {
+    function addNewDraggable(key, trackType, data, normalizedLength, color, dragGroup) {
         addNewBasicTrack(key, trackType, data, normalizedLength, color)
 
         dispatch(addDraggable({
-            key: key
+            key: key,
+            dragGroup
         }))
     }
 
@@ -112,11 +115,13 @@ export default function Demo({ isDark }) {
     }
 
     function addNewBasicTrack(id, trackType, data, normalizedLength, color, start, end) {
-
+        dispatch(addGenome({
+            key:id,
+            array: data
+        }))
         dispatch(addBasicTrack({
             key: id,
             trackType,
-            array: data,
             normalizedLength,
             color,
             start,
@@ -292,8 +297,11 @@ export default function Demo({ isDark }) {
 }`)
 
     const buildDemo = (chromosomalData, dataset) => {
+        dispatch(deleteAllGenome({}))
         dispatch(deleteAllBasicTracks({}))
-        dispatch(deleteAllDraggables({}))
+        dispatch(deleteAllDraggables({
+            dragGroup: "draggables"
+        }))
         // debugger
         window.dataset = dataset
         window.chromosomalData = chromosomalData
@@ -312,12 +320,11 @@ export default function Demo({ isDark }) {
                 color = ColourScale(3)
             }
 
-            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
+            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
             let end = Math.max(...point.data.map(d => d.end))
             dispatch(addBasicTrack({
                 key: "genome" + point.key.chromosome,
                 trackType: point.trackType,
-                array: point.data,
                 normalizedLength,
                 end,
                 color,
@@ -328,7 +335,8 @@ export default function Demo({ isDark }) {
             window.maximumLength += end;
         })
         dispatch(addDraggable({
-            key: 'links'
+            key: 'links',
+            dragGroup: "draggables"
         }))
 
         setLoading(false)
@@ -411,6 +419,7 @@ export default function Demo({ isDark }) {
                     break
                 case "handleDragged":
                     dispatch(setDraggables({
+                        dragGroup: "draggables",
                         order: payload.order
                     }))
                     break
@@ -526,7 +535,6 @@ export default function Demo({ isDark }) {
     const [searchTerms, setSearchTerms] = useState()
     const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
-
 
 
     return (
@@ -687,7 +695,7 @@ export default function Demo({ isDark }) {
 
                 {previewSelector.visible && <Miniview
                     className={'preview'}
-                    array={basicTrackSelector[previewSelector.linkedTrack].array}
+                    array={previewSelector.linkedTrack.includes('ortholog') ? genomeSelector[previewSelector.linkedTrack.substring(0,3)].array : genomeSelector[previewSelector.linkedTrack].array}
                     coordinateX={previewSelector.coordinateX}
                     coordinateY={previewSelector.coordinateY}
                     width={previewSelector.width}
@@ -760,7 +768,7 @@ export default function Demo({ isDark }) {
                                         return (
                                             <BasicTrack
                                                 key={genomeItem}
-                                                array={basicTrackSelector[genomeItem].array}
+                                                array={genomeSelector[genomeItem.substring(6)].array}
                                                 color={basicTrackSelector[genomeItem].color}
                                                 genome={true}
                                                 width={document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
@@ -787,9 +795,9 @@ export default function Demo({ isDark }) {
                             <DragContainer startingList={draggableSelector} style={{float: "left"}}>
                                 {draggableSelector.map(item => {
                                     return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} test={"draggable"}>
+                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
                                             {item !== 'links' && !item.includes('genome') && <BasicTrack
-                                                array={basicTrackSelector[item].array}
+                                                array={genomeSelector[item].array}
                                                 color={basicTrackSelector[item].color}
                                                 normalizedLength={basicTrackSelector[item].normalizedLength}
                                                 trackType={basicTrackSelector[item].trackType}
@@ -803,7 +811,7 @@ export default function Demo({ isDark }) {
                                                 isDark={isDark}
                                                 normalize={normalize}
                                             />}
-                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
+                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>}
                                         </Draggable>
 
                                     )
@@ -813,27 +821,28 @@ export default function Demo({ isDark }) {
                                 </Draggable> */}
 
                             </DragContainer>
-                            {orthologDraggableSelector.length > 0 && <DragContainer startingList={orthologDraggableSelector} style={{float: "left"}}>
+                            {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("ortholog")) &&
+                            <DragContainer startingList={orthologDraggableSelector} style={{float: "left"}}>
                                 {orthologDraggableSelector.map(item => {
                                     return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} test={"ortholog"}>
+                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
                                             {item !== 'links' && !item.includes('genome') && <BasicTrack
-                                                array={basicTrackSelector[item.split("o")[0]].array}
-                                                color={basicTrackSelector[item.split('o')[0]].color}
-                                                normalizedLength={basicTrackSelector[item.split('o')[0]].normalizedLength}
-                                                trackType={basicTrackSelector[item.split('o')[0]].trackType}
+                                                array={genomeSelector[item.split("o")[0]].array}
+                                                color={basicTrackSelector[item].color}
+                                                normalizedLength={basicTrackSelector[item].normalizedLength}
+                                                trackType={basicTrackSelector[item].trackType}
                                                 title={item}
                                                 doSomething={addNewComparison}
                                                 id={item}
-                                                zoom={basicTrackSelector[item.split('o')[0]].zoom}
-                                                pastZoom={basicTrackSelector[item.split('o')[0]].pastZoom}
-                                                offset={basicTrackSelector[item.split('o')[0]].offset}
-                                                selection={basicTrackSelector[item.split('o')[0]].selection}
+                                                zoom={basicTrackSelector[item].zoom}
+                                                pastZoom={basicTrackSelector[item].pastZoom}
+                                                offset={basicTrackSelector[item].offset}
+                                                selection={basicTrackSelector[item].selection}
                                                 isDark={isDark}
                                                 normalize={normalize}
-                                                key={item}
+                                                // key={item}
                                             />}
-                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
+                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
                                         </Draggable>
 
                                     )
