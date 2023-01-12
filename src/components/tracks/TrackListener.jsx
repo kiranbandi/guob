@@ -1,0 +1,87 @@
+/** @jsxImportSource @emotion/react */
+import React from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor } from './basicTrackSlice'
+import { removeDraggable } from 'features/draggable/draggableSlice'
+import { useState } from 'react'
+import { ChromePicker } from 'react-color'
+import { css } from '@emotion/react';
+
+const TrackListener = ({ children }) => {
+
+    const basicTrackSelector = useSelector(selectBasicTracks)
+    const dispatch = useDispatch()
+
+    const [showColorPicker, setColorPickerVisibility] = useState(false)
+    const [colorPickerColor, setColorPickerColor] = useState()
+    const [colorPickerSelection, setColorPickerSelection] = useState()
+    const [colorPickerLocation, setColorPickerLocation] = useState({x: 0, y: 0})
+
+    function handleClick(e) {
+        let goal = e.target
+        while (goal) {
+            if (goal.id === 'eventListener') return
+            else if (goal.type === 'button') {
+                break
+            }
+            goal = goal.parentElement
+        }
+        let buttonInfo = goal.id.split("_")
+        console.log(buttonInfo)
+        switch (buttonInfo[0]) {
+            case "deleteTrack":
+                dispatch(removeDraggable({ 'key': buttonInfo[1] }))
+                dispatch(removeBasicTrack({ 'key': buttonInfo[1] }))
+                break
+            case "toggleTrackType":
+                dispatch(toggleTrackType({ 'id': buttonInfo[1] }))
+                break
+            case "pickColor":
+                setColorPickerVisibility(true)
+                setColorPickerColor(basicTrackSelector[buttonInfo[1]].color)
+                setColorPickerSelection(buttonInfo[1])
+                let buttonLocation = goal.getBoundingClientRect()
+                setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y })
+                break
+            
+        }
+    }
+
+
+let styling = css(css`
+    .popover {
+            position: absolute;
+            z-index: 2;
+            left: ${colorPickerLocation ? colorPickerLocation.x - 200 + 'px' : 0};
+            top: ${colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0};
+        }
+    }`)
+
+
+
+    const cover = {
+        position: 'fixed',
+        top: '0px',
+        right: '0px',
+        bottom: '0px',
+        left: '0px',
+    }
+
+    let x = colorPickerLocation ? colorPickerLocation.x - 200 + 'px' : 0
+    let y = colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0
+
+    return (
+        <div css={styling} onClick={handleClick} id="eventListener" >
+            {showColorPicker ? <div className="popover">
+                <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
+                <ChromePicker disableAlpha={true} color={{ 'hex': colorPickerColor }}  onChangeComplete={(c) => {
+                    dispatch(changeBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
+                    setColorPickerColor(c.hex)
+                }} />
+            </div> : null}
+            {children}
+        </div>
+    )
+}
+
+export default TrackListener

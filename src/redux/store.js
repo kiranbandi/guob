@@ -4,7 +4,7 @@ import alternateDraggableReducer from '../features/draggable/alternateDraggableS
 import draggableReducer from '../features/draggable/draggableSlice';
 import basicTrackReducer from '../components/tracks/basicTrackSlice';
 import annotationReducer from 'features/annotation/annotationSlice';
-
+import genomeReducer from '../components/tracks/genomeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,5 +13,6 @@ export const store = configureStore({
     draggable: draggableReducer,
     basictrack : basicTrackReducer,
     annotation: annotationReducer,
+    genome: genomeReducer,
   },
 });

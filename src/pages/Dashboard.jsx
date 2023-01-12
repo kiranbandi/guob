@@ -28,6 +28,7 @@ import { useFetch } from '../hooks/useFetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import _ from 'lodash';
+import TrackListener from 'components/tracks/TrackListener';
 
 
 export default function Dashboard({ isDark }) {
@@ -216,15 +217,11 @@ export default function Dashboard({ isDark }) {
   }
 
   .halfHandle {
-    margin-top: 2%;
-    height: 33%;
-    border-radius: 50%;
-    width: fit-content;
+    width: 20px;
+    margin: 0%;
+    padding: 0%;
   }
 
-.track {
-    width: 100%
-}
 .alternateDraggable{
   height: 50px;
   width: 96%;
@@ -284,7 +281,9 @@ export default function Dashboard({ isDark }) {
 
 
   return (
+    <TrackListener>
     <div className='pageWrapper' css={styling}>
+
 
       <Stack my={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
@@ -388,9 +387,11 @@ export default function Dashboard({ isDark }) {
             <DragContainer startingList={draggableSelector}>
               {draggableSelector.map(item => {
                 return (
-                  <Draggable
-                    color={basicTrackSelector[item].color}
-                    showControls={true} key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                  <Draggable 
+                    key={item} 
+                    grouped={groupSelector.includes(item)} 
+                    groupID={groupSelector} 
+                    className={"draggable"} >
                     <BasicTrack
                       array={basicTrackSelector[item].array}
                       color={basicTrackSelector[item].color}
@@ -412,7 +413,9 @@ export default function Dashboard({ isDark }) {
             </DragContainer>
           </>
       }
+            
     </div>
+    </TrackListener>
   );
 }
 

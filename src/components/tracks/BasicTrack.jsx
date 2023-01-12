@@ -4,22 +4,25 @@ import { useDispatch, useSelector } from "react-redux"
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
-import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack } from "./basicTrackSlice";
-import { addAnnotation, selectAnnotations, selectSearch, removeAnnotation } from "features/annotation/annotationSlice";
+import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack, addBasicTrack, deleteAllOrthologTracks } from "./basicTrackSlice";
+import { addAnnotation, selectAnnotations, selectSearch, removeAnnotation, addOrtholog, clearOrthologs, selectOrthologs } from "features/annotation/annotationSlice";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
-import { selectDraggables } from "features/draggable/draggableSlice.js";
+import { selectDraggables, addDraggable, clearDraggables } from "features/draggable/draggableSlice.js";
+import TrackControls from "./TrackControls.jsx";
+import { selectGenome } from "./genomeSlice.js";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
-const BasicTrack = ({ array, genome = false, color, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, ...props }) => {
+const BasicTrack = ({ array, genome = false, color=0, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
     const previewSelector = useSelector(selectMiniviews)['newPreview']
     const collabPreviews = useSelector(selectMiniviews)
     const comparisonSelector = useSelector(selectComparison)[title]
-
+  
+    
     const [endCap, setEndCap] = useState(0)
     const [startOfTrack, setStartOfTrack] = useState(0)
     const [dragging, setDragging] = useState(false)
@@ -29,13 +32,15 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     const [start, setStart] = useState(0)
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
-
+    const [ savedWidth, setSavedWidth ] = useState()
+    
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
+    const genomeSelector = useSelector(selectGenome)
     const order = useSelector(selectDraggables)
     const annotationSelector = useSelector(selectAnnotations)[id]
     const searchSelector = useSelector(selectSearch)[id]
-
+    const orthologSelector = useSelector(selectOrthologs)[id]
 
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
     // the rest will be used for the scale 
@@ -43,6 +48,12 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
     let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height,
         parentWrapperWidth = genome ? width : document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
+
+        // Hacky fix for ortholog tracks redering correctly
+    // if(title.includes("ortholog")){
+       
+    //     parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width == document.querySelector('.draggableItem')?.getBoundingClientRect()?.width ? parentWrapperWidth : parentWrapperWidth * 2
+    // }
 
     const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
 
@@ -53,7 +64,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     }
 
     const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
-        maxWidth = normalize && !genome ? raw_width * cap / normalizedLength : raw_width,
+        maxWidth = normalize && !genome ? raw_width * cap / normalizedLength - 20 : genome ? raw_width : raw_width - 20,
         maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
     useEffect(() => {
@@ -76,14 +87,39 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
     // keep the old palette
     // piling on another hack - clear draw genes when switching track type
+    // and another - clear drawn genes when the array is changed
+
     useEffect(() => {
         setDrawnGenes([])
-    }, [isDark, color, trackType, normalize, maxWidth])
+    }, [isDark, color, trackType, normalize, maxWidth, array, max])
+
+    // Piling on another hack, when an ortholog is selected the parentwrapper width changes,
+    // the offset needs to be adjusted or we lose our location
+    useEffect(() => {
+        if(!id.includes("preview")){
+            let raw_width = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width
+            let updatedWidth = raw_width - 20
+            let ratio = updatedWidth/maxWidth
+            if(Math.abs(ratio - 1) > 0.001 ){
+                if(id.includes("ortholog")){
+                    debugger
+                }
+                let offsetX = Math.max(Math.min(offset * ratio, 0), -((maxWidth * zoom) - maxWidth))
+                dispatch(updateTrack({
+                    key: id,
+                    zoom,
+                    offset: offsetX
+                }))
+
+
+            }
+        }
+    }, [parentWrapperWidth])
 
     useEffect(() => {
 
         if (!array) return
-
+        setSavedWidth(maxWidth)
         normalize && !genome ? setCap(normalizedLength) : setCap(Math.max(...array.map(d => d.end)))
 
         setStart(Math.min(...array.map(d => d.start)))
@@ -105,7 +141,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
         setEndCap(Math.min(scalingIncrements.invert(maxWidth - offset), cap))
 
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
-        let minValue = 0, maxValue = 100;
+        let minValue = 0, maxValue = max ? max : 100;
 
         // Deal with color palette switch in dark mode;
         let zeroColor = isDark ? '#121212' : '#ffffff';
@@ -177,6 +213,11 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     let rectWidth = widthScale(drawGene.end - drawGene.start)
                     if (x + rectWidth < 10 || x > maxWidth - 10) {
                         return
+                    }
+                    if(x < 10){
+                        let difference = -10 + x
+                        rectWidth += difference
+                        x = 10
                     }
                     if (hovered && drawGene.key === hovered.key) {
                         drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
@@ -434,8 +475,12 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     return
 
                 }
+                dispatch(clearDraggables({
+                    dragGroup: "ortholog"
+                }))
                 let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
+               
 
                 let found = false
                 drawnGenes.forEach(x => {
@@ -445,54 +490,97 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                             key: id,
                             selection: x.key,
                         }))
+                        dispatch(clearOrthologs())
+                        dispatch(deleteAllOrthologTracks())
                         found = true;
-                        //! Proof of concept following gene
+                        //! Proof of concept following gene change this for the view later
                         //TODO pull this into a function
                         let index;
-                        let trackID;
-                        let orthologInformation;
-                        let orthologChromosome;
+                        let trackID = [];
+                        let orthologInformation = [];
+                        let orthologChromosome = [];
+                        let key;
+                        index = []
                         let matched;
                         // Iterating through the tracks with an ortholog
                         if (x.siblings != 0 && x.siblings.length > 0) {
-                            for (const [key, value] of Object.entries(trackSelector)) {
-                                index = value.array.findIndex((d) => { return d.key.toLowerCase() == x.siblings[0].toLowerCase() })
-                                if (index > -1) {
-                                    orthologInformation = value.array[index]
-                                    orthologChromosome = value.array
-                                    trackID = key
-                                    matched = true
-                                    break  // just finding the first ortholog as a proof of concept  
+                            for(let sibling of x.siblings){
+                                
+                                if(sibling){
+                                   key = sibling.toLowerCase().split("g")[0]
+                                   index = genomeSelector[key].array.findIndex((d) => { return d.key.toLowerCase() == sibling.toLowerCase() })
+                                   if (index > -1) {
+                                       orthologInformation.push(genomeSelector[key].array[index])
+                                       orthologChromosome.push(genomeSelector[key].array)
+                                       trackID.push(key)
+                                       matched = true
+                                    }
                                 }
 
                             }
                             if (matched == true && index > -1) {
 
+                                for(let i = 0; i < orthologInformation.length; i++){
+                                    if(trackID !== id){
+                                        let orthologCap = Math.max(...orthologChromosome[i].map(d => d.end))
+        
+                                        // Location of the ortholog 
+                                        let ratio = orthologInformation[i].start / orthologCap
+        
+                                        // Should almost certainly use a web worker for this
+                                        let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
+                                        let calculatedZoom = x.width / relatedWidthScale(orthologInformation[i].end - orthologInformation[i].start) //the size of the ortholog
+                                        let calculatedOffset = -(ratio * maxWidth * calculatedZoom) + x.coordinateX
+                                        // Aligning related tracks with the selected block
+                                        if(trackID[i] != id){
+                                            dispatch(updateTrack({
+                                                key: trackID[i],
+                                                zoom: calculatedZoom,
+                                                offset: calculatedOffset
+                                            }))
+                                            dispatch(setSelection({
+                                                key: trackID[i],
+                                                selection: orthologInformation[i].key
+                                            }))
+                                        }
+                                        dispatch(addBasicTrack({
+                                            key: trackID[i]+"ortholog",
+                                            zoom: calculatedZoom,
+                                            offset: calculatedOffset,
+                                            trackType,
+                                            color: trackSelector[trackID[i]].color,
+                                            isDark,
+                                            normalize,
+                                            selection
+                                        }))
+                                        dispatch(addDraggable({
+                                            key:trackID[i]+"ortholog",
+                                            dragGroup: "ortholog"
+                                        }))
+                                        let annotation = {
+                                            key: trackID[i],
+                                            note: orthologInformation[i].key,
+                                            location: +orthologInformation[i].start
+                                        }
+                                        let orthologAnnotation = {
+                                            key: trackID[i]+"ortholog",
+                                            note: orthologInformation[i].key,
+                                            location: +orthologInformation[i].start
+                                        }
+                                        dispatch(addOrtholog(annotation))
+                                        dispatch(addOrtholog(orthologAnnotation))
+                                        
+                                        
 
-                                let orthologCap = Math.max(...orthologChromosome.map(d => d.end))
+                                    }
+                                }
 
-                                // Location of the ortholog 
-                                let ratio = orthologInformation.start / orthologCap
-
-                                // Should almost certainly use a web worker for this
-                                let relatedWidthScale = scaleLinear().domain([0, orthologCap]).range([0, maxWidth])
-                                let calculatedZoom = x.width / relatedWidthScale(orthologInformation.end - orthologInformation.start) //the size of the ortholog
-
-                                // Aligning related tracks with the selected block
-                                dispatch(updateTrack({
-                                    key: trackID,
-                                    zoom: calculatedZoom,
-                                    offset: -(ratio * maxWidth * calculatedZoom) + x.coordinateX
-                                }))
-                                dispatch(setSelection({
-                                    key: trackID,
-                                    selection: orthologInformation.key
-                                }))
-                            }
+                                }
                         }
                     }
                 })
                 if (found == false) {
+
                     dispatch(clearSelection({
                         key: id,
                     }))
@@ -506,38 +594,8 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     let viewFinderWidth = undefined
     let x = 0
     let previewWidth = 0
-
-    if (previewSelector.visible) {
-
-        viewFinderScale = scaleLinear().domain([startOfTrack, endCap]).range([canvasRef.current.offsetLeft + paddingLeft, canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight])
-        viewFinderWidth = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
-        x = viewFinderScale(previewSelector.center)
-        previewWidth = viewFinderWidth(100000)
-
-        if (x - previewWidth / 2 < canvasRef.current.offsetLeft + paddingLeft) {
-            let difference = (x - previewWidth / 2) - (canvasRef.current.offsetLeft + paddingLeft)
-            previewWidth += difference * 2
-        }
-        else if (x + previewWidth / 2 > canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight) {
-            let difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight - (x + previewWidth / 2)
-            previewWidth += difference * 2
-        }
-
-    }
-
-
-    let info
-
-    //! TODO Changing length of text changes the location of ticks
-    if (trackType === "default") {
-        let orthologInfo = (hovered && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nOrhologs: " + orthologInfo : ''
-    }
-    else {
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end + "\nValue: " + hovered.value : ''
-    }
-    if (genome) info = ""
-
+    let difference = 0
+    
     const positionRef = React.useRef({
         x: 0,
         y: 0,
@@ -552,6 +610,38 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
         }
     };
 
+    if (previewSelector.visible && canvasRef.current) {
+        viewFinderScale = scaleLinear().domain([startOfTrack, endCap]).range([canvasRef.current.offsetLeft + paddingLeft, canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight])
+        viewFinderWidth = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
+        x = viewFinderScale(previewSelector.center)
+        previewWidth = viewFinderWidth(100000)
+
+        if (x - previewWidth / 2 < canvasRef.current.offsetLeft + paddingLeft) {
+            difference = -((x - previewWidth / 2) - (canvasRef.current.offsetLeft + paddingLeft))
+            previewWidth -= difference
+        }
+        else if (x + previewWidth / 2 > canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight) {
+            difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight - (x + previewWidth / 2)
+            previewWidth += difference
+        }
+        
+
+    }
+
+
+    let info
+
+    //! TODO Changing length of text changes the location of ticks
+    if (trackType === "default") {
+        let orthologInfo = (hovered && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nOrthologs: " + orthologInfo : ''
+    }
+    else {
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end + "\nValue: " + hovered.value : ''
+    }
+    if (genome) info = ""
+
+
 
     let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", GFF" : "Chromosome: " + title + ", BED"
 
@@ -559,7 +649,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
 
     return (
-        <div style={{ width: maxWidth, height: '100%' }}>
+        <div style={{ width: raw_width, height: '100%', }}>
             {title && !genome &&
                 <Typography
                     variant="body1"
@@ -579,32 +669,35 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     }}
                 >{trackTitle}</Typography>}
 
-            {previewSelector.visible && Object.keys(collabPreviews).map(item => {
+            {previewSelector.visible && canvasRef.current &&  Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
-
-                let collabWidth = trackType == 'default' ? viewFinderWidth(100000) : 1
+                
+                let collabWidth = trackType == 'default' ? previewWidth : 3
 
                 if(collabX >= canvasRef.current.offsetLeft &&
-                    collabX <= canvasRef.current.offsetLeft + maxWidth) 
+                    collabX <= canvasRef.current.offsetLeft + maxWidth - paddingLeft) 
                     return(
                     <Window
                         color={collabPreviews[item].cursorColor}
                         key={item}
-                        coordinateX={collabX}
+                        coordinateX={collabX + difference/2}
+                        // coordinateX={x}
                         coordinateY={canvasRef.current.offsetTop}
-                        height={canvasRef.current.offsetHeight + 2}
+                        height={canvasRef.current.offsetHeight}
                         width={collabWidth} // boxwidth
                         preview={id == 'preview' ? false : true}
                         text={Math.max(Math.round(beginning), 0)}
                         grouped={grouped}
+                        isDark={isDark}
+                        style={genome ? "genome" : undefined}
                     />
                     )
             })
             }
 
-            {previewSelector.visible && comparisonSelector &&
+            {previewSelector.visible && canvasRef.current && comparisonSelector &&
                 comparisonSelector.map(comparison => {
-                    let x = locationScale(comparison.center) + offset + canvasRef.current.offsetLeft + 3
+                    let x = locationScale(comparison.center) + offset + canvasRef.current.offsetLeft
                     let width = viewFinderWidth(comparison.end - comparison.start)
                     let start = viewFinderScale(comparison.start) + offset + canvasRef.current.offsetLeft
 
@@ -615,12 +708,14 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                                 key={comparison.key}
                                 coordinateX={x}
                                 coordinateY={canvasRef.current.offsetTop}
-                                height={canvasRef.current.offsetHeight + 2}
+                                height={canvasRef.current.offsetHeight}
                                 width={width} // boxwidth
                                 preview={true}
                                 text={Math.max(Math.round(beginning), 0)}
                                 grouped={grouped}
                                 label={title.toUpperCase() + "-" + comparison.key}
+                                isDark={isDark}
+                                // style={"caret"}
                             />
                         )
                     }
@@ -667,6 +762,28 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                 })
             }
 
+            {
+                orthologSelector && orthologSelector.map(note => {
+                    if(!canvasRef.current) return
+                    let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
+                    if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
+                        return (
+                            <Window
+                                key={note.id + x}
+                                coordinateX={x}
+                                coordinateY={annotationY}
+                                height={canvasRef.current.offsetHeight + 2}
+                                width={2} // boxwidth
+                                preview={true}
+                                text={Math.max(Math.round(beginning), 0)}
+                                grouped={grouped}
+                                label={note.note}
+                            />)
+
+                    }
+                })
+            }
+
             <Tooltip
                 title={info.length > 0 ? <Typography
                     variant="caption"
@@ -690,6 +807,7 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     },
                 }}
             >
+
                 <canvas
                     tabIndex={-1}
                     id={id}
@@ -741,9 +859,9 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     {...props} />
             </Tooltip>
 
-            {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: '10px' }}>
-                <div width={maxWidth} style={{ border: 'solid 1px', marginTop: -5 }} />
-                <Stack direction='row' justifyContent="space-between" className="scale">
+            {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: genome ? '10px' : '30px' }}>
+                <div width={maxWidth - paddingLeft*2} style={{ border: 'solid 1px', marginTop: -5, }} />
+                <Stack direction='row' justifyContent="space-between" className="scale" width={maxWidth - paddingLeft*2}>
                     <div style={{ WebkitUserSelect: 'none', borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
                     <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                     <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
@@ -752,8 +870,10 @@ const BasicTrack = ({ array, genome = false, color, trackType = 'default', norma
                     <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
                 </Stack>
             </div>}
+            {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={maxHeight + 25 + 5} />}
 
         </div>
+
     )
 }
 

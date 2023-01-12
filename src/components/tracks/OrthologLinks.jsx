@@ -9,7 +9,7 @@ import { updateBothTracks, updateTrack } from "./basicTrackSlice";
 // import * as d3 from 'd3';
 
 import { selectBasicTracks } from "./basicTrackSlice"
-
+import { selectGenome } from "./genomeSlice";
 
 var orthologs = window.orthologs;
 
@@ -55,10 +55,11 @@ function findOrthologs(c1, c2) {
 }
 
 let dataSet1 = [{ type: "line", source: { x: 623.9910809660769, y: 0 }, target: { x: 624.2136712245092, y: 50 } }];
-const OrthologLinks = ({ index, id, normalize, ...props }) => {
+const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
 
     let [waiting, setWaiting] = useState()
+
     function updateTimer(topKey, topRatio, topZoom, bottomKey, bottomRatio, bottomZoom) {
         let gt = window.gt;
         clearTimeout(waiting)
@@ -75,22 +76,26 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         }, 80))
     }
 
+    
     const trackSelector = useSelector(selectBasicTracks)
-    const indexSelector = useSelector(selectDraggables)
+    const indexSelector = useSelector(selectDraggables)[dragGroup]
+    const genomeSelector = useSelector(selectGenome)
     const linkRef = useRef(1)
 
     const dispatch = useDispatch()
 
     const [clickLocation, setClickLocation] = useState()
     const [dragging, setDragging] = useState()
-
     // These should have all the information from the tracks, including zoom level + offset
     let topTrack = trackSelector[indexSelector[index - 1]]
     let bottomTrack = trackSelector[indexSelector[index + 1]]
-
+    let topGenome = genomeSelector[indexSelector[index - 1]]
+    let bottomGenome = genomeSelector[indexSelector[index + 1]]
+    
+    
     const parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
-    const maxWidth = Math.round(parentWrapperWidth)
-
+    const maxWidth = Math.round(parentWrapperWidth) - 20
+    
     useEffect(() => {
         linkRef.current.addEventListener('wheel', preventScroll, { passive: false });
         // if alt key is pressed then stop the event 
@@ -178,8 +183,8 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
 
         let boundingBox = e.target.getBoundingClientRect()
 
-        let topGene = searchTrack(genes[0], topTrack.array)
-        let bottomGene = searchTrack(genes[1], bottomTrack.array)
+        let topGene = searchTrack(genes[0], topGenome.array)
+        let bottomGene = searchTrack(genes[1], bottomGenome.array)
 
         let topRatio = topGene.start / aboveCap
         let bottomRatio = bottomGene.start / belowCap
@@ -212,10 +217,10 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     }
     //######################################################################################
     
-    let aboveLength = topTrack ? topTrack.array.length : 0
-    let aboveCap = aboveLength > 0 ? Math.max(...topTrack.array.map(d => d.end)) : 0
-    let belowLength = bottomTrack ? bottomTrack.array.length : 0
-    let belowCap = belowLength > 0 ? Math.max(...bottomTrack.array.map(d => d.end)) : 0
+    let aboveLength = topGenome ? topGenome.array.length : 0
+    let aboveCap = aboveLength > 0 ? Math.max(...topGenome.array.map(d => d.end)) : 0
+    let belowLength = bottomGenome ? bottomGenome.array.length : 0
+    let belowCap = belowLength > 0 ? Math.max(...bottomGenome.array.map(d => d.end)) : 0
 
     let topKey = topTrack ? topTrack.key : undefined
     let bottomKey = bottomTrack ? bottomTrack.key : undefined
@@ -226,7 +231,7 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
         )
     }
 
-    let orthologPairs = findOrthologs(topTrack, bottomTrack);
+    let orthologPairs = findOrthologs(topGenome, bottomGenome);
     //{type: "polygon", source: {x: 0,x1: 0,y1:0, y:0}, target: {x:100,x1: 200, y1: 100, y:100}}
 
     let arrayLinks = [];
@@ -247,9 +252,9 @@ const OrthologLinks = ({ index, id, normalize, ...props }) => {
     if(xScale1 && xScale2 && widthScale1 && widthScale2) for (var pair of orthologPairs) {
 
         // let geneAbove = findGene(pair.source);
-        let geneAbove = searchTrack(pair.source, topTrack.array)
+        let geneAbove = searchTrack(pair.source, topGenome.array)
         // let geneBelow = findGene(pair.target);
-        let geneBelow = searchTrack(pair.target, bottomTrack.array)
+        let geneBelow = searchTrack(pair.target, bottomGenome.array)
 
 
         let topX1 = xScale1(geneAbove.start) + topTrack.offset

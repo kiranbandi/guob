@@ -19,25 +19,18 @@ import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
 import { ChromePicker } from 'react-color';
 
-const Draggable = ({ children, id, index, grouped, groupID, className, showControls = false, color }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
     const secondRef = useRef(null)
 
     const dispatch = useDispatch()
-    const draggableSelector = useSelector(selectDraggables)
+    const draggableSelector = useSelector(selectDraggables)[dragGroup]
 
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
-    let [showColorPicker, setColorPickerVisibility] = useState(false)
 
-    // let [color, setColor] = useState({
-    //     r: '241',
-    //     g: '112',
-    //     b: '19',
-    //     a: '1',
-    // })
 
     function updateTimer() {
         clearTimeout(waiting)
@@ -50,9 +43,9 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
     const [, drop] = useDrop(() => ({
         accept: ItemTypes.BOUNDED,
         hover(item, monitor) {
+            
 
             if (!ref.current) return
-
 
             const dragIndex = item.index
             const hoverIndex = index
@@ -76,6 +69,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
             // Updating the redux store - using conditional to keep calls to a minimum
             if (dragIndex != hoverIndex) {
                 dispatch(switchDraggable({
+                    dragGroup: dragGroup,
                     startKey: item.id,
                     switchKey: id
                 })
@@ -87,6 +81,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
                     groupID.forEach((x) => {
                         if (x != item.id) {
                             dispatch(insertDraggable({
+                                dragGroup: dragGroup,
                                 startKey: item.id,
                                 id: x,
                                 index: offset
@@ -107,7 +102,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
     const [{ isDragging }, drag, preview] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,
-            item: () => { return { id, index, grouped, groupID, ref, className } },
+            item: () => { return { id, index, grouped, groupID, ref, className, dragGroup } },
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
@@ -141,6 +136,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
             if (payload.Action == "handleDragged") {
                 if (payload.id !== id) return
                 dispatch(setDraggables({
+                    dragGroup,
                     order: payload.order
                 }))
             }
@@ -159,10 +155,9 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
         left: '0px',
     }
 
-
     return (
         <div ref={secondRef} className={className}>
-            <div className={'draggableItem ' + (showControls ? "smaller" : '')} style=
+            <div className={'draggableItem'} style=
                 {{
                     opacity: opacity,
                     borderStyle: borderGroup,
@@ -171,51 +166,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, showContr
                 }}>
                 {children}
             </div>
-            {showControls && <div className='handle smaller'>
-
-                <IconButton ref={ref} className='halfHandle' sx={{
-                    backgroundColor: deepOrange[100],
-                    borderRadius: 1,
-                    '&:hover': {
-                        backgroundColor: deepOrange[500]
-                    }
-                }} onClick={(e) => {
-                    dispatch(toggleTrackType({ id }))
-                }}
-                >
-                    <MultilineChartIcon fontSize="small" className="handle_image" />
-                </IconButton>
-
-                <IconButton ref={ref} className='halfHandle' sx={{
-                    backgroundColor: deepOrange[100],
-                    borderRadius: 1,
-                    '&:hover': {
-                        backgroundColor: deepOrange[500]
-                    }
-                }} onClick={(e) => {
-                    dispatch(removeDraggable({ 'key': id }))
-                    dispatch(removeBasicTrack({ 'key': id }))
-                }}
-                >
-                    <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
-                </IconButton>
-                <IconButton ref={ref} className='halfHandle' sx={{
-                    backgroundColor: deepOrange[100],
-                    borderRadius: 1,
-                    '&:hover': {
-                        backgroundColor: deepOrange[500]
-                    }
-                }} onClick={(e) => { setColorPickerVisibility(true) }}>
-                    <ColorLensIcon fontSize="small" className="handle_image" />
-                </IconButton>
-                {showColorPicker ? <div style={popover}>
-                    <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
-                    <ChromePicker disableAlpha={true} color={{ 'hex': color }} onChangeComplete={(c) => { dispatch(changeBasicTrackColor({ 'key': id, 'color': c.hex })) }} />
-                </div> : null}
-            </div>}
-
-
-            <IconButton ref={ref} className={'handle ' + (showControls ? "smaller" : '')} sx={{
+            <IconButton ref={ref} className={'handle'} sx={{
                 backgroundColor: teal[100],
                 borderRadius: 1,
                 '&:hover': {

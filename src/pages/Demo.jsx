@@ -13,13 +13,13 @@ import { useState } from 'react';
 import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
 import { addAlternateDraggable, removeAlternateDraggable } from '../features/draggable/alternateDraggableSlice';
 import { addMiniview, removeMiniview, selectComparison, removeComparison } from '../features/miniview/miniviewSlice';
-import { Switch, Button, Stack, Divider, FormControl, FormControlLabel } from '@mui/material'
+import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
 import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, changeZoom, pan, updateBothTracks } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks, changeBasicTrackColor } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request";
 import $ from 'jquery';
@@ -31,10 +31,14 @@ import Box from '@mui/material/Box';
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import parseGFF from 'features/parsers/gffParser';
-import _ from 'lodash';
+import { parseSubmittedGFF, parseSubmittedCollinearity } from 'features/parsers/gffParser';
+import _, { reject } from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
 import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
 import { removeAnnotation } from '../features/annotation/annotationSlice';
+import TrackListener from 'components/tracks/TrackListener';
+import { resolveConfig } from 'prettier';
+import { addGenome, deleteAllGenome, selectGenome } from 'components/tracks/genomeSlice';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -45,30 +49,38 @@ export default function Demo({ isDark }) {
     // Demo of redux miniview
     const previewSelector = useSelector(selectMiniviews)['newPreview']
     const miniviewSelector = useSelector(selectMiniviews)
-    const draggableSelector = useSelector(selectDraggables)
+    const draggableSelector = useSelector(selectDraggables)['draggables']
+    const orthologDraggableSelector = useSelector(selectDraggables)['ortholog']
     const alternateDraggableSelector = useSelector(selectAlternateDraggables)
     const comparableSelector = useSelector(selectComparison)
     const groupSelector = useSelector(selectGroup)
     const basicTrackSelector = useSelector(selectBasicTracks)
+    const genomeSelector = useSelector(selectGenome)
 
 
     const [testId, setTestId] = useState(5)
     const [startY, setStartY] = useState(900)
+    const [drawerOpen, setDrawerOpen] = useState(false)
 
     const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [titleState, setTitleState] = useState("Aradopsis thaliana")
     const [normalize, setNormalize] = useState(false)
 
+    const [ showGff, setShowGff ] = useState(false)
+    const [ showCollinearity, setShowCollinearity ] = useState(false)
+
+
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const dispatch = useDispatch()
 
     // 85 px
-    function addNewDraggable(key, trackType, data, normalizedLength, color) {
+    function addNewDraggable(key, trackType, data, normalizedLength, color, dragGroup) {
         addNewBasicTrack(key, trackType, data, normalizedLength, color)
 
         dispatch(addDraggable({
-            key: key
+            key: key,
+            dragGroup
         }))
     }
 
@@ -103,11 +115,13 @@ export default function Demo({ isDark }) {
     }
 
     function addNewBasicTrack(id, trackType, data, normalizedLength, color, start, end) {
-
+        dispatch(addGenome({
+            key:id,
+            array: data
+        }))
         dispatch(addBasicTrack({
             key: id,
             trackType,
-            array: data,
             normalizedLength,
             color,
             start,
@@ -162,7 +176,7 @@ export default function Demo({ isDark }) {
     }
 
     // TODO - navigation?
-    function handleClick(event) {
+    function addNewComparison(event) {
         if (event.type === 'contextmenu') {
             return
         }
@@ -243,9 +257,14 @@ export default function Demo({ isDark }) {
     }
   }
   .halfHandle {
-    height: 45%;
-    border-radius: 50%;
-    width: fit-content;
+    ${'' /* height: 45%; */}
+    ${'' /* border-radius: 50%; */}
+    width: 20px;
+    margin: 0%;
+    padding: 0%;
+    ${'' /* paddingLeft: 0px; */}
+    
+
   }
 .alternateDraggable{
   height: 50px;
@@ -267,58 +286,71 @@ export default function Demo({ isDark }) {
 .groupedComparison {
   height : 2.5rem;
 }
+.genomeMath {
+    width: 100%;
+}
 .Container{
     border: 2px solid grey;
     margin-bottom: 1ch;
+    float: left;
+    width: ${orthologDraggableSelector.length > 0 ? "50%" : "100%" };
 }`)
 
+    const buildDemo = (chromosomalData, dataset) => {
+        dispatch(deleteAllGenome({}))
+        dispatch(deleteAllBasicTracks({}))
+        dispatch(deleteAllDraggables({
+            dragGroup: "draggables"
+        }))
+        // debugger
+        window.dataset = dataset
+        window.chromosomalData = chromosomalData
+        window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
+        let normalizedLength = 0;
+        let color;
+        let ColourScale = scaleOrdinal().domain([0, 9])
+            .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
+        normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+        window.maximumLength = 0
+        chromosomalData.forEach((point, i) => {
+            if (point.trackType === 'default') {
+                color = ColourScale(i % 10)
+            }
+            else {
+                color = ColourScale(3)
+            }
+
+            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
+            let end = Math.max(...point.data.map(d => d.end))
+            dispatch(addBasicTrack({
+                key: "genome" + point.key.chromosome,
+                trackType: point.trackType,
+                normalizedLength,
+                end,
+                color,
+                zoom: 1.0,
+                pastZoom: 1.0,
+                offset: 0,
+            }))
+            window.maximumLength += end;
+        })
+        dispatch(addDraggable({
+            key: 'links',
+            dragGroup: "draggables"
+        }))
+
+        setLoading(false)
+    }
+
     let [loading, setLoading] = useState(true)
+    let [submittedData, setSubmittedData] = useState(false)
 
     useEffect(() => {
-        setLoading(true)
-        dispatch(deleteAllBasicTracks({}))
-        dispatch(deleteAllDraggables({}))
-        parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
-            window.dataset = dataset
-            window.chromosomalData = chromosomalData
-            window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
-            let normalizedLength = 0;
-            let color;
-            let ColourScale = scaleOrdinal().domain([0, 9])
-                .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
-            normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-            window.maximumLength = 0
-            chromosomalData.forEach((point, i) => {
-                if (point.trackType === 'default') {
-                    color = ColourScale(i % 10)
-                }
-                else {
-                    color = ColourScale(3)
-                }
-
-                addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color)
-                let end = Math.max(...point.data.map(d => d.end))
-                dispatch(addBasicTrack({
-                    key: "genome" + point.key.chromosome,
-                    trackType: point.trackType,
-                    array: point.data,
-                    normalizedLength,
-                    end,
-                    color,
-                    zoom: 1.0,
-                    pastZoom: 1.0,
-                    offset: 0,
-                }))
-                window.maximumLength += end;
+        if (demoFile) {
+            parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
+                buildDemo(chromosomalData, dataset)
             })
-            dispatch(addDraggable({
-                key: 'links'
-            }))
-
-            setLoading(false)
-        })
-        // })
-        setLoading(true)
+        }
 
     }, [demoFile])
 
@@ -387,6 +419,7 @@ export default function Demo({ isDark }) {
                     break
                 case "handleDragged":
                     dispatch(setDraggables({
+                        dragGroup: "draggables",
                         order: payload.order
                     }))
                     break
@@ -431,47 +464,142 @@ export default function Demo({ isDark }) {
 
     }
 
-
     function clearComparisonTracks() {
         dispatch(clearComparisons({
-
         }))
     }
 
     const handleSlider = (event, newValue) => {
         if (typeof newValue === 'number') {
-
             setSliderHeight(newValue)
         }
+    }
+
+    const toggleDrawer = () => {
+        setDrawerOpen(drawerOpen => !drawerOpen)
+        setShowGff(false)
+        setShowCollinearity(false)
+    }
+
+    const updateFiles = () => {
+
+        setLoading(true)
+        setDemoCollinearity()
+        const gff = document.getElementById("gff_file").files[0]
+        // const bed = document.getElementById("bed_file").files[0]
+        const collinearity = document.getElementById("collinearity_file").files[0]
+
+        let file, test
+        if (gff) {
+            file = gff
+        }
+        // else if (bed) {
+        //     file = bed
+        // }
+        if (!file) return
+
+        let reader = new FileReader()
+        reader.readAsText(file)
+        reader.onload = function () {
+            if (collinearity) {
+                let collinearity_reader = new FileReader()
+                collinearity_reader.readAsText(collinearity)
+                collinearity_reader.onload = function () {
+                    parseSubmittedGFF(reader.result, collinearity_reader.result).
+                        then(_ => {
+                            buildDemo(_.chromosomalData, _.dataset)
+                        })
+                }
+                collinearity_reader.onerror = function () {
+                    console.log(collinearity_reader.error);
+                };
+            }
+            else {
+
+                parseSubmittedGFF(reader.result).then(_ => {
+                    buildDemo(_.chromosomalData, _.dataset)
+                })
+            }
+
+            setDemoFile()
+            setTitleState("Uploaded Dataset")
+            // setDemoFile()
+        };
+
+        reader.onerror = function () {
+            console.log(reader.error);
+        };
+
     }
 
     const [searchTerms, setSearchTerms] = useState()
     const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
+
+
     return (
         <>
+                <Drawer
+                    open={drawerOpen}
+                    onClose={toggleDrawer}>
+                    <Typography variant="h2" m={5}>
+                        Upload Files
+                    </Typography>
+                    <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
+                        <Stack>
+                        <Button variant="outlined" component="label" onClick={() => setShowGff(false)}>
+                            Upload GFF File
+                            <input hidden type="file" id="gff_file" onChange={() => setShowGff(true)}/>
+                        </Button>
+                        {showGff && document.getElementById("gff_file").files.length > 0 && <Typography>{document.getElementById("gff_file").files[0].name}</Typography>}
+                        </Stack>
+                        {/* <Button variant="outlined" component="label" >
+                            Upload BED File
+                            <input hidden type="file" id="bed_file" />
+                        </Button> */}
+                        <Stack>
+                        <Button variant="outlined" component="label" onClick={() => setShowCollinearity(false)}>
+                            Upload Collinearity File
+                            <input hidden type="file" id="collinearity_file" onChange={() => setShowCollinearity(true)}/>
+                        </Button>
+                        {showCollinearity && document.getElementById("collinearity_file").files.length > 0 && <Typography>{document.getElementById("collinearity_file").files[0].name}</Typography>}
+                        </Stack>
+                        {loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                            <CircularProgress size={75} />
+                        </Box> :
+                            <Button onClick={updateFiles}>
+                                Update Tracks
+                            </Button>
+                        }
+                    </Stack>
+                </Drawer>
+         <TrackListener>
             <div css={styling}>
-
+ 
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/bn_methylation_100k.bed")
                         setTitleState("Canola Methylation")
                         setDemoCollinearity()
                     }}>Canola Methylation</Button>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/at_coordinate.gff")
                         setTitleState("Aradopsis thaliana")
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
                     }}>Aradopsis thaliana</Button>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/bn_coordinate.gff")
                         setTitleState("Brassica napus")
                         setDemoCollinearity()
                     }}>Brassica napus</Button>
                     <Button variant='outlined' onClick={() => {
+                        setLoading(true)
                         clearComparisonTracks()
                         setDemoFile("files/ta_hb_coordinate.gff")
                         setTitleState("Triticum aestivum")
@@ -549,9 +677,10 @@ export default function Demo({ isDark }) {
                         }>
                             Update Search
                         </Button>
+
                     </Stack>
 
-                    <Slider
+                    <Slider className="widthSlider"
                         step={1}
                         min={75}
                         max={300}
@@ -559,11 +688,14 @@ export default function Demo({ isDark }) {
                         onChange={handleSlider}
                     />
 
+                    <Button variant="outline" onClick={toggleDrawer} >
+                        Upload files
+                    </Button>
                 </Stack>
 
                 {previewSelector.visible && <Miniview
                     className={'preview'}
-                    array={basicTrackSelector[previewSelector.linkedTrack].array}
+                    array={previewSelector.linkedTrack.includes('ortholog') ? genomeSelector[previewSelector.linkedTrack.substring(0,3)].array : genomeSelector[previewSelector.linkedTrack].array}
                     coordinateX={previewSelector.coordinateX}
                     coordinateY={previewSelector.coordinateY}
                     width={previewSelector.width}
@@ -636,14 +768,14 @@ export default function Demo({ isDark }) {
                                         return (
                                             <BasicTrack
                                                 key={genomeItem}
-                                                array={basicTrackSelector[genomeItem].array}
+                                                array={genomeSelector[genomeItem.substring(6)].array}
                                                 color={basicTrackSelector[genomeItem].color}
                                                 genome={true}
-                                                width={document.querySelector('.draggableItem')?.getBoundingClientRect()?.width ? document.querySelector('.draggableItem')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
+                                                width={document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
                                                 normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
-                                                trackType={basicTrackSelector[genomeItem].trackType}
+                                                // trackType={basicTrackSelector[genomeItem].trackType}
                                                 title={genomeItem}
-                                                doSomething={handleClick}
+                                                doSomething={addNewComparison}
                                                 id={genomeItem}
                                                 zoom={basicTrackSelector[genomeItem].zoom}
                                                 pastZoom={basicTrackSelector[genomeItem].pastZoom}
@@ -659,17 +791,18 @@ export default function Demo({ isDark }) {
                                 }
                             </Stack>
                             <CustomDragLayer groupID={groupSelector} />
-                            <DragContainer startingList={draggableSelector}>
+                            <div>
+                            <DragContainer startingList={draggableSelector} style={{float: "left"}}>
                                 {draggableSelector.map(item => {
                                     return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} >
+                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
                                             {item !== 'links' && !item.includes('genome') && <BasicTrack
-                                                array={basicTrackSelector[item].array}
+                                                array={genomeSelector[item].array}
                                                 color={basicTrackSelector[item].color}
                                                 normalizedLength={basicTrackSelector[item].normalizedLength}
                                                 trackType={basicTrackSelector[item].trackType}
                                                 title={item}
-                                                doSomething={handleClick}
+                                                doSomething={addNewComparison}
                                                 id={item}
                                                 zoom={basicTrackSelector[item].zoom}
                                                 pastZoom={basicTrackSelector[item].pastZoom}
@@ -678,7 +811,7 @@ export default function Demo({ isDark }) {
                                                 isDark={isDark}
                                                 normalize={normalize}
                                             />}
-                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize}></OrthologLinks>}
+                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>}
                                         </Draggable>
 
                                     )
@@ -688,9 +821,44 @@ export default function Demo({ isDark }) {
                                 </Draggable> */}
 
                             </DragContainer>
+                            {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("ortholog")) &&
+                            <DragContainer startingList={orthologDraggableSelector} style={{float: "left"}}>
+                                {orthologDraggableSelector.map(item => {
+                                    return (
+                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
+                                            {item !== 'links' && !item.includes('genome') && <BasicTrack
+                                                array={genomeSelector[item.split("o")[0]].array}
+                                                color={basicTrackSelector[item].color}
+                                                normalizedLength={basicTrackSelector[item].normalizedLength}
+                                                trackType={basicTrackSelector[item].trackType}
+                                                title={item}
+                                                doSomething={addNewComparison}
+                                                id={item}
+                                                zoom={basicTrackSelector[item].zoom}
+                                                pastZoom={basicTrackSelector[item].pastZoom}
+                                                offset={basicTrackSelector[item].offset}
+                                                selection={basicTrackSelector[item].selection}
+                                                isDark={isDark}
+                                                normalize={normalize}
+                                                // key={item}
+                                            />}
+                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
+                                        </Draggable>
+
+                                    )
+                                })}
+                                {/* <Draggable key="Test">
+                                    Test
+                                </Draggable> */}
+
+                            </DragContainer>}
+
+                            </div>
                         </>
                 }
             </div>
+                        
+         </TrackListener>
         </>
     );
 }
