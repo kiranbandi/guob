@@ -27467,20 +27467,37 @@ class GT extends EventEmitter {
 
       // console.log(`ID ${id} has updated their state:`, payloadDelta);
       let rootElement = $('#root');
+      
       var currentWidth = rootElement.width();
       var currentHeight = rootElement.height();
-      
+
+      // Adjusting the vertical + horizontal scaling if the mouse is in an area with variable height
+      let verticalReferenceElement = $('#gtVerticalReference')
+      let bottomReferenceElement = $('#gtBottomReference')
+      let adjustVertical = payloadDelta.adjustVertical
+      let adjustHorizontal = payloadDelta.adjustHorizontal
+
+      var start = payloadDelta.refStart
+      var end = payloadDelta.refWidth
+      var leftFlag = payloadDelta.left
+
+      var left = adjustHorizontal ? verticalReferenceElement.offset().left : leftFlag ? 0 : verticalReferenceElement.offset().left + verticalReferenceElement.width()
+      var right = adjustHorizontal ? verticalReferenceElement.offset().left + verticalReferenceElement.width(): leftFlag ? verticalReferenceElement.offset().left : currentWidth
+      var top = adjustVertical ? verticalReferenceElement.offset().top : 0
+      var bottom = adjustVertical ? bottomReferenceElement.offset().top : verticalReferenceElement.offset().top
+
+
       var CursorScaleX = d3.scaleLinear()
-        .domain([0,payloadDelta.refWidth])
+        .domain([start,end])
     
-        .range([0, currentWidth]);
+        .range([left, right]);
 
       var CursorScaleY =   d3.scaleLinear()
       .domain([0,payloadDelta.refHeight])
   
-      .range([0, currentHeight]);
-      
-      let x = CursorScaleX(payloadDelta.x)
+      .range([top, bottom]);
+      let calculatedX = CursorScaleX(payloadDelta.x)
+      let x = adjustHorizontal ? calculatedX : calculatedX < verticalReferenceElement.offset().left + verticalReferenceElement.width()/2 ?  Math.min(calculatedX, verticalReferenceElement.offset().left) : Math.max(calculatedX, verticalReferenceElement.offset().left + verticalReferenceElement.width())
       let y = CursorScaleY(payloadDelta.y)
       // console.log(x , y)
 
@@ -27601,12 +27618,35 @@ class GT extends EventEmitter {
 
 
       let rootElement = $('#root');
+      let verticalReferenceElement = $('#gtVerticalReference')
+      let bottomReferenceElement = $('#gtBottomReference')
+
 
 
       // broadcast mousemovement to all other connected peers
       rootElement.on('mousemove', (e) => {
-        
-        this.updateUser({ 'x': e.pageX - rootElement.offset().left, y: e.pageY - rootElement.offset().top, "refWidth": rootElement.width(), "refHeight": rootElement.height()});
+
+
+        // Check to see if the mouse is in an area that can have variable height
+        let mousePositionY =  e.pageY - rootElement.offset().top
+        let mousePositionX = e.pageX - rootElement.offset().left
+
+        let adjustVertical = mousePositionY > verticalReferenceElement.offset().top 
+        let adjustHorizontal = mousePositionX > verticalReferenceElement.offset().left && mousePositionX < verticalReferenceElement.offset().left + verticalReferenceElement.width()
+
+        // Flag for if we're to the left of the reference element
+        let left = mousePositionX < verticalReferenceElement.offset().left
+
+        this.updateUser({ 
+          'x': adjustHorizontal ? e.pageX - verticalReferenceElement.offset().left : mousePositionX,
+          'y': adjustVertical ? e.pageY - verticalReferenceElement.offset().top : mousePositionY, 
+          "refWidth": adjustHorizontal ? verticalReferenceElement.width() : left ? verticalReferenceElement.offset().left : rootElement.width(),
+          "refStart": adjustHorizontal ? 0 : left ? 0 : verticalReferenceElement.offset().left + verticalReferenceElement.width(),
+          "refHeight": adjustVertical ? rootElement.height() - verticalReferenceElement.offset().top - bottomReferenceElement.height() : verticalReferenceElement.offset().top,
+          "adjustVertical": adjustVertical,
+          "adjustHorizontal": adjustHorizontal,
+          "left" : left
+        });
       })
       // update our state variables...
       this.room = room

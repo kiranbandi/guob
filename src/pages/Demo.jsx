@@ -394,7 +394,6 @@ export default function Demo({ isDark }) {
             if (userID === document.title) return
             switch (payload.Action) {
                 case "handleTrackUpdate":
-                    console.log(payload)
                     updateSingleTrack(payload.trackInfo)
                     break
                 case "handleBothTrackUpdate":
@@ -680,7 +679,7 @@ export default function Demo({ isDark }) {
 
                     </Stack>
 
-                    <Slider className="widthSlider"
+                    <Slider className="widthSlider" 
                         step={1}
                         min={75}
                         max={300}
@@ -762,7 +761,7 @@ export default function Demo({ isDark }) {
                             }}>
                                 {titleState}
                             </Typography>
-                            <Stack direction="row" marginBottom={5} >
+                            <Stack direction="row" marginBottom={5}  id={"gtVerticalReference"}>
                                 {Object.keys(basicTrackSelector).map(genomeItem => {
                                     if (genomeItem.includes('genome')) {
                                         return (
@@ -859,6 +858,7 @@ export default function Demo({ isDark }) {
             </div>
                         
          </TrackListener>
+         {/* <div id={"gtBottomReference"} /> */}
         </>
     );
 }

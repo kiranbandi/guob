@@ -8,7 +8,7 @@ import { teal } from '@mui/material/colors';
 
 
 
-function Footer({isDark}) {
+function Footer({isDark, id}) {
    
     let hoverColor = isDark ? teal[500] : teal[50]
     
@@ -16,7 +16,7 @@ function Footer({isDark}) {
         <>
             <footer>
 
-                <AppBar
+                <AppBar id={"gtBottomReference"}
                     position='static'
                     sx={{
                         bottom: 0,
