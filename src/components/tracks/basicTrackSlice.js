@@ -6,6 +6,7 @@ import testing_array_dh1 from '../../data/testing_array_dh1';
 import testing_array_dh2 from '../../data/testing_array_dh2';
 import testing_array_dh3 from '../../data/testing_array_dh3';
 
+
 const trackTypes = ['heatmap', 'histogram', 'scatter', 'line']
 
 const initialState = {
@@ -76,10 +77,12 @@ export const basicTrackSlice = createSlice({
         },
         toggleTrackType: (state, action) => {
             if (action.payload.id === undefined) return
-            let currentTrackType = state.BasicTracks[action.payload.id].trackType,
-                currentTypeIndex = trackTypes.indexOf(currentTrackType);
-            // push the track type to next in the array, if at end loop back to beginning
-            state.BasicTracks[action.payload.id].trackType = trackTypes[currentTypeIndex + 1 >= 4 ? 0 : currentTypeIndex + 1]
+            // let currentTrackType = state.BasicTracks[action.payload.id].trackType,
+            //     currentTypeIndex = trackTypes.indexOf(currentTrackType);
+            // // push the track type to next in the array, if at end loop back to beginning
+            // console.log(trackTypes)
+            state.BasicTracks[action.payload.id].trackType = action.payload.type;
+            
         },
         updateBothTracks: (state, action) => {
             if (action.payload.topKey !== undefined) {
