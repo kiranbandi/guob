@@ -67,8 +67,8 @@ export default function Demo({ isDark }) {
     const [titleState, setTitleState] = useState("Aradopsis thaliana")
     const [normalize, setNormalize] = useState(false)
 
-    const [ showGff, setShowGff ] = useState(false)
-    const [ showCollinearity, setShowCollinearity ] = useState(false)
+    const [showGff, setShowGff] = useState(false)
+    const [showCollinearity, setShowCollinearity] = useState(false)
 
 
     const [draggableSpacing, setDraggableSpacing] = useState(true)
@@ -116,7 +116,7 @@ export default function Demo({ isDark }) {
 
     function addNewBasicTrack(id, trackType, data, normalizedLength, color, start, end) {
         dispatch(addGenome({
-            key:id,
+            key: id,
             array: data
         }))
         dispatch(addBasicTrack({
@@ -231,7 +231,7 @@ export default function Demo({ isDark }) {
 }
 .genomeView {
     flex-direction: row;
-    display: "flex"
+    display: "flex";
 }
 .draggableItem {
     height: 100%;
@@ -263,8 +263,6 @@ export default function Demo({ isDark }) {
     margin: 0%;
     padding: 0%;
     ${'' /* paddingLeft: 0px; */}
-    
-
   }
 .alternateDraggable{
   height: 50px;
@@ -286,14 +284,32 @@ export default function Demo({ isDark }) {
 .groupedComparison {
   height : 2.5rem;
 }
-.genomeMath {
+.genome {
     width: 100%;
 }
+.actualTrack {
+    height: ${sliderHeight - 50 + 'px'};
+    width: 100%;
+}
+.annotation {
+    height:  ${sliderHeight - 50 + 'px'};
+}
+.trackButtons {
+    width: 20px;
+    margin: 0%;
+    margin-top: -30px;
+    margin-bottom: 30px;
+    padding: 0%;
+    height: ${(sliderHeight) / 3 + 'px'}
+}
+${'' /* .genomeTrack {
+    height: ${Math.min(sliderHeight, 100) + 'px'};
+} */}
 .Container{
     border: 2px solid grey;
     margin-bottom: 1ch;
     float: left;
-    width: ${orthologDraggableSelector.length > 0 ? "50%" : "100%" };
+    width: ${orthologDraggableSelector.length > 0 ? "50%" : "100%"};
 }`)
 
     const buildDemo = (chromosomalData, dataset) => {
@@ -531,6 +547,64 @@ export default function Demo({ isDark }) {
 
     }
 
+
+    const buildGenomeView = () => {
+        let genomeTracks = []
+        let genomeNames = Object.keys(basicTrackSelector).filter(x => x.includes('genome'))
+        // not a for loop, use a while loop
+        // calculate width first
+
+        let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
+        let x = 0
+
+        while (x < genomeNames.length) {
+            let totalWidth = 0
+            let currentGenomes = genomeNames.slice(x)
+            // while(totalWidth < maxWidth){
+            let chosenGenomes = []
+            for( let _ = 0; _ < currentGenomes.length; _++){
+                // currentGenomes.forEach(genome => {
+                let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
+                totalWidth += width
+                if (totalWidth > maxWidth) break
+                chosenGenomes.push({
+                    genome: currentGenomes[_],
+                    width
+                })
+                x++
+
+        }
+            genomeTracks.push(<Stack direction="row" marginBottom={5} id={"gtVerticalReference"} key={"Stack_" + x} justifyContent={"space-around"}>
+                {chosenGenomes.map(genomeItem => {
+                    return (
+                        <BasicTrack
+                            key={genomeItem.genome}
+                            array={genomeSelector[genomeItem.genome.substring(6)].array}
+                            color={basicTrackSelector[genomeItem.genome].color}
+                            genome={true}
+                            width={genomeItem.width}
+                            height={Math.min(sliderHeight, 100)}
+                            normalizedLength={basicTrackSelector[genomeItem.genome].normalizedLength}
+                            trackType={basicTrackSelector[genomeItem.genome].trackType}
+                            title={genomeItem.genome}
+                            doSomething={addNewComparison}
+                            id={genomeItem.genome}
+                            zoom={basicTrackSelector[genomeItem.genome].zoom}
+                            pastZoom={basicTrackSelector[genomeItem.genome].pastZoom}
+                            offset={basicTrackSelector[genomeItem.genome].offset}
+                            selection={basicTrackSelector[genomeItem.genome].selection}
+                            isDark={isDark}
+                            normalize={normalize}
+                        />
+                    )
+                })
+                }
+            </Stack>)
+
+        }
+        return <>{genomeTracks}</>
+    }
+
     const [searchTerms, setSearchTerms] = useState()
     const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
@@ -538,327 +612,303 @@ export default function Demo({ isDark }) {
 
     return (
         <>
-                <Drawer
-                    open={drawerOpen}
-                    onClose={toggleDrawer}>
-                    <Typography variant="h2" m={5}>
-                        Upload Files
-                    </Typography>
-                    <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
-                        <Stack>
+            <Drawer
+                open={drawerOpen}
+                onClose={toggleDrawer}>
+                <Typography variant="h2" m={5}>
+                    Upload Files
+                </Typography>
+                <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
+                    <Stack>
                         <Button variant="outlined" component="label" onClick={() => setShowGff(false)}>
                             Upload GFF File
-                            <input hidden type="file" id="gff_file" onChange={() => setShowGff(true)}/>
+                            <input hidden type="file" id="gff_file" onChange={() => setShowGff(true)} />
                         </Button>
                         {showGff && document.getElementById("gff_file").files.length > 0 && <Typography>{document.getElementById("gff_file").files[0].name}</Typography>}
-                        </Stack>
-                        {/* <Button variant="outlined" component="label" >
+                    </Stack>
+                    {/* <Button variant="outlined" component="label" >
                             Upload BED File
                             <input hidden type="file" id="bed_file" />
                         </Button> */}
-                        <Stack>
+                    <Stack>
                         <Button variant="outlined" component="label" onClick={() => setShowCollinearity(false)}>
                             Upload Collinearity File
-                            <input hidden type="file" id="collinearity_file" onChange={() => setShowCollinearity(true)}/>
+                            <input hidden type="file" id="collinearity_file" onChange={() => setShowCollinearity(true)} />
                         </Button>
                         {showCollinearity && document.getElementById("collinearity_file").files.length > 0 && <Typography>{document.getElementById("collinearity_file").files[0].name}</Typography>}
-                        </Stack>
-                        {loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
-                            <CircularProgress size={75} />
-                        </Box> :
-                            <Button onClick={updateFiles}>
-                                Update Tracks
-                            </Button>
-                        }
                     </Stack>
-                </Drawer>
-         <TrackListener>
-            <div css={styling}>
- 
-                <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                    <Button variant='outlined' onClick={() => {
-                        setLoading(true)
-                        clearComparisonTracks()
-                        setDemoFile("files/bn_methylation_100k.bed")
-                        setTitleState("Canola Methylation")
-                        setDemoCollinearity()
-                    }}>Canola Methylation</Button>
-                    <Button variant='outlined' onClick={() => {
-                        setLoading(true)
-                        clearComparisonTracks()
-                        setDemoFile("files/at_coordinate.gff")
-                        setTitleState("Aradopsis thaliana")
-                        setDemoCollinearity("files/at_vv_collinear.collinearity")
-                    }}>Aradopsis thaliana</Button>
-                    <Button variant='outlined' onClick={() => {
-                        setLoading(true)
-                        clearComparisonTracks()
-                        setDemoFile("files/bn_coordinate.gff")
-                        setTitleState("Brassica napus")
-                        setDemoCollinearity()
-                    }}>Brassica napus</Button>
-                    <Button variant='outlined' onClick={() => {
-                        setLoading(true)
-                        clearComparisonTracks()
-                        setDemoFile("files/ta_hb_coordinate.gff")
-                        setTitleState("Triticum aestivum")
-                        setDemoCollinearity()
-                    }}>Triticum aestivum</Button>
-                    <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
-                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
-
-                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
-
+                    {loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                        <CircularProgress size={75} />
+                    </Box> :
+                        <Button onClick={updateFiles}>
+                            Update Tracks
+                        </Button>
+                    }
                 </Stack>
-                <Stack mt={2} spacing={2}>
-                    <Stack direction='row' justifyContent={"flex-start"}>
-                        <Autocomplete sx={{ width: '15%' }}
-                            multiple
-                            size="small"
-                            onChange={(event, newValue) => {
-                                setSearchingChromosome(newValue)
-                            }}
-                            id="Chromosome Category"
-                            options={window.chromosomes ? window.chromosomes : []}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Chromosome"
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        type: 'search',
-                                    }}
-                                />
-                            )}
-                        />
-                        {window.dataset && <Autocomplete sx={{ width: '70%' }}
-                            multiple
-                            size="small"
-                            onChange={(event, newValue) => {
-                                setSearchTerms(newValue)
-                            }}
-                            id="Gene Search"
-                            options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome)}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Search input"
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        type: 'search',
-                                    }}
-                                />
-                            )}
-                        />}
-                        <Button onClick={() => {
-                            let gt = window.gt;
+            </Drawer>
+            <TrackListener>
+                <div css={styling}>
 
-                            dispatch(clearSearches())
-                            if (gt) {
-                                gt.updateState({ Action: "clearSearch" })
+                    <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            clearComparisonTracks()
+                            setDemoFile("files/bn_methylation_100k.bed")
+                            setTitleState("Canola Methylation")
+                            setDemoCollinearity()
+                        }}>Canola Methylation</Button>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            clearComparisonTracks()
+                            setDemoFile("files/at_coordinate.gff")
+                            setTitleState("Aradopsis thaliana")
+                            setDemoCollinearity("files/at_vv_collinear.collinearity")
+                        }}>Aradopsis thaliana</Button>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            clearComparisonTracks()
+                            setDemoFile("files/bn_coordinate.gff")
+                            setTitleState("Brassica napus")
+                            setDemoCollinearity()
+                        }}>Brassica napus</Button>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            clearComparisonTracks()
+                            setDemoFile("files/ta_hb_coordinate.gff")
+                            setTitleState("Triticum aestivum")
+                            setDemoCollinearity()
+                        }}>Triticum aestivum</Button>
+                        <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                        <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+
+                        <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
+
+                    </Stack>
+                    <Stack mt={2} spacing={2}>
+                        <Stack direction='row' justifyContent={"flex-start"}>
+                            <Autocomplete sx={{ width: '15%' }}
+                                multiple
+                                size="small"
+                                onChange={(event, newValue) => {
+                                    setSearchingChromosome(newValue)
+                                }}
+                                id="Chromosome Category"
+                                options={window.chromosomes ? window.chromosomes : []}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Chromosome"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            type: 'search',
+                                        }}
+                                    />
+                                )}
+                            />
+                            {window.dataset && <Autocomplete sx={{ width: '70%' }}
+                                multiple
+                                size="small"
+                                onChange={(event, newValue) => {
+                                    setSearchTerms(newValue)
+                                }}
+                                id="Gene Search"
+                                options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome)}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Search input"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            type: 'search',
+                                        }}
+                                    />
+                                )}
+                            />}
+                            <Button onClick={() => {
+                                let gt = window.gt;
+
+                                dispatch(clearSearches())
+                                if (gt) {
+                                    gt.updateState({ Action: "clearSearch" })
+                                }
+
+                                if (!searchTerms || searchTerms.length < 1) return
+                                searchTerms.forEach(term => {
+                                    let gene = window.dataset[term]
+                                    let annotation = {
+                                        key: gene.chromosome,
+                                        note: gene.key,
+                                        location: +gene.start
+                                    }
+                                    dispatch(addSearch(annotation))
+                                    if (gt) {
+                                        gt.updateState({ Action: "handleSearch", annotation })
+                                    }
+                                })
                             }
 
-                            if (!searchTerms || searchTerms.length < 1) return
-                            searchTerms.forEach(term => {
-                                let gene = window.dataset[term]
-                                let annotation = {
-                                    key: gene.chromosome,
-                                    note: gene.key,
-                                    location: +gene.start
-                                }
-                                dispatch(addSearch(annotation))
-                                if (gt) {
-                                    gt.updateState({ Action: "handleSearch", annotation })
-                                }
+                            }>
+                                Update Search
+                            </Button>
+
+                        </Stack>
+
+                        <Slider className="widthSlider"
+                            step={1}
+                            min={75}
+                            max={300}
+                            valueLabelDisplay={"auto"}
+                            onChange={handleSlider}
+                        />
+
+                        <Button variant="outline" onClick={toggleDrawer} >
+                            Upload files
+                        </Button>
+                    </Stack>
+
+                    {previewSelector.visible && <Miniview
+                        className={'preview'}
+                        array={previewSelector.linkedTrack.includes('ortholog') ? genomeSelector[previewSelector.linkedTrack.substring(0, 3)].array : genomeSelector[previewSelector.linkedTrack].array}
+                        coordinateX={previewSelector.coordinateX}
+                        coordinateY={previewSelector.coordinateY}
+                        width={previewSelector.width}
+                        height={previewSelector.height}
+                        beginning={previewSelector.start}
+                        fin={previewSelector.end}
+                        color={previewSelector.color}
+                        id={previewSelector.id}
+                        absolutePositioning={true}
+                        preview={true}
+                        isDark={isDark}
+                        trackType={basicTrackSelector[previewSelector.linkedTrack].trackType}
+                        center={previewSelector.center}
+                    />}
+
+
+                    {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, keyIndex) => {
+
+                        if (comparableSelector[item]) {
+
+                            return comparableSelector[item].map((current, index) => {
+                                testIndex++
+                                let parent = document.getElementById(current.target).getBoundingClientRect()
+                                let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
+                                let verticalScroll = document.documentElement.scrollTop
+                                let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
+                                return <Miniview
+
+                                    className={'comparison preview'}
+                                    key={current.key}
+                                    id={current.key}
+                                    array={current.array}
+                                    color={current.color}
+                                    coordinateX={previewSelector.coordinateX}
+                                    coordinateY={previewSelector.coordinateY + 18 * (testIndex + 1)}
+                                    width={previewSelector.width}
+                                    height={previewSelector.height}
+                                    displayPreview={false}
+                                    beginning={current.start}
+                                    fin={current.end}
+                                    absolutePositioning={true}
+                                    preview={true}
+                                    boxLeft={what}
+                                    boxTop={parent.y + verticalScroll}
+                                    boxWidth={current.boxWidth}
+                                    grouped={groupSelector.includes(current.target)}
+                                    isDark={isDark}
+                                    trackType={basicTrackSelector[current.linkedTrack].trackType}
+                                    center={current.center}
+                                />
                             })
                         }
 
-                        }>
-                            Update Search
-                        </Button>
-
-                    </Stack>
-
-                    <Slider className="widthSlider" 
-                        step={1}
-                        min={75}
-                        max={300}
-                        valueLabelDisplay={"auto"}
-                        onChange={handleSlider}
-                    />
-
-                    <Button variant="outline" onClick={toggleDrawer} >
-                        Upload files
-                    </Button>
-                </Stack>
-
-                {previewSelector.visible && <Miniview
-                    className={'preview'}
-                    array={previewSelector.linkedTrack.includes('ortholog') ? genomeSelector[previewSelector.linkedTrack.substring(0,3)].array : genomeSelector[previewSelector.linkedTrack].array}
-                    coordinateX={previewSelector.coordinateX}
-                    coordinateY={previewSelector.coordinateY}
-                    width={previewSelector.width}
-                    height={previewSelector.height}
-                    beginning={previewSelector.start}
-                    fin={previewSelector.end}
-                    color={previewSelector.color}
-                    id={previewSelector.id}
-                    absolutePositioning={true}
-                    preview={true}
-                    isDark={isDark}
-                    trackType={basicTrackSelector[previewSelector.linkedTrack].trackType}
-                    center={previewSelector.center}
-                />}
-
-
-                {previewSelector.visible && (Object.keys(comparableSelector).length !== 0 && Object.keys(comparableSelector).map((item, keyIndex) => {
-
-                    if (comparableSelector[item]) {
-
-                        return comparableSelector[item].map((current, index) => {
-                            testIndex++
-                            let parent = document.getElementById(current.target).getBoundingClientRect()
-                            let padding = parseFloat(getComputedStyle(document.getElementById(current.target)).paddingLeft)
-                            let verticalScroll = document.documentElement.scrollTop
-                            let what = current.coordinateX - current.boxWidth / 2 > parent.x + padding && current.coordinateX + current.boxWidth - current.boxWidth / 2 < parent.x + parent.width - padding ? current.coordinateX : -1000
-                            return <Miniview
-
-                                className={'comparison preview'}
-                                key={current.key}
-                                id={current.key}
-                                array={current.array}
-                                color={current.color}
-                                coordinateX={previewSelector.coordinateX}
-                                coordinateY={previewSelector.coordinateY + 18 * (testIndex + 1)}
-                                width={previewSelector.width}
-                                height={previewSelector.height}
-                                displayPreview={false}
-                                beginning={current.start}
-                                fin={current.end}
-                                absolutePositioning={true}
-                                preview={true}
-                                boxLeft={what}
-                                boxTop={parent.y + verticalScroll}
-                                boxWidth={current.boxWidth}
-                                grouped={groupSelector.includes(current.target)}
-                                isDark={isDark}
-                                trackType={basicTrackSelector[current.linkedTrack].trackType}
-                                center={current.center}
-                            />
-                        })
+                    }))
                     }
 
-                }))
-                }
+                    {
+                        loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                            <CircularProgress size={75} />
+                        </Box> :
+                            <>
+                                <Typography variant={'h5'} sx={{
+                                    WebkitUserSelect: 'none',
+                                }}>
+                                    {titleState}
+                                </Typography>
 
-                {
-                    loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
-                        <CircularProgress size={75} />
-                    </Box> :
-                        <>
-                            <Typography variant={'h5'} sx={{
-                                WebkitUserSelect: 'none',
-                            }}>
-                                {titleState}
-                            </Typography>
-                            <Stack direction="row" marginBottom={5}  id={"gtVerticalReference"}>
-                                {Object.keys(basicTrackSelector).map(genomeItem => {
-                                    if (genomeItem.includes('genome')) {
-                                        return (
-                                            <BasicTrack
-                                                key={genomeItem}
-                                                array={genomeSelector[genomeItem.substring(6)].array}
-                                                color={basicTrackSelector[genomeItem].color}
-                                                genome={true}
-                                                width={document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width * basicTrackSelector[genomeItem].end / window.maximumLength : 200}
-                                                normalizedLength={basicTrackSelector[genomeItem].normalizedLength}
-                                                // trackType={basicTrackSelector[genomeItem].trackType}
-                                                title={genomeItem}
-                                                doSomething={addNewComparison}
-                                                id={genomeItem}
-                                                zoom={basicTrackSelector[genomeItem].zoom}
-                                                pastZoom={basicTrackSelector[genomeItem].pastZoom}
-                                                offset={basicTrackSelector[genomeItem].offset}
-                                                selection={basicTrackSelector[genomeItem].selection}
-                                                isDark={isDark}
-                                                normalize={normalize}
-                                            />
-                                        )
+                                {buildGenomeView()}
 
-                                    }
-                                })
-                                }
-                            </Stack>
-                            <CustomDragLayer groupID={groupSelector} />
-                            <div>
-                            <DragContainer startingList={draggableSelector} style={{float: "left"}}>
-                                {draggableSelector.map(item => {
-                                    return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                            {item !== 'links' && !item.includes('genome') && <BasicTrack
-                                                array={genomeSelector[item].array}
-                                                color={basicTrackSelector[item].color}
-                                                normalizedLength={basicTrackSelector[item].normalizedLength}
-                                                trackType={basicTrackSelector[item].trackType}
-                                                title={item}
-                                                doSomething={addNewComparison}
-                                                id={item}
-                                                zoom={basicTrackSelector[item].zoom}
-                                                pastZoom={basicTrackSelector[item].pastZoom}
-                                                offset={basicTrackSelector[item].offset}
-                                                selection={basicTrackSelector[item].selection}
-                                                isDark={isDark}
-                                                normalize={normalize}
-                                            />}
-                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>}
-                                        </Draggable>
+                                <CustomDragLayer groupID={groupSelector} />
+                                <div>
+                                    <DragContainer startingList={draggableSelector} style={{ float: "left" }}>
+                                        {draggableSelector.map(item => {
+                                            return (
+                                                <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                                    {item !== 'links' && !item.includes('genome') && <BasicTrack
+                                                        array={genomeSelector[item].array}
+                                                        color={basicTrackSelector[item].color}
+                                                        // height={basicTrackSelector[item].trackType == 'default' ? 1000 : undefined}
+                                                        normalizedLength={basicTrackSelector[item].normalizedLength}
+                                                        trackType={basicTrackSelector[item].trackType}
+                                                        title={item}
+                                                        doSomething={addNewComparison}
+                                                        id={item}
+                                                        zoom={basicTrackSelector[item].zoom}
+                                                        pastZoom={basicTrackSelector[item].pastZoom}
+                                                        offset={basicTrackSelector[item].offset}
+                                                        selection={basicTrackSelector[item].selection}
+                                                        isDark={isDark}
+                                                        normalize={normalize}
+                                                    />}
+                                                    {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>}
+                                                </Draggable>
 
-                                    )
-                                })}
-                                {/* <Draggable key="Test">
+                                            )
+                                        })}
+                                        {/* <Draggable key="Test">
                                     Test
                                 </Draggable> */}
 
-                            </DragContainer>
-                            {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("ortholog")) &&
-                            <DragContainer startingList={orthologDraggableSelector} style={{float: "left"}}>
-                                {orthologDraggableSelector.map(item => {
-                                    return (
-                                        <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
-                                            {item !== 'links' && !item.includes('genome') && <BasicTrack
-                                                array={genomeSelector[item.split("o")[0]].array}
-                                                color={basicTrackSelector[item].color}
-                                                normalizedLength={basicTrackSelector[item].normalizedLength}
-                                                trackType={basicTrackSelector[item].trackType}
-                                                title={item}
-                                                doSomething={addNewComparison}
-                                                id={item}
-                                                zoom={basicTrackSelector[item].zoom}
-                                                pastZoom={basicTrackSelector[item].pastZoom}
-                                                offset={basicTrackSelector[item].offset}
-                                                selection={basicTrackSelector[item].selection}
-                                                isDark={isDark}
-                                                normalize={normalize}
-                                                // key={item}
-                                            />}
-                                            {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
-                                        </Draggable>
+                                    </DragContainer>
+                                    {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("ortholog")) &&
+                                        <DragContainer startingList={orthologDraggableSelector} style={{ float: "left" }}>
+                                            {orthologDraggableSelector.map(item => {
+                                                return (
+                                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
+                                                        {item !== 'links' && !item.includes('genome') && <BasicTrack
+                                                            array={genomeSelector[item.split("o")[0]].array}
+                                                            color={basicTrackSelector[item].color}
+                                                            normalizedLength={basicTrackSelector[item].normalizedLength}
+                                                            trackType={basicTrackSelector[item].trackType}
+                                                            title={item}
+                                                            doSomething={addNewComparison}
+                                                            id={item}
+                                                            zoom={basicTrackSelector[item].zoom}
+                                                            pastZoom={basicTrackSelector[item].pastZoom}
+                                                            offset={basicTrackSelector[item].offset}
+                                                            selection={basicTrackSelector[item].selection}
+                                                            isDark={isDark}
+                                                            normalize={normalize}
+                                                        // key={item}
+                                                        />}
+                                                        {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
+                                                    </Draggable>
 
-                                    )
-                                })}
-                                {/* <Draggable key="Test">
+                                                )
+                                            })}
+                                            {/* <Draggable key="Test">
                                     Test
                                 </Draggable> */}
 
-                            </DragContainer>}
+                                        </DragContainer>}
 
-                            </div>
-                        </>
-                }
-            </div>
-                        
-         </TrackListener>
-         {/* <div id={"gtBottomReference"} /> */}
+                                </div>
+                            </>
+                    }
+                </div>
+
+            </TrackListener>
+            {/* <div id={"gtBottomReference"} /> */}
         </>
     );
 }

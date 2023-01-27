@@ -25535,7 +25535,8 @@ Socket.prototype.onack = function (packet) {
 Socket.prototype.onconnect = function () {
 
   currentUserID = prompt('Enter desired Username', currentUserID);
-colorHash = prompt('Enter desired cursor color', colorHash);
+  colorHash = prompt('Enter desired cursor color', colorHash);
+
   this.connected = true;
   this.disconnected = false;
   this.emit('connect');

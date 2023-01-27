@@ -10,14 +10,14 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 function TrackControls(props) {
 
-    const buttonHeight = props.height/3
+    // const buttonHeight = props.height/3
 
     return (
         <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"}>
-                <IconButton className='halfHandle' id={"toggleTrackType_" + props.id} sx={{
+                <IconButton className='trackButtons' id={"toggleTrackType_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
-                    height: buttonHeight,
+                    // height: buttonHeight,
                     '&:hover': {
                         backgroundColor: deepOrange[500]
                     }
@@ -26,10 +26,10 @@ function TrackControls(props) {
                     <MultilineChartIcon fontSize="small" className="handle_image" />
                 </IconButton>
 
-                <IconButton className='halfHandle'id={"deleteTrack_" + props.id} sx={{
+                <IconButton className='trackButtons'id={"deleteTrack_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
-                    height: buttonHeight,
+                    // height: buttonHeight,
                     '&:hover': {
                         backgroundColor: deepOrange[500]
                     }
@@ -37,10 +37,10 @@ function TrackControls(props) {
                 >
                     <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
                 </IconButton>
-                <IconButton className='halfHandle' id={"pickColor_" + props.id} sx={{
+                <IconButton className='trackButtons' id={"pickColor_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
-                    height: buttonHeight,
+                    // height: buttonHeight,
                     '&:hover': {
                         backgroundColor: deepOrange[500]
                     }

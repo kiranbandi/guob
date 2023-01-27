@@ -8,12 +8,15 @@ const initialState = {
     // Currently just a placeholder 
     genome: {
         'dh1': {
+            key: 'dh1',
             array: testing_array_dh1,
         },
         'dh2': {
+            key: 'dh2',
             array: testing_array_dh2,
         },
         'dh3': {
+            key: 'dh3',
             array: testing_array_dh3,
         },
     },

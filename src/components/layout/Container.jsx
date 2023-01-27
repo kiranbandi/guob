@@ -10,7 +10,7 @@ export default function ContainerWrapper({toggleTheme, isDark}) {
   return (
     <div>
       <NavBar toggleTheme={toggleTheme} isDark={isDark}/>
-      <Container maxWidth="xl">
+      <Container maxWidth='false'>
         <Outlet /> 
         <Footer isDark={isDark}/>
       </Container>

@@ -11,6 +11,8 @@ import Window from "features/miniview/Window.js";
 import { selectDraggables, addDraggable, clearDraggables } from "features/draggable/draggableSlice.js";
 import TrackControls from "./TrackControls.jsx";
 import { selectGenome } from "./genomeSlice.js";
+import TrackScale from "./track_components/TrackScale.jsx";
+import TrackMarkers from "./track_components/TrackMarkers.jsx";
 
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
@@ -27,12 +29,12 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     const [startOfTrack, setStartOfTrack] = useState(0)
     const [dragging, setDragging] = useState(false)
     const [clickLocation, setClickLocation] = useState()
-    const [normalizer, setNormalizer] = useState([1, 1])
     const [drawnGenes, setDrawnGenes] = useState([])
     const [start, setStart] = useState(0)
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
     const [savedWidth, setSavedWidth] = useState()
+    const [ savedHeight, setSavedHeight ] = useState(25)
 
     //! Needed for syncing multiple tracks
     const trackSelector = useSelector(selectBasicTracks)
@@ -46,26 +48,29 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     // the rest will be used for the scale 
     // If no height is present default to 100 pixel tall tracks
     // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
-    let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height,
-        parentWrapperWidth = genome ? width : document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
+    let parentWrapperHeight = height ? height : document.querySelector('.actualTrack')?.getBoundingClientRect()?.height,
+        parentWrapperWidth = genome ? width : document.querySelector('.actualTrack')?.getBoundingClientRect()?.width;
 
-    // Hacky fix for ortholog tracks redering correctly
+    // Hacky fix for ortholog tracks rendering correctly
     // if(title.includes("ortholog")){
 
     //     parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width == document.querySelector('.draggableItem')?.getBoundingClientRect()?.width ? parentWrapperWidth : parentWrapperWidth * 2
     // }
 
-    const paddingRight = 10, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
+    //! Really strongly dislike how cluttered this class has become
+    const paddingRight = genome ? 10 : 30, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
 
     let style = {
         position: 'relative',
         top: coordinateY,
         left: coordinateX
     }
-
+    // const ctx = canvasRef.current.getContext('2d')
     const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
         maxWidth = normalize && !genome ? raw_width * cap / normalizedLength - 20 : genome ? raw_width : raw_width - 20,
-        maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
+        maxHeight = trackType === 'default' ? 50 : (parentWrapperHeight)
+        // maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
+
 
     useEffect(() => {
         canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
@@ -83,6 +88,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     useEffect(() => {
         setAnnotationY(canvasRef.current.offsetTop)
     }, [order])
+
 
     // Hacky fix to trigger re-render when the color scheme changes - otherwise the drawn genes
     // keep the old palette
@@ -119,17 +125,12 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
         setStart(Math.min(...array.map(d => d.start)))
 
+       
         const ctx = canvasRef.current.getContext('2d')
-
         ctx.clearRect(0, 0, maxWidth, maxHeight)
 
 
         let xScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
-
-        // TODO center the text, and leave a small buffer on each end
-        let basePairUnits = (cap / 1000000) > 0 ? [1000000, 'Mb'] : [1000, 'Kb']
-
-        setNormalizer(basePairUnits)
 
         let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth * zoom])
         setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
@@ -142,14 +143,17 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         let zeroColor = isDark ? '#121212' : '#ffffff';
 
         let dynamicColorScale = ['heatmap', 'histogram', 'scatter'].indexOf(trackType) > -1 ? scaleLinear().domain([minValue, maxValue]).range([zeroColor, color]) : false;
-        let yScale = ['histogram', 'scatter', 'line'].indexOf(trackType) > -1 ? scaleLinear().domain([0, maxValue]).range([paddingTop, maxHeight - paddingBottom]) : () => maxHeight;
+
+        let yScale = ['histogram', 'scatter', 'line'].indexOf(trackType) > -1 ? scaleLinear().domain([0, maxValue]).range([5, maxHeight-5]) : () => maxHeight;
 
         setAnnotationY(canvasRef.current.offsetTop)
+        // TODO Loops around to be negative?
         if (drawnGenes.length === 0) {
             if (trackType == 'line') {
                 let pathArray = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset),
                         y = maxHeight - yScale(dataPoint.value);
+                        if(y < 0) debugger
                     return [x, y];
                 });
                 let lineFunction = line().context(ctx);
@@ -206,13 +210,18 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 drawnGenes.forEach(drawGene => {
                     let x = ((xScale(drawGene.start)) + offset)
                     let rectWidth = widthScale(drawGene.end - drawGene.start)
-                    if (x + rectWidth < 10 || x > maxWidth - 10) {
+                    
+                    // Drawing only genes on the track -> also logic around having the genes get cut off if they begin or end beyond the track
+                    if (x + rectWidth < paddingLeft || x > maxWidth - paddingRight) {
                         return
                     }
-                    if (x < 10) {
-                        let difference = -10 + x
+                    if (x < paddingLeft) {
+                        let difference = -paddingLeft + x
                         rectWidth += difference
-                        x = 10
+                        x = paddingLeft
+                    }
+                    else if (x + rectWidth > maxWidth - paddingRight) {
+                        rectWidth = (maxWidth - paddingRight) - x 
                     }
                     if (hovered && drawGene.key === hovered.key) {
                         drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
@@ -256,7 +265,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     }
 
     function handleScroll(e) {
-
         if (genome) return
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
@@ -649,7 +657,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
 
     return (
-        <div style={{ width: raw_width, height: '100%', }}>
+        <div style={{ width: "100%", height: '100%', }}>
             {title && !genome &&
                 <Typography
                     variant="body1"
@@ -671,7 +679,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
             {previewSelector.visible && canvasRef.current && Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
-
                 let collabWidth = trackType == 'default' ? previewWidth : 3
 
                 if (collabX >= canvasRef.current.offsetLeft &&
@@ -721,69 +728,19 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     }
                 })
             }
-            {
-                annotationSelector && annotationSelector.map(note => {
-                    let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
-                    if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
-                        return (
-                            <Window
-                                coordinateX={x}
-                                coordinateY={annotationY}
-                                height={canvasRef.current.offsetHeight + 2}
-                                width={2} // boxwidth
-                                preview={true}
-                                text={Math.max(Math.round(beginning), 0)}
-                                grouped={grouped}
-                                label={note.note}
-                            />)
+                <TrackMarkers
+                    id={id}
+                    endOfTrack={endCap}
+                    startOfTrack={startOfTrack}
+                    width={maxWidth}
+                    coordinateY={annotationY}
+                    height={maxHeight}
+                    locationScale={locationScale}
+                    offset={offset}
+                    spacingLeft={canvasRef.current ? canvasRef.current.offsetLeft : 0}
 
-                    }
-                })
-            }
-
-            {
-                searchSelector && searchSelector.map(note => {
-                    let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
-                    if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
-                        return (
-                            <Window
-                                key={note.id + x}
-                                coordinateX={x}
-                                coordinateY={annotationY}
-                                height={canvasRef.current.offsetHeight + 2}
-                                width={2} // boxwidth
-                                preview={true}
-                                text={Math.max(Math.round(beginning), 0)}
-                                grouped={grouped}
-                                label={note.note}
-                            />)
-
-                    }
-                })
-            }
-
-            {
-                orthologSelector && orthologSelector.map(note => {
-                    if (!canvasRef.current) return
-                    let x = locationScale(note.location) + offset + canvasRef.current.offsetLeft + 3
-                    if (x > canvasRef.current.offsetLeft && x < canvasRef.current.offsetLeft + maxWidth) {
-                        return (
-                            <Window
-                                key={note.id + x}
-                                coordinateX={x}
-                                coordinateY={annotationY}
-                                height={canvasRef.current.offsetHeight + 2}
-                                width={2} // boxwidth
-                                preview={true}
-                                text={Math.max(Math.round(beginning), 0)}
-                                grouped={grouped}
-                                label={note.note}
-                            />)
-
-                    }
-                })
-            }
-
+                />
+           
             <Tooltip
                 title={info.length > 0 ? <Typography
                     variant="caption"
@@ -807,14 +764,13 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     },
                 }}
             >
-
                 <canvas
                     tabIndex={-1}
                     id={id}
                     ref={canvasRef}
                     height={maxHeight}
                     width={maxWidth}
-                    className='track'
+                    className={genome ? "genomeTrack" : "actualTrack"}
                     style={style}
                     onContextMenu={doSomething}
                     onMouseDown={(e) => handleClick(e)}
@@ -825,6 +781,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         }
                         else {
                             // if(trackType !== "default") return
+                            // console.log(e.clientX)
+                            // console.log(e.target.offsetLeft)
                             let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * maxWidth
 
                             let found = false
@@ -859,30 +817,26 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     {...props} />
             </Tooltip>
 
-            {!noScale && <div className='scale' style={{ paddingLeft: '10px', paddingRight: genome ? '10px' : '30px' }}>
-                <div width={maxWidth - paddingLeft * 2} style={{ border: 'solid 1px', marginTop: -5, }} />
-                <Stack direction='row' justifyContent="space-between" className="scale" width={maxWidth - paddingLeft * 2}>
-                    <div style={{ WebkitUserSelect: 'none', borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round((2 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'right' }} >{Math.round((3 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5, textAlign: 'left' }} >{Math.round((4 * (endCap - startOfTrack) / 5 + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                    <div style={{ WebkitUserSelect: 'none', borderRight: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(((endCap - startOfTrack) + startOfTrack) / normalizer[0]) + ' ' + normalizer[1]}</div>
-                </Stack>
-            </div>}
-            {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={maxHeight + 25 + 5} />}
+            {!noScale && <TrackScale
+                endOfTrack={endCap}
+                startOfTrack={startOfTrack}
+                width={maxWidth}
+                paddingLeft={paddingLeft}
+                paddingRight={paddingRight}
+            />}
+            {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />}
 
         </div>
 
-    )
+     )
+    //gap={maxHeight + 25 + 5}
 }
 
 BasicTrack.defaultProps = {
     color: 0,
     coordinateX: 0,
     coordinateY: 0,
-    width: 500,
-    height: 100,
+    width: 1000,
     zoom: 1.0,
     pastZoom: 1.0,
     offset: 0,

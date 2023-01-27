@@ -27,7 +27,7 @@ const TrackListener = ({ children }) => {
             goal = goal.parentElement
         }
         let buttonInfo = goal.id.split("_")
-        console.log(buttonInfo)
+        // console.log(buttonInfo)
         switch (buttonInfo[0]) {
             case "deleteTrack":
                 dispatch(removeDraggable({ 'key': buttonInfo[1] }))
