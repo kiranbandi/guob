@@ -54,7 +54,7 @@ export default function App() {
           <Route path="demo" element={<Demo isDark={isDark}/>} />
           <Route path="comparison" element={<Comparison isDark={isDark}/>} />
           <Route path="documentation" element={<Documentation />} />
-          <Route path="renderdemo" element={<RenderDemo />} />
+          <Route path="renderdemo" element={<RenderDemo  isDark={isDark}/>} />
           <Route path="*" element={<NotFound />}
           />
         </Route>

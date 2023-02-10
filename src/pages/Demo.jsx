@@ -329,6 +329,18 @@ ${'' /* .genomeTrack {
         normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
         window.maximumLength = 0
         chromosomalData.forEach((point, i) => {
+            if(i == 0){
+                let testLength = point.data[point.data.length - 1].end
+                debugger
+                console.log(testLength)
+                window.testArray = Array(30425192).fill(false)
+                console.log(window.testArray.length)
+                point.data.forEach(x => {
+                    for(let p = x.start - 1; p < x.end; p++){
+                        window.testArray[p] = true
+                    }
+                })
+            }
             if (point.trackType === 'default') {
                 color = ColourScale(i % 10)
             }
@@ -562,7 +574,7 @@ ${'' /* .genomeTrack {
             let currentGenomes = genomeNames.slice(x)
             // while(totalWidth < maxWidth){
             let chosenGenomes = []
-            for( let _ = 0; _ < currentGenomes.length; _++){
+            for (let _ = 0; _ < currentGenomes.length; _++) {
                 // currentGenomes.forEach(genome => {
                 let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
                 totalWidth += width
@@ -573,7 +585,7 @@ ${'' /* .genomeTrack {
                 })
                 x++
 
-        }
+            }
             genomeTracks.push(<Stack direction="row" marginBottom={5} id={"gtVerticalReference"} key={"Stack_" + x} justifyContent={"space-around"}>
                 {chosenGenomes.map(genomeItem => {
                     return (
@@ -896,9 +908,6 @@ ${'' /* .genomeTrack {
 
                                                 )
                                             })}
-                                            {/* <Draggable key="Test">
-                                    Test
-                                </Draggable> */}
 
                                         </DragContainer>}
 

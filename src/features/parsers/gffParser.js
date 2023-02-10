@@ -113,6 +113,7 @@ export async function parseSubmittedGFF(data, collinearityFile = undefined) {
         let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
         // debugger
         let m = pullSubmittedGeneInfo(collinearityFile, nomenclature).then(pairs => {
+            debugger
             pairs.forEach(x => {
                 let sourceIndex = x.source.toLowerCase()
                 let targetIndex = x.target.toLowerCase()
@@ -262,6 +263,7 @@ async function pullGeneInfo(collinearityFile, nomenclature) {
 
     return text(collinearityFile).then(function (data) {
         let rawCollinearity = process(data);
+  
         let selectedCollinearity = []
         nomenclature.forEach(n => {
             let temporaryCollinearity = rawCollinearity.alignmentList.filter((d) => d.source.indexOf(n) > -1 && d.target.indexOf(n) > -1)
@@ -269,7 +271,7 @@ async function pullGeneInfo(collinearityFile, nomenclature) {
         })
         let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
         let trueMatch = genePairs.filter((x) => +x.e_value == 0)
-
+      debugger
         return trueMatch
     })
 }
@@ -284,7 +286,6 @@ async function pullSubmittedGeneInfo(collinearityFile, nomenclature) {
     })
     let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
     let trueMatch = genePairs.filter((x) => +x.e_value == 0)
-
     return trueMatch
 
 }

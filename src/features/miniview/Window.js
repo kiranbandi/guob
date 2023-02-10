@@ -14,8 +14,8 @@ function Window({ color=undefined, coordinateX, coordinateY, width, height, prev
         // Indicator for label besides a bar
         return (
             <>
-            {label && <Typography variant="caption" style={{  WebkitUserSelect: 'none',position: "absolute", top: coordinateY-20, left: coordinateX+(+width/2), zIndex: 3, background: "#a89b97"}}>{label}</Typography>}
-           { preview && style=="box" && <div className={className} style={{position: 'absolute', backgroundColor: chosenColor, opacity: opaq, top: coordinateY, left: coordinateX-(+width/2), width: width, height: height, zIndex: 1, pointerEvents: 'none' }}>
+            {label && <Typography variant="caption" style={{  WebkitUserSelect: 'none',position: "absolute", top: coordinateY-20, left: coordinateX, zIndex: 3, background: "#a89b97"}}>{label}</Typography>}
+           { preview && style=="box" && <div className={className} style={{position: 'absolute', backgroundColor: chosenColor, opacity: opaq, top: coordinateY, left: coordinateX, width: width, height: height, zIndex: 1, pointerEvents: 'none' }}>
             </div>}
             { preview && style=="caret"  && 
             <div className={className} style={{

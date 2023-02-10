@@ -97,6 +97,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     const maxWidth = Math.round(parentWrapperWidth) - 20
     
     useEffect(() => {
+
         linkRef.current.addEventListener('wheel', preventScroll, { passive: false });
         // if alt key is pressed then stop the event 
         function preventScroll(e) {
@@ -271,6 +272,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
     let gradient = [topColor, bottomColor]
 
+    debugger
 
     return (
         <>

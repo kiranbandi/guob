@@ -1,157 +1,288 @@
 
 import { nanoid } from '@reduxjs/toolkit'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectComplicatedTracks, appendComplicatedTrack } from './complicatedTrackSlice'
 import Track from './Track'
 import BasicTrack from './BasicTrack'
+import ImageTrack from './ImageTrack'
+import { selectBasicTracks, updateTrack } from './basicTrackSlice'
+import { set } from 'lodash'
+import { changePreviewVisibility } from '../../features/miniview/miniviewSlice';
 
-function ComplicatedTrackContainer({array, trackType, id, color, isDark, zoom, offset, width, height}) {
-  
-    // 
-    const dispatch = useDispatch()
-    const arrays = useSelector(selectComplicatedTracks)
-    // 
-    const [ splitArray, setSplitArray ] = useState(false)
-    const [ incrementingID, setIncrementingID ] = useState(0)
-  // Need to create a series of sub-arrays - probably store in redux
-  // Iterate through them to create Tracks in the return here
-  // Tracks control whether or not they are actually rendered
-  // Container controls the zoom and offset of each Track
-  
-// function densityCalculation(array, cap, numberOfBars){
-//     let max = 0
-//     let increment = cap / numberOfBars
-//     let densityView = []
-//     for (let i = 1; i <= numberOfBars; i++) {
-//         let start = increment * (i - 1)
-//         let end = increment * i
-//         let value = array.filter(d => d.end >= start && d.start <= end).length
-//         max = value > max ? value : max
-//         var temp = {
-//             start,
-//             end,
-//             key: Math.round(start) + '-' + Math.round(end),
-//             value
-//         }
-//         densityView.push(temp)
-//     }
-//     return densityView
-// }
+import { selectGenome } from './genomeSlice'
 
-//   useEffect(() => {
+function ComplicatedTrackContainer({ array, trackType, id, color, isDark, zoom, offset, width, height, pastZoom }) {
 
-//     if(!splitArray){
+  // 
+  const dispatch = useDispatch()
+  const arrays = useSelector(selectComplicatedTracks)
+  const basicTrackSelector = useSelector(selectBasicTracks)
+  const genomeSelector = useSelector(selectGenome)
+  // 
+  const [splitArray, setSplitArray] = useState(false)
+  const [incrementingID, setIncrementingID] = useState(0)
+  const [chosenArray, setArray] = useState([])
+  const [chosenTrackType, setTrackType] = useState("heatmap")
+  const [titleState, setTitleState] = useState(id)
+  const imageRef = useRef()
+  const [ cap, setCap ] = useState()
+  const [ totalWidth, setTotalWidth ] = useState(0)
 
-//     // Proof of concept ONLY move out to be done with web workers for some
-//     // semblence of asynchronocity
-//     // ! First subarray can be spliced to 1000, subsequent arrays will require some math
-//     // 
-//     let cap = Math.max(...array.map(d => d.end))
-    
-//     for(let i = 1; i < 3; i++){
-//         let subarray = densityCalculation(array, cap, 500 * i)
-//         //TODO Will need logic around the zoom/offset as well
-//         // TODO as well as logic around whether this is the bottom or not
-//         dispatch(appendComplicatedTrack({
-//             key: id,
-//             array: subarray,
-//         }))
+  const [dragging, setDragging] = useState(true)
 
-//     }
+  let suffix = isDark ? "track_dark" : "track"
+  let orthologSuffix = isDark ? "_orthologs_dark" : "_orthologs"
+  let image = 'files/track_images/' + id + suffix + ".png"
+  let orthologImage = 'files/track_images/' + id + orthologSuffix + ".png"
+
+  let imageBunch = 'files/track_images/' + id + suffix
+  function handleScroll(e) {
+
+    if (e.altKey == true) {
+      let factor = 0.8
+
+      if (e.deltaY < 0) {
+        factor = 1 / factor
+      }
+
+      dispatch(updateTrack({
+        key: id,
+        offset: offset,
+        zoom: Math.max(zoom * factor, 1.0)
+      }))
+    }
+  }
 
 
-//     // ! Should be split off to be done with web workers
+  function handlePan(e) {
+    // if (genome) return
+    // Finding important markers of the track, since it's often in a container
 
-//     // ! These blocks are actually smaller than the genes themselves,
-//     // ! instead of using a density view here, this could be the actual array
-//     // ! logic to use density views if the array is too large?
-//     // ! First, proof of concept of moving from density view to actual view
-//     // let numberOfSubarrays = Math.ceil(array.length/1000)
-//     // increment = numberOfSubarrays * 1000
-//     // let z = 1
-//     // max = 0
-//     // for (let x = 0; x < numberOfSubarrays; x++ ){
-//     // // numberOfSubarrays.forEach(x => {
-//     //     let subarray = []
-//     //     for (let i = 1; i <= 1000; i++) {
-//     //         let start = increment * (z - 1)
-//     //         let end = increment * z
-//     //         // This logic should be the same as the drawn genes logic, otherwise we may miss some
-//     //         // if they straddle a border. Drawing a handful of genes twice shouldn't be a big deal
-            
+    // debugger
 
-//     //         //##################################################################
-//     //         // This would be used for a heatmap
-//     //         // let value = array.filter(d => {
-//     //         //     return (d.end >= start && d.start <= end) || (d.end >= start && d.start <= start) || (d.end >= end && d.start <= end)
-//     //         // }).length
-//     //         // max = value > max ? value : max
-//     //         // var temp = {
-//     //         //     start,
-//     //         //     end,
-//     //         //     key: Math.round(start) + '-' + Math.round(end),
-//     //         //     value
-//     //         // }
-//     //         //##################################################################
+    // console.log(e)
+    let maxWidth = (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 30) * zoom
+    let trackBoundingRectangle = e.target.getBoundingClientRect()
+    let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
 
-//     //         subarray = array.filter(d => {
-//     //             return (d.end >= start && d.start <= end) || (d.end >= start && d.start <= start) || (d.end >= end && d.start <= end)
-//     //         })
-          
-//     //     }
-//         // let subarray = densityView
-//         // //TODO Will need logic around the zoom/offset as well
-//         // // TODO as well as logic around whether this is the bottom or not
-//         // dispatch(appendComplicatedTrack({
-//         //     key: id,
-//         //     array: subarray,
-//         // }))
+    // Finding the offset
+    let dx = e.movementX * (maxWidth / e.target.clientWidth)
+    let offsetX = Math.max(Math.min(offset + dx, 0), -((maxWidth * zoom) - maxWidth))
 
-//     // }
-//     // )
+    // Either end of the track
+    let westEnd = trackBoundingRectangle.x
+    let eastEnd = westEnd + maxWidth
 
-//     // dispatch(setMaxValue({
-//     //     key, 
-//     //     max
-//     // }))
-    
-//     setSplitArray(true)
-// }
-// },[array, isDark])
+    debugger
+    // console.log(offsetX)
+    dispatch(updateTrack({
+      key: id,
+      offset: offsetX,
+      zoom: zoom
+    }))
+    // if (gt) updateTimer(id, offsetX / maxWidth, zoom)
+    // dispatch(moveMiniview(
+    //     {
+    //         key: 'newPreview',
+    //         coordinateX: Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, e.clientX - previewSelector.width / 2)),
+    //         coordinateY: trackBoundingRectangle.y + trackBoundingRectangle.height + 5,
+    //         viewFinderX: e.clientX
+    //     }))
 
-function chooseArray() {
-    if(!arrays[id]) return
 
-   return arrays[id].zoom < 5 && arrays[id].subarrays ? ( 
-        <Track
-            array={arrays[id].subarrays[1]}
-            key={id + "_" + incrementingID}
-            id={id} 
-            color={color}
-            zoom={zoom}
-            offset={offset}
-            trackType='heatmap'
-            width={width}
-            height={height}
-            />) :  (
-        <Track 
-            array={array}
-            key={id + "_" + incrementingID}
-            id={id} 
-            color={color}
-            zoom={zoom}
-            offset={offset}
-            width={width}
-            height={height}
-            />) 
-        
-}
-    return (
-    <>  
-        {arrays[id] && chooseArray()}
+  }
+
+
+
+  function chooseArray() {
+    if (!arrays[id]) return
+
+    return zoom < 5 && arrays[id].subarrays ? (
+      <BasicTrack
+        array={arrays[id].subarrays[0]}
+        key={id + "_" + incrementingID}
+        id={id}
+        color={color}
+        zoom={zoom}
+        offset={offset}
+        trackType='heatmap'
+        width={width}
+        height={height}
+        title={id}
+        pastZoom={pastZoom}
+      />) : (
+      <BasicTrack
+        array={array}
+        key={id + "_" + incrementingID}
+        id={id}
+        color={color}
+        zoom={zoom}
+        offset={offset}
+        width={width}
+        height={height}
+        title={id}
+        pastZoom={pastZoom}
+      />)
+  }
+
+  useEffect(() => {
+    if(!cap){
+      setCap(Math.max(...genomeSelector[id].array.map(d => d.end)))
+    }
+
+
+    let testwidth = document.querySelector('.draggable')?.getBoundingClientRect()?.width - 30
+    setTotalWidth(testwidth * zoom)
+
+    if (zoom < 10 && arrays[id] && arrays[id].subarrays) {
+
+      if (chosenTrackType == "default") {
+        dispatch(changePreviewVisibility(
+          {
+            visible: false
+          }))
+
+      }
+      if (zoom < 6) {
+        setArray(arrays[id].subarrays[0])
+        setTrackType("heatmap")
+        setTitleState(id + "-Subarray 1")
+      }
+      else {
+        setArray(arrays[id].subarrays[1])
+        setTrackType("heatmap")
+        setTitleState(id + "-Subarray 2")
+      }
+
+
+    }
+    else {
+      setArray(array)
+      setTrackType(trackType)
+      setTitleState(id + "-Full Array")
+    }
+  }, [zoom, offset, isDark])
+
+
+  function bunchOfTracks(){
+
+    let numberOfImages = Math.ceil(cap/1000000)
+    let fuck = []
+    for (let x = 0; x < numberOfImages; x ++){
+      fuck.push(<ImageTrack
+          image={imageBunch + "_" + x +".png"}
+          id={id}
+          zoom={zoom/numberOfImages}
+          pastZoom={pastZoom/numberOfImages}
+          offset={offset}
+          width={width}
+          height={height}
+          isDark={isDark}
+          cap={cap}
+          color={color}
+          index={x}
+          total={numberOfImages}
+        />)
+    }
+    // return (numberOfImages.map(x => {
+    //   return (
+    //     <ImageTrack
+    //       image={imageBunch + "_" + x +".png"}
+    //       id={id}
+    //       zoom={zoom/numberOfImages}
+    //       pastZoom={pastZoom/numberOfImages}
+    //       offset={offset}
+    //       width={width}
+    //       height={height}
+    //       isDark={isDark}
+    //       cap={cap}
+    //       color={color}
+    //       index={x}
+    //       total={numberOfImages}
+    //     />
+    //   )
+
+    // })
+    // )
+    return fuck
+  }
+
+  function trackStyle(currentOffset, zoom) {
+    if (currentOffset == undefined) {
+      return {
+        display: 'none',
+      }
+    }
+
+    let x = currentOffset
+
+
+    // let width = document.getElementById(id) ? document.getElementById(id).getBoundingClientRect().width : 500
+    let testwidth = document.querySelector('.draggable')?.getBoundingClientRect()?.width - 30
+    let testheight = document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50
+
+    let spacing = testwidth * pastZoom
+    let newSpacing = testwidth * zoom
+
+    let adjustment = (newSpacing - spacing) / 2
+
+
+    // need to account for zooming from the center
+    const transform = `matrix(${zoom}, 0, 0,  ${1}, ${offset}, 0)`
+    const translate = `translate(${0}px, ${0}px)`;
+    return ({
+      width: testwidth,
+      height: testheight,
+      // translate,
+      WebkitTransform: transform,
+      // WebkitTransform: translate,
+    })
+  }
+
+
+
+
+        // bunchOfTracks()
+
+  /// Figure out the actual total width to consider
+  return (
+    <>
+      {totalWidth > 120000 ? <BasicTrack
+        array={chosenArray}
+        key={id + "_" + incrementingID}
+        id={id}
+        color={color}
+        zoom={zoom}
+        offset={offset}
+        trackType={chosenTrackType}
+        width={width}
+        height={height}
+        title={titleState}
+        pastZoom={pastZoom}
+        isDark={isDark}
+      /> :
+                <ImageTrack
+          image={image}
+          orthologs={orthologImage}
+          array={array}
+          id={id}
+          zoom={zoom}
+          pastZoom={pastZoom}
+          offset={offset}
+          width={width}
+          height={height}
+          isDark={isDark}
+          cap={cap}
+          color={color}
+          index={0}
+          total={1}
+        />
+
+      }
 
     </>
+
   )
 }
 

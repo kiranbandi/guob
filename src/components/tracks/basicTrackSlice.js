@@ -1,27 +1,58 @@
 import { createSlice } from '@reduxjs/toolkit';
-import testing_array from '../../data/testing_array';
-import testing_array2 from '../../data/testing_array2';
-import testing_array3 from '../../data/testing_array3';
-import testing_array_dh1 from '../../data/testing_array_dh1';
-import testing_array_dh2 from '../../data/testing_array_dh2';
-import testing_array_dh3 from '../../data/testing_array_dh3';
+
+// import at1_array from '../../data/at1_array';
+// import at2_array from '../../data/at2_array';
+// import at3_array from '../../data/at3_array';
+// import at4_array from '../../data/at4_array';
+// import at5_array from '../../data/at5_array';
+// import bn13_array from '../../data/bn13_array'
+
+
 
 const trackTypes = ['heatmap', 'histogram', 'scatter', 'line']
 
 const initialState = {
     // Currently just a placeholder 
     BasicTracks: {
-        'dh1': {
-            array: testing_array_dh1,
-            color: 50
+        'at1': {
+            // array: at1_array,
+            key: 'at1',
+            color: "#4e79a7",
+            zoom: 1,
+            pastZoom: 1,
+            offset: 0,
         },
-        'dh2': {
-            array: testing_array_dh2,
-            color: 150
+        'at2': {
+            key: 'at2',
+            // array: at2_array,
+            color: "#e15759",
+            zoom: 1,
+            pastZoom: 1,
+            offset: 0,
         },
-        'dh3': {
-            array: testing_array_dh3,
-            color: 250
+        'at3': {
+            key: 'at3',
+            // array: at3_array,
+            color: "#76b7b2",
+            zoom: 1,
+            pastZoom: 1,
+            offset: 0,
+        },
+        'at4': {
+            key: 'at4',
+            // array: at4_array,
+            color: "#59a14f",
+            zoom: 1,
+            pastZoom: 1,
+            offset: 0,
+        },
+        'at5': {
+            key: 'at5',
+            // array: at5_array,
+            color: "#edc949",
+            zoom: 1,
+            pastZoom: 1,
+            offset: 0,
         },
     },
 }

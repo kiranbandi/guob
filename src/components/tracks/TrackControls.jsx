@@ -11,6 +11,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 function TrackControls(props) {
 
     // const buttonHeight = props.height/3
+    
 
     return (
         <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"}>

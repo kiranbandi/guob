@@ -5,10 +5,8 @@ function TrackScale({endOfTrack = 0, startOfTrack = 0, width = 100, paddingLeft 
 
     const [normalizer, setNormalizer] = useState([1, 1])
 
-    debugger
     useEffect(() => {
 
-        //! Doing this this way means I can zoom in more than Kb
         let difference = endOfTrack - startOfTrack
         let basePairUnits = (difference / 1000000) > 1 ? [1000000, 'Mb'] : [1000, 'Kb']
         setNormalizer(basePairUnits)
@@ -17,7 +15,7 @@ function TrackScale({endOfTrack = 0, startOfTrack = 0, width = 100, paddingLeft 
     return (
         <>
 
-<div className='scale' style={{ width: width, paddingLeft: '10px', paddingRight: '10px' }}>
+<div className='scale' style={{ width: width, paddingLeft: paddingLeft, paddingRight: paddingRight }}>
                 <div width={width - (paddingLeft + paddingRight)} style={{ border: 'solid 1px', marginTop: -5, }} />
                 <Stack direction='row' justifyContent="space-between" className="scale" width={width - paddingLeft * 2}>
                     <div style={{ WebkitUserSelect: 'none', borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>

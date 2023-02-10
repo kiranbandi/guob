@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 const initialState = {
     // currently a placeholder
-    draggables: ['dh1', 'dh2', 'dh3'],
+    draggables: ['at1', 'at2', 'at3', 'at4', 'at5', 'links'],
     ortholog: [],
     group: [],
 }

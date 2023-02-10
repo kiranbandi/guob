@@ -40,9 +40,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     const trackSelector = useSelector(selectBasicTracks)
     const genomeSelector = useSelector(selectGenome)
     const order = useSelector(selectDraggables)
-    const annotationSelector = useSelector(selectAnnotations)[id]
-    const searchSelector = useSelector(selectSearch)[id]
-    const orthologSelector = useSelector(selectOrthologs)[id]
 
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
     // the rest will be used for the scale 
@@ -108,6 +105,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             let ratio = updatedWidth / maxWidth
             if (Math.abs(ratio - 1) > 0.001) {
                 let offsetX = Math.max(Math.min(offset * ratio, 0), -((maxWidth * zoom) - maxWidth))
+                
                 dispatch(updateTrack({
                     key: id,
                     zoom,
@@ -118,7 +116,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     }, [parentWrapperWidth])
 
     useEffect(() => {
-
         if (!array) return
         setSavedWidth(maxWidth)
         normalize && !genome ? setCap(normalizedLength) : setCap(Math.max(...array.map(d => d.end)))
@@ -138,6 +135,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
         let minValue = 0, maxValue = max ? max : 100;
+
+        maxValue = Math.max(...array.map(d => d.value));
 
         // Deal with color palette switch in dark mode;
         let zeroColor = isDark ? '#121212' : '#ffffff';
@@ -236,7 +235,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             }
 
         }
-    }, [array, trackType, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
+    }, [trackType, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
 
 
     const gt = window.gt;
@@ -265,11 +264,14 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     }
 
     function handleScroll(e) {
+        
+        
         if (genome) return
         // TODO - Event not being prevented from bubbling
         // e.preventDefault();
         // e.stopPropagation()
         if (e.target.id !== id) {
+            console.log(genome)
             return
         }
         if (e.altKey == true) {
@@ -296,7 +298,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             let dx = ((normalizedLocation - offset) * (factor - 1))
             let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * zoom * factor) - maxWidth))
             if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
-
 
             dispatch(updateTrack({
                 key: id,
@@ -347,7 +348,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
 
     function showPreview(event) {
-        if (genome) return
+        if (genome || trackType !== 'default') return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -381,7 +382,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
         let width = widthScale(end - head)
         let coordinateX = trackType === "default" ? Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)) : changedX - previewSelector.width / 2
-
         // TODO This is a lot of events, no?
         dispatch(changeMiniviewColor({
             key: 'newPreview',
@@ -598,8 +598,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         }
     }
 
-    let viewFinderScale = undefined
-    let viewFinderWidth = undefined
+    let viewFinderScale = () => 0
+    let viewFinderWidth = () =>  0
     let x = 0
     let previewWidth = 0
     let difference = 0
@@ -632,20 +632,17 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             difference = canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight - (x + previewWidth / 2)
             previewWidth += difference
         }
-
-
     }
-
 
     let info
 
     //! TODO Changing length of text changes the location of ticks
     if (trackType === "default") {
-        let orthologInfo = (hovered && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nOrthologs: " + orthologInfo : ''
+        let orthologInfo = (hovered && hovered.siblings && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + Math.round(hovered.start) + " bp\nOrthologs: " + orthologInfo : ''
     }
     else {
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + hovered.start + " bp\nEnd Location: " + hovered.end + "\nValue: " + hovered.value : ''
+        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + Math.round(hovered.start) + " bp\nEnd Location: " + Math.round(hovered.end) + "\nValue: " + hovered.value : ''
     }
     if (genome) info = ""
 
@@ -653,8 +650,21 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
     let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", GFF" : "Chromosome: " + title + ", BED"
 
-    let locationScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
+    // ! This scale is a little bit off
+    let locationScale = canvasRef.current ? scaleLinear().domain([0, cap]).range([canvasRef.current.offsetLeft + paddingLeft, canvasRef.current.offsetLeft + ((maxWidth) * zoom)  - paddingLeft]) : scaleLinear().domain([0, cap]).range([paddingLeft, paddingLeft + ((maxWidth) * zoom)])
+    // let locationScale = scaleLinear().domain([0, cap]).range([0, ((maxWidth) * zoom)])
+    // console.log(maxWidth)
+    if(canvasRef.current){
+        viewFinderScale = scaleLinear().domain([startOfTrack, endCap]).range([canvasRef.current.offsetLeft + paddingLeft, canvasRef.current.offsetLeft + canvasRef.current.offsetWidth - paddingRight])
+
+    }
     let wScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
+    
+    // if(id == "at3"){
+    //     // console.log(cap)
+    //     console.log("Track: " + Math.round(locationScale(0) + offset) + " " + Math.round(locationScale(cap) + offset))
+    // }
+
 
     return (
         <div style={{ width: "100%", height: '100%', }}>
@@ -677,7 +687,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     }}
                 >{trackTitle}</Typography>}
 
-            {previewSelector.visible && canvasRef.current && Object.keys(collabPreviews).map(item => {
+            {/* {previewSelector.visible && canvasRef.current && Object.keys(collabPreviews).map(item => {
                 let collabX = viewFinderScale(collabPreviews[item].center)
                 let collabWidth = trackType == 'default' ? previewWidth : 3
 
@@ -700,7 +710,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         />
                     )
             })
-            }
+            } */}
 
             {previewSelector.visible && canvasRef.current && comparisonSelector &&
                 comparisonSelector.map(comparison => {
@@ -736,8 +746,14 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     coordinateY={annotationY}
                     height={maxHeight}
                     locationScale={locationScale}
+                    viewFinderWidth={viewFinderWidth}
+                    viewFinderScale={viewFinderScale}
                     offset={offset}
-                    spacingLeft={canvasRef.current ? canvasRef.current.offsetLeft : 0}
+                    paddingLeft={paddingLeft}
+                    spacingLeft={canvasRef.current ? canvasRef.current.offsetLeft : paddingLeft}
+                    paddingRight={paddingRight}
+                    genome={genome}
+                    isDark={isDark}
 
                 />
            
@@ -822,7 +838,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 startOfTrack={startOfTrack}
                 width={maxWidth}
                 paddingLeft={paddingLeft}
-                paddingRight={paddingRight}
+                paddingRight={paddingLeft}
             />}
             {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />}
 

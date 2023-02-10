@@ -1,23 +1,38 @@
 import { createSlice } from '@reduxjs/toolkit';
-import testing_array_dh1 from '../../data/testing_array_dh1';
-import testing_array_dh2 from '../../data/testing_array_dh2';
-import testing_array_dh3 from '../../data/testing_array_dh3';
+import at1_array from '../../data/at1_array';
+import at2_array from '../../data/at2_array';
+import at3_array from '../../data/at3_array';
+import at4_array from '../../data/at4_array';
+import at5_array from '../../data/at5_array';
+import bn13_array from '../../data/bn13_array'
 
 
 const initialState = {
     // Currently just a placeholder 
     genome: {
-        'dh1': {
-            key: 'dh1',
-            array: testing_array_dh1,
+        'at1': {
+            key: 'at1',
+            array: at1_array,
         },
-        'dh2': {
-            key: 'dh2',
-            array: testing_array_dh2,
+        'at2': {
+            key: 'at2',
+            array: at2_array,
         },
-        'dh3': {
-            key: 'dh3',
-            array: testing_array_dh3,
+        'at3': {
+            key: 'at3',
+            array: at3_array,
+        },
+        'at4': {
+            key: 'at4',
+            array: at4_array,
+        },
+        'at5': {
+            key: 'at5',
+            array: at5_array,
+        },
+        'bn13': {
+            key: 'bn13',
+            array: bn13_array,
         },
     },
 }
