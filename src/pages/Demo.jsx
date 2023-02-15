@@ -329,18 +329,6 @@ ${'' /* .genomeTrack {
         normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
         window.maximumLength = 0
         chromosomalData.forEach((point, i) => {
-            if(i == 0){
-                let testLength = point.data[point.data.length - 1].end
-                debugger
-                console.log(testLength)
-                window.testArray = Array(30425192).fill(false)
-                console.log(window.testArray.length)
-                point.data.forEach(x => {
-                    for(let p = x.start - 1; p < x.end; p++){
-                        window.testArray[p] = true
-                    }
-                })
-            }
             if (point.trackType === 'default') {
                 color = ColourScale(i % 10)
             }

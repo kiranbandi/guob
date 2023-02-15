@@ -4,7 +4,6 @@ import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup } from
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import ComplicatedTrackContainer from 'components/tracks/ComplicatedTrackContainer'
 import parseGFF from 'features/parsers/gffParser';
 import { addGenome, deleteAllGenome, selectGenome } from 'components/tracks/genomeSlice';
 import _, { reject } from 'lodash';
@@ -12,14 +11,17 @@ import { scaleOrdinal } from 'd3-scale';
 import { css } from '@emotion/react';
 import DragContainer from 'features/draggable/DragContainer';
 import Draggable from 'features/draggable/Draggable';
-import { addBasicTrack, selectBasicTracks } from 'components/tracks/basicTrackSlice';
+import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import Miniview from '../features/miniview/Miniview';
 import OrthologLinks from '../components/tracks/OrthologLinks'
 import { selectMiniviews } from '../features/miniview/miniviewSlice';
-import BitmapTrack from 'components/tracks/BitmapTrack';
+import TrackContainer from 'components/tracks/TrackContainer'
+import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
 
 function RenderDemo({ isDark }) {
@@ -29,10 +31,16 @@ function RenderDemo({ isDark }) {
     const basicTrackSelector = useSelector(selectBasicTracks)
     const draggableSelector = useSelector(selectDraggables)['draggables']
     const genomeSelector = useSelector(selectGenome)
-    const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
     let [sliderHeight, setSliderHeight] = useState(250);
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const groupSelector = useSelector(selectGroup)
+
+    const [titleState, setTitleState ] = useState("Arabidopsis Thaliana")
+    const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
+    const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
+    const [normalize, setNormalize] = useState(false)
+    let [loading, setLoading] = useState(false)
+
 
     const dispatch = useDispatch()
     const ColourScale = scaleOrdinal().domain([0, 9])
@@ -41,9 +49,10 @@ function RenderDemo({ isDark }) {
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
 
     useEffect(() => {
-        if (!demoFile) {
+        if (loading) {
             parseGFF(demoFile).then(({ chromosomalData, dataset }) => {
                 buildDemo(chromosomalData, dataset)
+                setLoading(false)
             })
         }
 
@@ -83,59 +92,11 @@ function RenderDemo({ isDark }) {
         }
         return densityView
     }
-    // function densityCalculation(array, cap, numberOfBars) {
-    //     let max = 0
-    //     let increment = cap / numberOfBars
-    //     let densityView = []
-    //     let testView = []
-    //     for (let i = 1; i <= numberOfBars; i++) {
-    //         let start = increment * (i - 1)
-    //         let end = increment * i
-    //         let testEnd = undefined
-    //         if (i % 2 == 1) testEnd = increment * (i + 1)
-    //         // could stop the filter once it's passed - for-loop are faster anyways
-    //         let value = 0
-    //         let testValue = 0
-    //         for (let x = 0; x < array.length; x++) {
-    //             if (array[x].end >= start && array[x].start <= end) {
-    //                 value++
-    //             }
-    //             else if (testEnd && array[x].end >= start && array[x].start <= testEnd) {
-    //                 testValue++
-    //             }
-    //             else if (array.start > end) {
-    //                 break
-    //             }
-    //         }
-    //         // let value = array.filter(d => d.end >= start && d.start <= end).length
-    //         max = value > max ? value : max
-    //         var temp = {
-    //             start,
-    //             end,
-    //             key: Math.round(start) + '-' + Math.round(end),
-    //             value
-    //         }
-    //         densityView.push(temp)
-    //         if (testEnd) {
-    //             // console.log(value + testValue)
-    //             var secondTemp = {
-    //                 start,
-    //                 end: testEnd,
-    //                 key: Math.round(start) + '-' + Math.round(testEnd),
-    //                 value: value + testValue
-    //             }
-    //             testView.push(secondTemp)
-    //         }
-    //     }
-    //     return [densityView, testView]
-    // }
-
-
 
 
     const buildDemo = (chromosomalData, dataset) => {
         dispatch(deleteAllGenome({}))
-        // dispatch(deleteAllBasicTracks({}))
+        dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({
             dragGroup: "draggables"
         }))
@@ -180,16 +141,6 @@ function RenderDemo({ isDark }) {
                 pastZoom: 1.0,
                 offset: 0,
             }))
-            for (let i = 1; i < 3; i++) {
-                let subarray = densityCalculation(point.data, end, 750 * i)
-                //TODO Will need logic around the zoom/offset as well
-                // TODO as well as logic around whether this is the bottom or not
-                dispatch(appendComplicatedTrack({
-                    key: point.key.chromosome,
-                    array: subarray,
-                }))
-
-            }
             dispatch(addDraggable({
                 key: point.key.chromosome,
                 dragGroup: "draggables"
@@ -305,6 +256,24 @@ function RenderDemo({ isDark }) {
         }
     }
 
+    function changeNormalize(e) {
+
+        // let gt = window.gt;
+        // if (gt) {
+        //     gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
+        // } 
+        setNormalize(e.target.checked)
+    }
+
+    function changeMargins(e) {
+
+        // let gt = window.gt;
+        // if (gt) {
+        //     gt.updateState({ Action: "changeMargins", Todo: e.target.checked })
+        // } 
+        setDraggableSpacing(e.target.checked)
+    }
+
 
     return (
 
@@ -322,46 +291,43 @@ function RenderDemo({ isDark }) {
             }}>
                 {"Render Demo"}
             </Typography>
-{/* 
-            {genomeSelector['at1'] && <BitmapTrack
-                id="at1"
-                array={genomeSelector['at1'].array}
-                length={genomeSelector['at1'].array.slice(-1)[0].end}
-                color={basicTrackSelector['at1'].color}
-
-            />}
-            {genomeSelector['at2'] && <BitmapTrack
-                id="at2"
-                array={genomeSelector['at2'].array}
-                length={genomeSelector['at2'].array.slice(-1)[0].end}
-                color={basicTrackSelector['at2'].color}
-            />}
-            {genomeSelector['at3'] && <BitmapTrack
-                id="at3"
-                array={genomeSelector['at3'].array}
-                length={genomeSelector['at3'].array.slice(-1)[0].end}
-                color={basicTrackSelector['at3'].color}
-            />}
-            {genomeSelector['at4'] && <BitmapTrack
-                id="at4"
-                array={genomeSelector['at4'].array}
-                length={genomeSelector['at4'].array.slice(-1)[0].end}
-                color={basicTrackSelector['at4'].color}
-            />}
-            {genomeSelector['at5'] && <BitmapTrack
-                id="at5"
-                array={genomeSelector['at5'].array}
-                length={genomeSelector['at5'].array.slice(-1)[0].end}
-                color={basicTrackSelector['at5'].color}
-            />}
-            {genomeSelector['bn13'] && <BitmapTrack
-                id="bn13"
-                array={genomeSelector['bn13'].array}
-                length={genomeSelector['bn13'].array.slice(-1)[0].end}
-                color={basicTrackSelector['bn13'].color}
-            />} */}
 
             <TrackListener>
+            <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            // clearComparisonTracks()
+                            setDemoFile("files/bn_methylation_100k.bed")
+                            setTitleState("Canola Methylation")
+                            setDemoCollinearity()
+                        }}>Canola Methylation</Button>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            // clearComparisonTracks()
+                            setDemoFile("files/at_coordinate.gff")
+                            setTitleState("Aradopsis thaliana")
+                            setDemoCollinearity("files/at_vv_collinear.collinearity")
+                        }}>Aradopsis thaliana</Button>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            // clearComparisonTracks()
+                            setDemoFile("files/bn_coordinate.gff")
+                            setTitleState("Brassica napus")
+                            setDemoCollinearity()
+                        }}>Brassica napus</Button>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true)
+                            // clearComparisonTracks()
+                            setDemoFile("files/ta_hb_coordinate.gff")
+                            setTitleState("Triticum aestivum")
+                            setDemoCollinearity()
+                        }}>Triticum aestivum</Button>
+                        <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                        <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+
+                        {/* <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
+
+                    </Stack>
                 {/* {previewSelector.visible && <Miniview
                     className={'preview'}
                     array={previewSelector.linkedTrack.includes('ortholog') ? genomeSelector[previewSelector.linkedTrack.substring(0, 3)].array : genomeSelector[previewSelector.linkedTrack].array}
@@ -379,6 +345,16 @@ function RenderDemo({ isDark }) {
                     trackType={basicTrackSelector[previewSelector.linkedTrack].trackType}
                     center={previewSelector.center}
                 />} */}
+                <Divider orientatio="horizontal"/>
+                {
+                        loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                            <CircularProgress size={75} />
+                        </Box> :
+                        <>
+
+                <Typography variant="h3">
+                    {titleState}
+                </Typography>
                 <CustomDragLayer groupID={groupSelector} />
                 <DragContainer startingList={draggableSelector}>
                     {draggableSelector.map((x, i) => {
@@ -392,7 +368,7 @@ function RenderDemo({ isDark }) {
                         else{
                         return (
                             <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                <ComplicatedTrackContainer
+                                <TrackContainer
                                     key={genomeSelector[x].key + "_container"}
                                     id={genomeSelector[x].key}
                                     array={genomeSelector[x].array}
@@ -401,8 +377,9 @@ function RenderDemo({ isDark }) {
                                     offset={basicTrackSelector[x].offset}
                                     zoom={basicTrackSelector[x].zoom}
                                     pastZoom={basicTrackSelector[x].pastZoom}
-                                    height={200}
+                                    height={1}
                                     trackType={basicTrackSelector[x].trackType}
+                                    renderTrack={"bitmap"}
                                 />
                             </Draggable>
                         )
@@ -410,6 +387,8 @@ function RenderDemo({ isDark }) {
                         }
                     })}
                 </DragContainer>
+                        </>
+                }
             </TrackListener>
         </div>
     )

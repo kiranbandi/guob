@@ -5,7 +5,7 @@ import { text } from "d3-fetch"
 async function parseGFF(demoFile, collinearityFile = undefined) {
 
     let x = text(demoFile).then(data => {
-        // debugger
+
         let temporary = data.split(/\n/)
         let dataset = {}
         let trackType = 'default'
@@ -54,7 +54,7 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
         }
 
         if (collinearityFile) {
-            // debugger
+
             let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
 
             let m = pullGeneInfo(collinearityFile, nomenclature).then(pairs => {
@@ -77,14 +77,14 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
         }
 
     })
-    // debugger
+
     return x
 
 }
 
 export async function parseSubmittedGFF(data, collinearityFile = undefined) {
 
-    // debugger
+
     let temporary = data.split(/\n/)
     let dataset = {}
     let trackType = 'default'
@@ -111,9 +111,8 @@ export async function parseSubmittedGFF(data, collinearityFile = undefined) {
     if (collinearityFile) {
 
         let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
-        // debugger
         let m = pullSubmittedGeneInfo(collinearityFile, nomenclature).then(pairs => {
-            debugger
+
             pairs.forEach(x => {
                 let sourceIndex = x.source.toLowerCase()
                 let targetIndex = x.target.toLowerCase()
@@ -271,7 +270,6 @@ async function pullGeneInfo(collinearityFile, nomenclature) {
         })
         let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
         let trueMatch = genePairs.filter((x) => +x.e_value == 0)
-      debugger
         return trueMatch
     })
 }

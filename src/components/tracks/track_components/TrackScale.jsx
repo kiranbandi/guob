@@ -15,7 +15,7 @@ function TrackScale({endOfTrack = 0, startOfTrack = 0, width = 100, paddingLeft 
     return (
         <>
 
-<div className='scale' style={{ width: width, paddingLeft: paddingLeft, paddingRight: paddingRight }}>
+<div className='scale' style={{ width: width, paddingLeft: paddingLeft, paddingRight: paddingRight, float: "left", display: "block" }}>
                 <div width={width - (paddingLeft + paddingRight)} style={{ border: 'solid 1px', marginTop: -5, }} />
                 <Stack direction='row' justifyContent="space-between" className="scale" width={width - paddingLeft * 2}>
                     <div style={{ WebkitUserSelect: 'none', borderLeft: 'solid 2px', marginTop: -4, height: 5 }} >{Math.round(startOfTrack / normalizer[0]) + ' ' + normalizer[1]}</div>

@@ -14,7 +14,7 @@ function TrackControls(props) {
     
 
     return (
-        <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"}>
+        <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"} style={{float: "right"}}>
                 <IconButton className='trackButtons' id={"toggleTrackType_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
