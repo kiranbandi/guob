@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import Miniview from '../features/miniview/Miniview';
 import testing_array from '../data/testing_array';
+
 import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
@@ -19,6 +20,7 @@ import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
+import StackedTrack from 'components/tracks/StackedTrack';
 import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks, changeBasicTrackColor } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request";
@@ -535,7 +537,7 @@ export default function Demo({ isDark }) {
     const [searchTerms, setSearchTerms] = useState()
     const [searchingChromosome, setSearchingChromosome] = useState()
     let testIndex = -1
-
+    // console.log(window.triadBrowserStore)
 
     return (
         <>
@@ -852,7 +854,8 @@ export default function Demo({ isDark }) {
                                 </Draggable> */}
 
                             </DragContainer>}
-
+                            <StackedTrack activeChromosome = "AT1"></StackedTrack>
+                                
                             </div>
                         </>
                 }
