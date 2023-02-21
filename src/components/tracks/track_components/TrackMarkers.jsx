@@ -5,6 +5,10 @@ import Window from 'features/miniview/Window'
 import { selectMiniviews, selectComparison } from 'features/miniview/miniviewSlice'
 import { scaleLinear } from 'd3-scale'
 
+/**
+ * Used to generate the informational overview of the track - annotations, cursor positions. Curently needs to be refined.
+ */
+
 function TrackMarkers({ id, width, coordinateY, height, viewFinderScale, locationScale, offset, spacingLeft, paddingLeft, paddingRight, genome, isDark, viewFinderWidth }) {
 
     const annotationSelector = useSelector(selectAnnotations)[id]

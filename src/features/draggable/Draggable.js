@@ -31,6 +31,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
 
+    const component = children.type.name == "TrackContainer" ? children.props.renderTrack : children.type.name
 
     function updateTimer() {
         clearTimeout(waiting)
@@ -102,7 +103,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
     const [{ isDragging }, drag, preview] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,
-            item: () => { return { id, index, grouped, groupID, ref, className, dragGroup } },
+            item: () => { return { id, index, grouped, groupID, ref, className, dragGroup, component } },
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),

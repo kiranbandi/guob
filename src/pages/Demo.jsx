@@ -859,8 +859,8 @@ ${'' /* .genomeTrack {
                                                         selection={basicTrackSelector[item].selection}
                                                         isDark={isDark}
                                                         normalize={normalize}
-                                                    />}
-                                                    {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>}
+                                                    /> || item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks> }
+                                                    {/* {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>} */}
                                                 </Draggable>
 
                                             )
@@ -890,8 +890,8 @@ ${'' /* .genomeTrack {
                                                             isDark={isDark}
                                                             normalize={normalize}
                                                         // key={item}
-                                                        />}
-                                                        {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
+                                                        /> || item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
+                                                        {/* {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>} */}
                                                     </Draggable>
 
                                                 )

@@ -6,6 +6,10 @@ import at4_array from '../../data/at4_array';
 import at5_array from '../../data/at5_array';
 import bn13_array from '../../data/bn13_array'
 
+/**
+ * This slice contains the dataset - and should only be modified when a new file is parsed, otherwise only
+ * used to fetch data
+ */
 
 const initialState = {
     // Currently just a placeholder 
@@ -47,6 +51,9 @@ export const genomeSlice = createSlice({
         addGenome: (state, action) => {
             if (!state.genome[action.payload.key]) {
                 state.genome[action.payload.key] = action.payload
+            }
+            else{
+                state.genome[action.payload.key].array = action.payload.array
             }
         },
         removeGenome: (state, action) => {

@@ -94,7 +94,8 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     
     
     const parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
-    const maxWidth = Math.round(parentWrapperWidth) - 20
+    //! Why - 41 !?
+    const maxWidth = Math.round(parentWrapperWidth) - 41
     
     useEffect(() => {
 
@@ -193,19 +194,23 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
         // If near the bottom, snap to the bottom, if near the top, snap to top
         let topOffset = topTrack.offset
         let bottomOffset = bottomTrack.offset
-        let track, offset
+        let track, offset, scaling
         if (e.clientY > boundingBox.top +( boundingBox.height / 2)) {
             
             // Find location of gene on top track to snap
             let bottomLocation = bottomRatio * maxWidth * bottomTrack.zoom + bottomTrack.offset
             offset = -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
+            scaling = scaleLinear().domain([0, aboveCap]).range([0, maxWidth * topTrack.zoom])
             track = topTrack
-            topOffset = offset
+            // topOffset = offset
+            console.log("Change?")
+            topOffset = -scaling(bottomLocation)
         }
         else {
             // Find location of gene on top track
             let topLocation = topRatio * maxWidth * topTrack.zoom + topTrack.offset
             offset =  -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
+            scaling = scaleLinear().domain([0, aboveCap]).range([0, maxWidth * topTrack.zoom])
             track= bottomTrack
             bottomOffset = offset
         }

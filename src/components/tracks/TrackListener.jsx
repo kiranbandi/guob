@@ -7,6 +7,11 @@ import { useState } from 'react'
 import { ChromePicker } from 'react-color'
 import { css } from '@emotion/react';
 
+/**
+ * Listens for events from the "TrackControls" component - not very React-ful - but when generating
+ * a lot of tracks the event handlers get out of hand
+ */
+
 const TrackListener = ({ children }) => {
 
     const basicTrackSelector = useSelector(selectBasicTracks)

@@ -14,10 +14,9 @@ import { selectGenome } from "./genomeSlice.js";
 import TrackScale from "./track_components/TrackScale.jsx";
 import TrackMarkers from "./track_components/TrackMarkers.jsx";
 
-//! BasicTrack is deprecated - currently this exists only as a comparison. See RenderTrack for the current iteration
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
 */
-const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
+const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -100,6 +99,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     // Piling on another hack, when an ortholog is selected the parentwrapper width changes,
     // the offset needs to be adjusted or we lose our location
     useEffect(() => {
+        if(genome) return
         if (!id.includes("preview")) {
             let raw_width = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width
             let updatedWidth = raw_width - 20
@@ -153,7 +153,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 let pathArray = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset),
                         y = maxHeight - yScale(dataPoint.value);
-                        if(y < 0) debugger
                     return [x, y];
                 });
                 let lineFunction = line().context(ctx);
@@ -499,7 +498,6 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                             }))
                             dispatch(clearOrthologs())
                             dispatch(deleteAllOrthologTracks())
-                            // debugger
                             found = true;
                             //! Proof of concept following gene change this for the view later
                             //TODO pull this into a function
@@ -739,7 +737,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     }
                 })
             }
-                <TrackMarkers
+                {/* <TrackMarkers
                     id={id}
                     endOfTrack={endCap}
                     startOfTrack={startOfTrack}
@@ -757,8 +755,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     isDark={isDark}
 
                 />
-           
-            <Tooltip
+            */}
+            {/* <Tooltip
                 title={info.length > 0 ? <Typography
                     variant="caption"
                     style={{ whiteSpace: 'pre-line' }}
@@ -780,7 +778,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         },
                     },
                 }}
-            >
+            > */}
                 <canvas
                     tabIndex={-1}
                     id={id}
@@ -832,16 +830,16 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     }
                     onWheel={handleScroll}
                     {...props} />
-            </Tooltip>
+            {/* </Tooltip> */}
 
-            {!noScale && <TrackScale
+            {/* {!noScale && <TrackScale
                 endOfTrack={endCap}
                 startOfTrack={startOfTrack}
                 width={maxWidth}
                 paddingLeft={paddingLeft}
                 paddingRight={paddingLeft}
-            />}
-            {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />}
+            />} */}
+            {/* {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />} */}
 
         </div>
 
@@ -849,7 +847,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     //gap={maxHeight + 25 + 5}
 }
 
-BasicTrack.defaultProps = {
+RenderTrack.defaultProps = {
     color: 0,
     coordinateX: 0,
     coordinateY: 0,
@@ -860,4 +858,4 @@ BasicTrack.defaultProps = {
 }
 
 
-export default BasicTrack
+export default RenderTrack

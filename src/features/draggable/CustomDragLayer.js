@@ -33,7 +33,8 @@ export const CustomDragLayer = (props) => {
                 {
                     //TODO this is an incredibly hacky way of doing this, but was a quick way of adding a link container
                     // need to make an actual type
-                    if (item.id != 'links') {
+                    // if (item.id != 'links') {
+                        console.log(item.component)
                         let original;
                         const topRow = document.getElementById(props.groupID[0])
                         topRow ? original = topRow.getBoundingClientRect() : original = document.getElementById(item.id).getBoundingClientRect()
@@ -42,17 +43,17 @@ export const CustomDragLayer = (props) => {
                         const below = original.top + adjustment * (props.groupID.length - 1) - 5
 
                         if (props.groupID <= 1 || (currentOffset.y > above && currentOffset.y < below)) {
-                            return <DragPreview item={item.id} groupID={props.groupID} height={original.height} width={original.width} className={'dragPreview'} />
+                            return <DragPreview item={item.id} dragGroup ={item.dragGroup} groupID={props.groupID} height={original.height} width={original.width} className={'dragPreview'} index={item.index} component={item.component} isDark={props.isDark}/>
                         }
                         return (
                             props.groupID.map(x => {
-                                return <DragPreview item={x} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()} className={'dragPreview'} />
+                                return <DragPreview item={x} dragGroup ={item.dragGroup} groupID={props.groupID} height={original.height} width={original.width} key={nanoid()} className={'dragPreview'} index={item.index} component={item.component} isDark={props.isDark}/>
                             })
                         )
-                    }
-                    else {
-                        return <OrthologLinks index={item.index} dragGroup={item.dragGroup}></OrthologLinks>
-                    }
+                    // }
+                    // else {
+                    //     return <OrthologLinks index={item.index} dragGroup={item.dragGroup}></OrthologLinks>
+                    // }
                 }
             default:
                 return null
@@ -67,6 +68,7 @@ export const CustomDragLayer = (props) => {
         }
 
         let { x, y } = currentOffset
+        // debugger
         x -= document.getElementById(item.id).getBoundingClientRect().width
         let original;
         const topRow = document.getElementById(props.groupID[0])

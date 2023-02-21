@@ -18,7 +18,10 @@ export const draggableSlice = createSlice({
 
         },
         addDraggable: (state, action) => {
-            state[action.payload.dragGroup].push(action.payload.key)
+            if(!state[action.payload.dragGroup][action.payload.key]){
+                state[action.payload.dragGroup].push(action.payload.key)
+
+            }
         },
 
         removeDraggable: (state, action) => {

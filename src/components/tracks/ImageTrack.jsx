@@ -3,17 +3,19 @@ import { useDispatch, useSelector } from 'react-redux'
 import { selectBasicTracks, updateTrack } from './basicTrackSlice'
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { scaleLinear } from 'd3-scale'
+import { resolveConfig } from 'prettier';
 
 
-function ImageTrack({ image, offset, zoom, id, cap, color, orthologs }) {
-
+function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLength, normalize, height, width, orthologs }) {
 
     const imageRef = useRef()
     const trackSelector = useSelector(selectBasicTracks)
 
-    let maxWidth = (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60) * zoom
-    let originalWidth = (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
-    let height = document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50
+    let originalWidth = width ? width : (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
+    if (normalize) originalWidth = originalWidth * cap/normalizedLength;
+    let maxWidth = originalWidth * zoom
+    let adjustedHeight = height ? height : document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50
+
 
     useEffect(() => {
 
@@ -27,10 +29,6 @@ function ImageTrack({ image, offset, zoom, id, cap, color, orthologs }) {
                 return false;
             }
         }
-    }, [])
-
-    useEffect(() => {
-
 
     }, [])
 
@@ -44,23 +42,24 @@ function ImageTrack({ image, offset, zoom, id, cap, color, orthologs }) {
         let queryHeight = document.querySelector('.draggable')?.getBoundingClientRect()?.height - 75
         
         let x = currentOffset + (index * (originalWidth * zoom))
-        let y = -index *(height - 18)
+        let y = orthologs ? -index *(adjustedHeight - 18) : -index *(adjustedHeight + 2)
 
         let deg = 0
         let lightness = 100
         let saturation = 100
 
-        // + (originalWidth * index) / total)
         const transform = `matrix(${currentZoom}, 0, 0,  ${1}, ${x}, ${y})`
         const hue = `hue-rotate(${deg}deg)`
         // brightness(${lightness}%) saturate(${saturation}%)
         //TODO going to need the padding on the left and right
+
+        //! Following conditional used for demo purposes
         if(image[index] == "files/track_images/at1track_2.png"){
             color = "red"
         }
         return ({
             width: originalWidth,
-            height: queryHeight,
+            height: orthologs || genome ? adjustedHeight - 25 : adjustedHeight - 5,
             transformOrigin: "top left",
             WebkitTransform: transform,
             WebkitUserDrag: "none",
@@ -70,6 +69,8 @@ function ImageTrack({ image, offset, zoom, id, cap, color, orthologs }) {
             filter: hue,
             cursor: "crosshair",
             pointerEvents: 'none',
+            // marginLeft: index == 1 ? "-15px" : "0px",
+            // marginRight: index == 0 ? "-5px" : "0px",
 
             background: color,
 
@@ -83,9 +84,8 @@ function ImageTrack({ image, offset, zoom, id, cap, color, orthologs }) {
             }
         }
 
-        let x = trackSelector[id].offset
-        let scale = trackSelector[id].zoom
-
+        let x = trackSelector[id] ? trackSelector[id].offset : 0
+        let scale = trackSelector[id] ? trackSelector[id].zoom : 1
 
         let deg = 0
         let lightness = 100
@@ -129,12 +129,12 @@ function ImageTrack({ image, offset, zoom, id, cap, color, orthologs }) {
 
                         }}
                     >{"Chromosome: " + id + "-bitmap"}</Typography>}
-                <img
+                {!genome && orthologs && <img
                     src={orthologs}
                     id={id + "ortholog_imageTrack"}
                     style={orthologStyle(offset, zoom, 0)}
-                />
-                <div className={"tracks"} style={{float: "left", display: "inline", height: height -20}}>
+                />}
+                <div className={"tracks"} style={{float: "left", display: "inline", height: orthologs || genome ? adjustedHeight -20 : adjustedHeight}}>
 
                 {image.map((image, index) => {
                     return(<img

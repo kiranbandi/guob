@@ -1,16 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// import at1_array from '../../data/at1_array';
-// import at2_array from '../../data/at2_array';
-// import at3_array from '../../data/at3_array';
-// import at4_array from '../../data/at4_array';
-// import at5_array from '../../data/at5_array';
-// import bn13_array from '../../data/bn13_array'
-
-
-
 const trackTypes = ['heatmap', 'histogram', 'scatter', 'line']
-
+/**
+ * BasicTrackSlice is currently a misnomer - to be changed. This slice is for tacking state changes of
+ * a track relating to navigation + appearance - NOT the dataset, just zoom, offset, and color.
+ */
 const initialState = {
     // Currently just a placeholder 
     BasicTracks: {
@@ -20,6 +14,8 @@ const initialState = {
             color: "#4e79a7",
             zoom: 1,
             pastZoom: 1,
+            normalizedLength: 30425192,
+            end: 30425192,
             offset: 0,
         },
         'at2': {
@@ -28,6 +24,8 @@ const initialState = {
             color: "#e15759",
             zoom: 1,
             pastZoom: 1,
+            normalizedLength:30425192,
+            end:19696821,
             offset: 0,
         },
         'at3': {
@@ -36,6 +34,8 @@ const initialState = {
             color: "#76b7b2",
             zoom: 1,
             pastZoom: 1,
+            normalizedLength:30425192,
+            end:23458459,
             offset: 0,
         },
         'at4': {
@@ -44,6 +44,8 @@ const initialState = {
             color: "#59a14f",
             zoom: 1,
             pastZoom: 1,
+            normalizedLength:30425192,
+            end:18584524,
             offset: 0,
         },
         'at5': {
@@ -52,6 +54,8 @@ const initialState = {
             color: "#edc949",
             zoom: 1,
             pastZoom: 1,
+            normalizedLength:30425192,
+            end:26970641,
             offset: 0,
         },
     },
@@ -67,6 +71,10 @@ export const basicTrackSlice = createSlice({
         addBasicTrack: (state, action) => {
             if (!state.BasicTracks[action.payload.key]) {
                 state.BasicTracks[action.payload.key] = action.payload
+            }
+            else{
+                state.BasicTracks[action.payload.key].normalizedLength = action.payload.normalizedLength
+                state.BasicTracks[action.payload.key].end = action.payload.end
             }
         },
         removeBasicTrack: (state, action) => {
