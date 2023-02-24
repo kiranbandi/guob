@@ -9,9 +9,10 @@ import { selectGenome } from 'components/tracks/genomeSlice';
 import { selectDraggables } from './draggableSlice';
 
 
-/* Essentially just returns a smaller version of a basic track when dragging
-TODO make work with the new histogram
-*/
+/**
+ * Used in conjunction with "CustomDragLayer" to render components while being dragged.
+ */ 
+
 export const DragPreview = memo(function DragPreview({ item, groupID, width, height, className, component, index, dragGroup, isDark }) {
 
     const basicTrackSelector = useSelector(selectBasicTracks)

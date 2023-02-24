@@ -19,6 +19,10 @@ import { GroupAddOutlined } from "@mui/icons-material"
 import { countBy } from "lodash"
 import { ChromePicker } from 'react-color';
 
+/**
+ * Container for draggable components. Should render any children and provide a button on the right to re-arrange
+ * the component. Used in conjunction with "DragContainer" component.
+ */
 const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup }) => {
 
     // One ref for handle, one for preview

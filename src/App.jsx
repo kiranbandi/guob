@@ -6,7 +6,7 @@ import { store } from './redux/store';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { Dashboard, Demo, Documentation, Home, Comparison, NotFound, AgricultureDemo, RenderDemo } from './pages';
+import { Dashboard, Demo, Documentation, Home, Comparison, NotFound, RenderDemo } from './pages';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useState } from 'react';

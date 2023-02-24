@@ -46,6 +46,7 @@ function RenderDemo({ isDark }) {
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [normalize, setNormalize] = useState(false)
     const [bitmap, setBitmap] = useState(true)
+    const [resolution, setResolution] = useState(false)
     let [loading, setLoading] = useState(false)
     
 
@@ -141,9 +142,6 @@ function RenderDemo({ isDark }) {
                     break
             }
 
-
-            // ! Use main thread to read the file, then pass to a web worker?
-
             let x = text(demoFile).then(data => {
 
                 return processFile(data)}).then( parsedData => {
@@ -197,7 +195,7 @@ function RenderDemo({ isDark }) {
 
 
     const buildDemo = (chromosomalData, dataset) => {
-
+        console.log("am I getting here?")
         window.dataset = dataset
         window.chromosomalData = chromosomalData
         window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
@@ -297,6 +295,7 @@ function RenderDemo({ isDark }) {
                             isDark={isDark}
                             normalize={normalize}
                             renderTrack={"bitmap" }
+                            resolution={resolution}
                         />
                     )
                 })
@@ -421,7 +420,7 @@ function RenderDemo({ isDark }) {
         // let gt = window.gt;
         // if (gt) {
         //     gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
-        // } c
+        // } 
 
         setNormalize(e.target.checked)
     }
@@ -433,6 +432,15 @@ function RenderDemo({ isDark }) {
         //     gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
         // } 
         setBitmap(e.target.checked)
+    }
+
+    function changeResolution(e) {
+
+        // let gt = window.gt;
+        // if (gt) {
+        //     gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
+        // } 
+        setResolution(e.target.checked)
     }
 
     function changeMargins(e) {
@@ -498,6 +506,7 @@ function RenderDemo({ isDark }) {
                     <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
                     <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
                     <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
+                    <FormControlLabel control={<Switch onChange={changeResolution} checked={resolution} />} label={"Use Max Resolution"} />
                     {/* <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
 
                 </Stack>
@@ -639,6 +648,7 @@ function RenderDemo({ isDark }) {
                                                         renderTrack={bitmap ? "bitmap" : 'basic'}
                                                         normalize={normalize}
                                                         cap={basicTrackSelector[x].end}
+                                                        resolution={resolution}
                                                     />
                                                 </Draggable>
                                             )

@@ -203,7 +203,6 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
             scaling = scaleLinear().domain([0, aboveCap]).range([0, maxWidth * topTrack.zoom])
             track = topTrack
             // topOffset = offset
-            console.log("Change?")
             topOffset = -scaling(bottomLocation)
         }
         else {
@@ -277,7 +276,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
     let gradient = [topColor, bottomColor]
 
-    debugger
+
 
     return (
         <>

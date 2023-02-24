@@ -13,8 +13,9 @@ import { selectGenome } from './genomeSlice'
 import { Typography, Stack, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
+import { addAnnotation, selectAnnotations } from '../../features/annotation/annotationSlice'
 
-function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, normalizedLength, renderTrack, genome }) {
+function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, normalizedLength, renderTrack, genome, resolution }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
   //! to be passed from the slice to the track. In the return statement, check the "renderTrack" prop
@@ -26,6 +27,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
   const dispatch = useDispatch()
   const genomeSelector = useSelector(selectGenome)
+  const annotationSelector = useSelector(selectAnnotations)[id]
 
   const trackRef = useRef()
   // const [cap, setCap] = useState()
@@ -33,11 +35,13 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
   const [dragging, setDragging] = useState(false)
 
+  let designation = resolution ? id + "_1000K_" : id + "_50K_"
   let suffix = isDark ? "track_dark" : "track"
   let orthologSuffix = isDark ? "_orthologs_dark" : "_orthologs"
-  let image = 'files/track_images/' + id + suffix + ".png"
+  let image = 'files/track_images/' + designation + suffix + ".png"
+  // let image = 'files/track_images/' + id + '_output.png'
   let orthologImage = 'files/track_images/' + id + orthologSuffix + ".png"
-  let imageBunch = 'files/track_images/' + id + suffix
+  let imageBunch = resolution ? 'files/track_images/' + id + "_1000K_" + suffix : 'files/track_images/' + id + "_50K_" + suffix
   // Moved from imageTrack
   let originalWidth = width ? width : (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
   let maxWidth = originalWidth * zoom
@@ -47,19 +51,21 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   const [info, setInfo] = useState("")
   const [startOfTrack, setStartOfTrack] = useState()
   const [endCap, setEndCap] = useState()
-  const [ renderOrthologs, setRenderOrthologs ] = useState()
+  const [renderOrthologs, setRenderOrthologs] = useState()
+  const [ clickLocation, setClickLocation ] = useState()
 
+  let pixelWidth = resolution ? 1000000 : 50000
 
   let imageExists = () => {
-    if(renderOrthologs !== undefined) return
+    if (renderOrthologs !== undefined) return
     const img = new Image()
     img.onload = () => setRenderOrthologs(true)
     img.onerror = () => setRenderOrthologs(false)
     img.src = orthologImage
     img.remove()
-}
+  }
 
-
+  // 1000000
   const positionRef = React.useRef({
     x: 0,
     y: 0,
@@ -72,7 +78,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   useEffect(() => {
     let endBP = Math.max(...genomeSelector[id].array.map(d => d.end))
     // setCap(endBP)
-    setNumberOfImages(Math.ceil(endBP / 1000000))
+    setNumberOfImages(Math.ceil(endBP / pixelWidth))
     let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth])
     setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
     setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), cap))
@@ -80,7 +86,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   }, [zoom, offset, cap, array])
 
   function handleScroll(e) {
-    if(genome) return
+    if (genome) return
     if (e.altKey == true) {
       setHoverStyle({ display: "none", pointerEvents: "none" })
       let factor = 0.8
@@ -107,7 +113,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
 
   function handlePan(e) {
-    if(genome) return
+    if (genome) return
     // Finding important markers of the track, since it's often in a container
     let trackBoundingRectangle = e.target.getBoundingClientRect()
     let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
@@ -116,7 +122,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     // Finding the offset
     let dx = e.movementX
 
-     let offsetX = Math.max(Math.min(offset + dx, 0), -(maxWidth - originalWidth))
+    let offsetX = Math.max(Math.min(offset + dx, 0), -(maxWidth - originalWidth))
     // let offsetX = offset + dx
 
     // Either end of the track
@@ -151,7 +157,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
     // let adjustedOffset = offset + scaling * firstImage
     // ! This is correct
-    let ratio = cap/1000000
+    let ratio = cap / pixelWidth
     let adjustedZoom = currentZoom / ratio
 
     //! It's gotta be this, right? - I THINK this is right as well
@@ -159,19 +165,24 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     // console.log(`The base pair location : ${bpLocation}`)
 
     // ! These two are for sure right
-    let correctImage = Math.floor(bpLocation / 1000000)
-    let startOfImage = correctImage * 1000001
+    let correctImage = Math.floor(bpLocation / pixelWidth)
+    let startOfImage = correctImage * pixelWidth + 1
 
     // console.log(`Startofimage = ${startOfImage}`)
     //! or this? So it has to be this
-    let newImageScale = scaleLinear().domain([startOfImage, startOfImage + 1000000]).range([0, originalWidth * adjustedZoom])
+    let newImageScale = scaleLinear().domain([startOfImage, startOfImage + pixelWidth]).range([0, originalWidth * adjustedZoom])
     let adjustedOffset = newImageScale(bpLocation)
 
     // As each image is 1000000 pixels wide, no more than two will ever be needed
     for (let x = 0; x < 2; x++) {
       let imageChoice = correctImage + x
       if (imageChoice > -1 && imageChoice < numberOfImages) {
-        bunch.push(imageBunch + "_" + imageChoice + ".png")
+        if (resolution) {
+          bunch.push(imageBunch + "_" + imageChoice + ".png")
+        }
+        else {
+          bunch.push(imageBunch + "_" + imageChoice + ".png")
+        }
       }
     }
     return (<ImageTrack
@@ -190,14 +201,40 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     )
   }
 
-  function handleClick(e) {
-    if(genome) return
-    if (e.type == 'mousedown') {
+  function newAnnotation(x){
+    let note = prompt("Enter an annotation: ")
+    if (!note) return
 
+    let currentImageScale = scaleLinear().domain([0,cap]).range([0, maxWidth])
+    let location = currentImageScale.invert(x)
+    let annotation = {
+      key: id,
+      note,
+      location
+    }
+
+    dispatch(addAnnotation(annotation))
+
+    // if (gt){
+    //   gt.updateState({ Action: "handleAnnotation", annotation})
+    // }
+
+  }
+
+  function handleClick(e) {
+    if (genome) return
+    if (e.type == 'mousedown') {
+      setClickLocation(e.clientX)
       setDragging(true)
     }
     if (e.type == 'mouseup') {
       setDragging(false)
+      if(e.clientX == clickLocation){
+        if(e.shiftKey){
+          newAnnotation(e.clientX + offset)
+        }
+      }
+      setClickLocation(null)
     }
   }
 
@@ -211,8 +248,47 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     // setCursorStyle({display: "none"})
   }
 
+  function generateAnnotations() {
+    if (annotationSelector) {
+
+      let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
+      let left = trackBoundingRectangle.x
+      let top = trackBoundingRectangle.y + 27
+      let yheight = height - 25
+      let verticalScroll = document.documentElement.scrollTop
+      let width = trackBoundingRectangle.width - 40
+
+      let bpPosition = previewSelector.center
+
+      let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
+      let cursorColor = isDark ? "white" : "black"
+
+      return annotationSelector.map(x => {
+        return (
+          <>
+            <div style={{
+              pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent",
+              borderBottom: "5px solid transparent", borderTop: `5px solid ${cursorColor}`, position: "absolute",
+              left: xScale(x.location) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24,
+            }}>
+            </div>
+            {!genome && <div style={{
+              pointerEvents: "none", zIndex: 2, position: "absolute",
+              left: xScale(x.location) + left + offset - 2, top: top + verticalScroll - 20, height: genome ? adjustedHeight : adjustedHeight + 24,
+            }}>
+              {x.note}
+            </div>
+
+            }
+          </>
+        )
+      })
+
+    }
+  }
+
   function hover(e) {
-    if(genome) return
+    if (genome) return
     if (e.target.id.includes('ortholog')) {
       setHoverStyle({ display: "none" })
       return
@@ -240,7 +316,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     for (let i = 0; i < array.length; i++) {
       if (bpPosition > array[i].start && bpPosition < array[i].end) {
         let width = widthScale(array[i].end - array[i].start)
-        if(renderTrack == "bitmap"){
+        if (renderTrack == "bitmap") {
           setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings : 'No Orthologs'}`)
           setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
         }
@@ -280,11 +356,11 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
     if (xScale(bpPosition) + left + offset < trackRef.current.offsetLeft + maxWidth) {
       let cursorColor = isDark ? "white" : "black"
-      if (genome){
-        cursorStyle = { pointerEvents: "none", zIndex: 99, borderLeft: "5px solid transparent",  borderRight: "5px solid transparent",  borderTop: "5px solid transparent", borderBottom: `5px solid ${cursorColor}` ,position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, }
+      if (genome) {
+        cursorStyle = { pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid transparent", borderBottom: `5px solid ${cursorColor}`, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, }
       }
-      else{
-        cursorStyle = { pointerEvents: "none", zIndex: 99, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, backgroundColor: cursorColor, opacity: 0.4 }
+      else {
+        cursorStyle = { pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, backgroundColor: cursorColor, opacity: 0.4 }
       }
     }
   }
@@ -292,7 +368,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     <>
       <div style={cursorStyle}></div>
       <div style={hoverStyle}></div>
-
+      {previewSelector.visible && generateAnnotations()}
       <Tooltip
         title={info ? <Typography
           variant="caption"
@@ -337,55 +413,55 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
           onMouseUp={(e) => handleClick(e)}
           onMouseLeave={leaveTrack}
           onDragStart={(e) => e.preventDefault()}
-          style={{marginLeft: "10px"}}
+          style={{ marginLeft: "10px" }}
         >
 
-          {renderTrack == "bitmap" && 
-          ((zoom > numberOfImages && numberOfImages > 0) ?
-            bunchOfTracks(zoom, offset)
-            :
-            <ImageTrack
-              image={[image]}
-              orthologs={renderOrthologs ? orthologImage : renderOrthologs}
-              genome={genome}
-              id={id}
-              zoom={zoom}
-              offset={offset}
-              cap={cap}
-              color={color}
-              normalize={genome ? false : normalize}
-              height={genome ? height - 25 : undefined}
-              normalizedLength={normalizedLength}
-              width={width}
-            />
-          ) ||
-          renderTrack == "basic" && 
-          <RenderTrack
-                title={id}
-                key={id}
+          {renderTrack == "bitmap" &&
+            ((zoom > numberOfImages && numberOfImages > 0) ?
+              bunchOfTracks(zoom, offset)
+              :
+              <ImageTrack
+                image={[image]}
+                orthologs={renderOrthologs ? orthologImage : renderOrthologs}
+                genome={genome}
                 id={id}
-                array={array}
-                color={color}
-                isDark={isDark}
-                offset={offset}
                 zoom={zoom}
-                pastZoom={pastZoom}
-                height={1}
-                trackType={trackType}
+                offset={offset}
+                cap={cap}
+                color={color}
                 normalize={genome ? false : normalize}
+                height={genome ? height - 25 : undefined}
                 normalizedLength={normalizedLength}
-                width={genome ? width : undefined}
-          />
+                width={width}
+              />
+            ) ||
+            renderTrack == "basic" &&
+            <RenderTrack
+              title={id}
+              key={id}
+              id={id}
+              array={array}
+              color={color}
+              isDark={isDark}
+              offset={offset}
+              zoom={zoom}
+              pastZoom={pastZoom}
+              height={1}
+              trackType={trackType}
+              normalize={genome ? false : normalize}
+              normalizedLength={normalizedLength}
+              width={genome ? width : undefined}
+            />
           }
 
-    {!genome && <TrackScale
-        endOfTrack={normalize? normalizedLength : endCap}
-        startOfTrack={startOfTrack}
-        width={originalWidth}
-        paddingLeft={0}
-        paddingRight={0} />}
-        {!genome &&
-      <TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} />}
+          {!genome && <TrackScale
+            endOfTrack={normalize ? normalizedLength : endCap}
+            startOfTrack={startOfTrack}
+            width={originalWidth}
+            paddingLeft={0}
+            paddingRight={0} />}
+          {!genome &&
+            <TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} />}
         </div>
       </Tooltip>
 

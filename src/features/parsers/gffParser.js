@@ -4,7 +4,6 @@ import { text } from "d3-fetch"
 
 async function parseGFF(demoFile, collinearityFile = undefined) {
     let x = text(demoFile).then(data => {
-        console.log("here?")
         let temporary = data.split(/\n/)
         let dataset = {}
         let trackType = 'default'
@@ -127,7 +126,6 @@ export async function parseSubmittedGFF(data, collinearityFile = undefined) {
     }
     else {
         let t = buildModel(dataset, trackType)
-        console.log(t)
         return t
     }
 
