@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+
 const trackTypes = ['heatmap', 'histogram', 'scatter', 'line']
 /**
  * BasicTrackSlice is currently a misnomer - to be changed. This slice is for tacking state changes of
@@ -115,10 +116,12 @@ export const basicTrackSlice = createSlice({
         },
         toggleTrackType: (state, action) => {
             if (action.payload.id === undefined) return
-            let currentTrackType = state.BasicTracks[action.payload.id].trackType,
-                currentTypeIndex = trackTypes.indexOf(currentTrackType);
-            // push the track type to next in the array, if at end loop back to beginning
-            state.BasicTracks[action.payload.id].trackType = trackTypes[currentTypeIndex + 1 >= 4 ? 0 : currentTypeIndex + 1]
+            // let currentTrackType = state.BasicTracks[action.payload.id].trackType,
+            //     currentTypeIndex = trackTypes.indexOf(currentTrackType);
+            // // push the track type to next in the array, if at end loop back to beginning
+            // console.log(trackTypes)
+            state.BasicTracks[action.payload.id].trackType = action.payload.type;
+            
         },
         updateBothTracks: (state, action) => {
             if (action.payload.topKey !== undefined) {

@@ -6,6 +6,7 @@ import { removeDraggable } from 'features/draggable/draggableSlice'
 import { useState } from 'react'
 import { ChromePicker } from 'react-color'
 import { css } from '@emotion/react';
+import Select from 'react-select'
 
 /**
  * Listens for events from the "TrackControls" component - not very React-ful - but when generating
@@ -17,11 +18,23 @@ const TrackListener = ({ children }) => {
     const basicTrackSelector = useSelector(selectBasicTracks)
     const dispatch = useDispatch()
 
+    const [showTypeOptions, setshowTypeOptions] = useState(false)
+    const [showTypeLocation, setshowTypeLocation] = useState({x: 0, y: 0})
+    const [showTypeSelection, setshowTypeSelection] = useState()
     const [showColorPicker, setColorPickerVisibility] = useState(false)
     const [colorPickerColor, setColorPickerColor] = useState()
     const [colorPickerSelection, setColorPickerSelection] = useState()
     const [colorPickerLocation, setColorPickerLocation] = useState({x: 0, y: 0})
-
+    const trackTypes = ['heatmap', 'histogram', 'scatter', 'line']
+    let options = trackTypes.map( d => ({
+        "value" : d,
+        "label" : d
+    }))
+    function handleChange(e){
+        console.log(e)
+        dispatch(toggleTrackType({ 'id': showTypeSelection, 'type' : e.value }))
+        setshowTypeOptions(false)
+    }
     function handleClick(e) {
         let goal = e.target
         while (goal) {
@@ -39,7 +52,11 @@ const TrackListener = ({ children }) => {
                 dispatch(removeBasicTrack({ 'key': buttonInfo[1] }))
                 break
             case "toggleTrackType":
-                dispatch(toggleTrackType({ 'id': buttonInfo[1] }))
+                setshowTypeOptions(true)
+                setshowTypeSelection(buttonInfo[1])
+                let buttonsLocation = goal.getBoundingClientRect()
+                setshowTypeLocation({ x: buttonsLocation.x, y: buttonsLocation.y })
+                // dispatch(toggleTrackType({ 'id': buttonInfo[1] }))
                 break
             case "pickColor":
                 setColorPickerVisibility(true)
@@ -60,6 +77,12 @@ let styling = css(css`
             left: ${colorPickerLocation ? colorPickerLocation.x - 200 + 'px' : 0};
             top: ${colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0};
         }
+    .Typepopover {
+        position: absolute;
+        z-index: 2;
+        left: ${showTypeLocation ? showTypeLocation.x - 10+ 'px' : 0};
+        top: ${showTypeLocation ? showTypeLocation.y + 'px' : 0};
+    }
     }`)
 
 
@@ -83,6 +106,11 @@ let styling = css(css`
                     dispatch(changeBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
                     setColorPickerColor(c.hex)
                 }} />
+            </div> : null}
+            {showTypeOptions ? <div className="Typepopover">
+                <div style={cover} onClick={(e) => { setshowTypeOptions(false) }} />
+                <Select options={options} onChange={handleChange} />
+
             </div> : null}
             {children}
         </div>
