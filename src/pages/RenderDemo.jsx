@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { addComplicatedTrack, selectComplicatedTracks, appendComplicatedTrack } from 'components/tracks/complicatedTrackSlice'
-import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup } from 'features/draggable/draggableSlice'
+import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup, setDraggables } from 'features/draggable/draggableSlice'
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
@@ -11,21 +11,22 @@ import { scaleOrdinal } from 'd3-scale';
 import { css } from '@emotion/react';
 import DragContainer from 'features/draggable/DragContainer';
 import Draggable from 'features/draggable/Draggable';
-import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
-import { Typography, Slider } from '@mui/material';
+import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, updateBothTracks} from 'components/tracks/basicTrackSlice';
+import { Typography, Slider, Tooltip } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import Miniview from '../features/miniview/Miniview';
 import OrthologLinks from '../components/tracks/OrthologLinks'
-import { selectMiniviews } from '../features/miniview/miniviewSlice';
+import { selectMiniviews, moveCollabPreview } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import processFile from '../utils/processFile'
-import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
+import { addAnnotation, clearSearches, addSearch, removeAnnotation } from 'features/annotation/annotationSlice';
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import { text } from "d3-fetch"
 
@@ -62,8 +63,6 @@ function RenderDemo({ isDark }) {
 
     useEffect(() => {
         if (loading) {
-
-
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
             dispatch(deleteAllDraggables({
@@ -91,6 +90,10 @@ function RenderDemo({ isDark }) {
                             array: []
                         }))
                     }
+                    dispatch(addDraggable({
+                        key: "links",
+                        dragGroup: "draggables"
+                    }))
                     setLoading(false)
                     break
                 case "files/bn_coordinate.gff":
@@ -144,65 +147,34 @@ function RenderDemo({ isDark }) {
             }
 
             let x = text(demoFile).then(data => {
+                if(demoCollinearity){
+                    return text(demoCollinearity).then(c =>{
+                        return processFile(data, c)
+                    })
+                }
+                else{
+                    return processFile(data)
+                }
 
-                return processFile(data)
             }).then(parsedData => {
                 buildDemo(parsedData.chromosomalData, parsedData.dataset)
             })
             setLoading(false)
 
-
-            // parseGFF(demoFile).then(({ chromosomalData, dataset }) => {
-            //     buildDemo(chromosomalData, dataset)
-            //     setLoading(false)
-            // })
         }
         if (firstLoad) {
             setFirstLoad(false)
             let x = text(demoFile).then(data => {
 
-                return processFile(data)
+                return text(demoCollinearity).then(c =>{
+                    return processFile(data, c)
+                })
             }).then(parsedData => {
                 buildDemo(parsedData.chromosomalData, parsedData.dataset)
             })
         }
 
     }, [demoFile])
-
-
-    function densityCalculation(array, cap, numberOfBars) {
-        let max = 0
-        let increment = cap / numberOfBars
-        let densityView = []
-        let testView = []
-        for (let i = 1; i <= numberOfBars; i++) {
-            let start = increment * (i - 1)
-            let end = increment * i
-
-            // could stop the filter once it's passed - for-loop are faster anyways
-            // Should I use OR? Seems like it may be more accurate to count genes that
-            // 
-            let value = 0
-            for (let x = 0; x < array.length; x++) {
-                if (array[x].end >= start && array[x].start <= end) {
-                    value++
-                }
-                else if (array.start > end) {
-                    break
-                }
-            }
-            // let value = array.filter(d => d.end >= start && d.start <= end).length
-            max = value > max ? value : max
-            var temp = {
-                start,
-                end,
-                key: Math.round(start) + '-' + Math.round(end),
-                value
-            }
-            densityView.push(temp)
-        }
-        return densityView
-    }
 
 
     const buildDemo = (chromosomalData, dataset) => {
@@ -493,6 +465,73 @@ function RenderDemo({ isDark }) {
     const [searchingChromosome, setSearchingChromosome] = useState()
 
 
+
+    let maxWidth = Math.round(document.querySelector('.tracks')?.getBoundingClientRect()?.width );
+    function updateSingleTrack(event) {
+        dispatch(updateTrack({
+            key: event.id,
+            offset: event.ratio * maxWidth,
+            zoom: event.zoom
+        }))
+    }
+    function updateTwoTracks(event) {
+        dispatch(updateBothTracks({
+            topKey: event.topKey,
+            bottomKey: event.bottomKey,
+            topOffset: event.topRatio * maxWidth,
+            bottomOffset: event.bottomRatio * maxWidth,
+            topZoom: event.topZoom,
+            bottomZoom: event.bottomZoom
+        }))
+    }
+
+     if (window.gt) {
+        window.gt.on('state_updated_reliable', (userID, payload) => {
+
+            // TODO this feels like a hacky way of doing this
+            if (userID === document.title) return
+            switch (payload.Action) {
+                case "handleTrackUpdate":
+                    updateSingleTrack(payload.trackInfo)
+                    break
+                case "handleBothTrackUpdate":
+                    updateTwoTracks(payload.trackInfo)
+                    break
+                case "changeNormalize":
+                    setNormalize(payload.Todo)
+                    break
+                case "changeMargins":
+                    setDraggableSpacing(payload.Todo)
+                    break
+                case "handleAnnotation":
+                    dispatch(addAnnotation(payload.annotation))
+                    break
+                case "handleDeleteAnnotation":
+                    dispatch(removeAnnotation(payload.annotation))
+                case "handleSearch":
+                    dispatch(addSearch(payload.annotation))
+                    break
+                case "clearSearch":
+                    dispatch(clearSearches())
+                    break
+                case "handleDragged":
+                    dispatch(setDraggables({
+                        dragGroup: "draggables",
+                        order: payload.order
+                    }))
+                    break
+                case "handlePreviewPosition":
+                    dispatch(moveCollabPreview(payload.info))
+                    break
+            }
+
+        })
+    }
+
+
+
+    const longtext = "Alt + scroll to zoom\nClick and drag to pan\nShift + click to add annotation\n Ctrl + click to remove annotation"
+
     return (
 
 
@@ -509,7 +548,14 @@ function RenderDemo({ isDark }) {
             }}>
                 {"Render Demo"}
             </Typography>
-
+            <Tooltip title={<Typography
+          variant="caption"
+          style={{ whiteSpace: 'pre-line' }}
+        >
+          {longtext}
+        </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
+            <HelpOutlineIcon size="large"></HelpOutlineIcon>
+            </Tooltip>
             <TrackListener>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     {/* <Button variant='outlined' onClick={() => {
@@ -525,7 +571,6 @@ function RenderDemo({ isDark }) {
                         setDemoFile("files/at_coordinate.gff")
                         setTitleState("Aradopsis thaliana")
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
-                        setBitmap(false)
                     }}>Aradopsis thaliana</Button>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile != "files/bn_coordinate.gff") setLoading(true)
@@ -543,11 +588,14 @@ function RenderDemo({ isDark }) {
                     }}>Triticum aestivum</Button>
 
                 </Stack>
+                <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+
                 <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
                 <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
                 {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />}
                 {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeResolution} checked={resolution} />} label={"Use Max Resolution"} />}
                 <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
+                </Stack>
                 {/* <Stack mt={2} spacing={2}> */}
                 <Stack direction='row' justifyContent={"flex-start"}>
                     <Autocomplete sx={{ width: '15%' }}

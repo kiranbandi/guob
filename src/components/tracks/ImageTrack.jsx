@@ -16,7 +16,6 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
     let maxWidth = originalWidth * zoom
     let adjustedHeight = height ? height : document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50
 
-
     useEffect(() => {
 
         imageRef.current.addEventListener('wheel', preventScroll, { passive: false });
@@ -97,6 +96,7 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
         //TODO going to need the padding on the left and right
 
         return ({
+            WebkitUserSelect: 'none',
             width: originalWidth ,
             height: 20,
             transformOrigin: "top left",
@@ -134,7 +134,7 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
                     id={id + "ortholog_imageTrack"}
                     style={orthologStyle(offset, zoom, 0)}
                 />}
-                <div className={"tracks"} style={{float: "left", display: "inline", height: orthologs || genome ? adjustedHeight -20 : adjustedHeight}}>
+                <div className={genome ? "genome_trakcs" : "tracks"} style={{float: "left", display: "inline", height: orthologs || genome ? adjustedHeight -20 : adjustedHeight}}>
 
                 {image.map((image, index) => {
                     return(<img
