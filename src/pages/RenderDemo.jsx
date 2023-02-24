@@ -42,13 +42,14 @@ function RenderDemo({ isDark }) {
     const groupSelector = useSelector(selectGroup)
 
     const [titleState, setTitleState] = useState("Arabidopsis Thaliana")
-    const [demoFile, setDemoFile] = useState("/public/files/at_coordinate.gff")
+    const [demoFile, setDemoFile] = useState("/files/at_coordinate.gff")
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [normalize, setNormalize] = useState(false)
     const [bitmap, setBitmap] = useState(true)
     const [resolution, setResolution] = useState(false)
     let [loading, setLoading] = useState(false)
-    
+    const [firstLoad, setFirstLoad] = useState(true)
+
 
 
     const dispatch = useDispatch()
@@ -61,7 +62,7 @@ function RenderDemo({ isDark }) {
 
     useEffect(() => {
         if (loading) {
-            
+
 
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
@@ -69,10 +70,10 @@ function RenderDemo({ isDark }) {
                 dragGroup: "draggables"
             }))
 
-            switch (demoFile){
+            switch (demoFile) {
                 case "files/at_coordinate.gff":
-                    for(let k = 1; k < 6 ; k++){
-                        let color = ColourScale((k-1) % 10)
+                    for (let k = 1; k < 6; k++) {
+                        let color = ColourScale((k - 1) % 10)
                         dispatch(addBasicTrack({
                             key: "at" + k,
                             trackType: 'default',
@@ -93,8 +94,8 @@ function RenderDemo({ isDark }) {
                     setLoading(false)
                     break
                 case "files/bn_coordinate.gff":
-                    for(let k = 1; k <  20; k++){
-                        let color = ColourScale((k-1) % 10)
+                    for (let k = 1; k < 20; k++) {
+                        let color = ColourScale((k - 1) % 10)
                         dispatch(addBasicTrack({
                             key: "bn" + k,
                             trackType: 'default',
@@ -116,8 +117,8 @@ function RenderDemo({ isDark }) {
                     break
                 case "files/ta_hb_coordinate.gff":
                     let totalIndex = 0
-                    for(let k = 1; k <  8; k++){
-                        ['A','B','D'].forEach((letter,i) =>{
+                    for (let k = 1; k < 8; k++) {
+                        ['A', 'B', 'D'].forEach((letter, i) => {
                             let color = ColourScale(totalIndex % 10)
                             totalIndex++;
                             dispatch(addBasicTrack({
@@ -137,23 +138,33 @@ function RenderDemo({ isDark }) {
                                 array: []
                             }))
                         })
-                        }
+                    }
                     setLoading(false)
                     break
             }
 
             let x = text(demoFile).then(data => {
 
-                return processFile(data)}).then( parsedData => {
-                    buildDemo(parsedData.chromosomalData,parsedData.dataset)
-                })
-                setLoading(false)
-            
-            
+                return processFile(data)
+            }).then(parsedData => {
+                buildDemo(parsedData.chromosomalData, parsedData.dataset)
+            })
+            setLoading(false)
+
+
             // parseGFF(demoFile).then(({ chromosomalData, dataset }) => {
             //     buildDemo(chromosomalData, dataset)
             //     setLoading(false)
             // })
+        }
+        if (firstLoad) {
+            setFirstLoad(false)
+            let x = text(demoFile).then(data => {
+
+                return processFile(data)
+            }).then(parsedData => {
+                buildDemo(parsedData.chromosomalData, parsedData.dataset)
+            })
         }
 
     }, [demoFile])
@@ -195,7 +206,6 @@ function RenderDemo({ isDark }) {
 
 
     const buildDemo = (chromosomalData, dataset) => {
-        console.log("am I getting here?")
         window.dataset = dataset
         window.chromosomalData = chromosomalData
         window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
@@ -242,7 +252,7 @@ function RenderDemo({ isDark }) {
             // }))
             window.maximumLength += end;
         })
-       
+
     }
 
 
@@ -251,7 +261,7 @@ function RenderDemo({ isDark }) {
         let genomeNames = Object.keys(basicTrackSelector)
 
         let totalSize = Object.keys(basicTrackSelector).map(x => basicTrackSelector[x].end).reduce((z, sum) => sum + z, 0)
-  
+
 
         let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
         let x = 0
@@ -259,7 +269,7 @@ function RenderDemo({ isDark }) {
         while (x < genomeNames.length) {
             let totalWidth = 0
             let currentGenomes = genomeNames.slice(x)
- 
+
             let chosenGenomes = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
 
@@ -277,7 +287,7 @@ function RenderDemo({ isDark }) {
                 {chosenGenomes.map(genomeItem => {
                     return (
                         <TrackContainer
-                            key={genomeItem.genome +"genome"}
+                            key={genomeItem.genome + "genome"}
                             array={genomeSelector[genomeItem.genome].array}
                             color={basicTrackSelector[genomeItem.genome].color}
                             genome={true}
@@ -294,7 +304,7 @@ function RenderDemo({ isDark }) {
                             selection={basicTrackSelector[genomeItem.genome].selection}
                             isDark={isDark}
                             normalize={normalize}
-                            renderTrack={"bitmap" }
+                            renderTrack={"bitmap"}
                             resolution={resolution}
                         />
                     )
@@ -302,7 +312,8 @@ function RenderDemo({ isDark }) {
                 }
             </Stack>)
         }
-        if(basicTrackSelector[genomeNames[0]].end){
+        if (Object.keys(basicTrackSelector).length == 0) return
+        if (basicTrackSelector[genomeNames[0]].end) {
             return <>{genomeTracks}</>
         }
     }
@@ -415,40 +426,66 @@ function RenderDemo({ isDark }) {
         }
     }
 
+
+    function enableGT(e) {
+        if (e.target.checked) {
+            let gt;
+            async function connect() {
+                try {
+
+                    gt = window.createGt('hci-sandbox.usask.ca:3001')
+                    await gt.connect();
+                    await gt.auth();
+                    await gt.join('gutb-test');
+                }
+                catch (e) {
+                    console.error(e)
+                }
+                window.gt = gt;
+            }
+            connect();
+        }
+        else {
+            let gt = window.gt;
+            gt.disconnect();
+            window.location.reload()
+        }
+    }
+
     function changeNormalize(e) {
 
-        // let gt = window.gt;
-        // if (gt) {
-        //     gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
-        // } 
+        let gt = window.gt;
+        if (gt) {
+            gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
+        }
 
         setNormalize(e.target.checked)
     }
 
     function changeRender(e) {
 
-        // let gt = window.gt;
-        // if (gt) {
-        //     gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
-        // } 
+        let gt = window.gt;
+        if (gt) {
+            gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
+        }
         setBitmap(e.target.checked)
     }
 
     function changeResolution(e) {
 
-        // let gt = window.gt;
-        // if (gt) {
-        //     gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
-        // } 
+        let gt = window.gt;
+        if (gt) {
+            gt.updateState({ Action: "changeNormalize", Todo: e.target.checked })
+        }
         setResolution(e.target.checked)
     }
 
     function changeMargins(e) {
 
-        // let gt = window.gt;
-        // if (gt) {
-        //     gt.updateState({ Action: "changeMargins", Todo: e.target.checked })
-        // } 
+        let gt = window.gt;
+        if (gt) {
+            gt.updateState({ Action: "changeMargins", Todo: e.target.checked })
+        }
         setDraggableSpacing(e.target.checked)
     }
 
@@ -475,111 +512,112 @@ function RenderDemo({ isDark }) {
 
             <TrackListener>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                    <Button variant='outlined' onClick={() => {
+                    {/* <Button variant='outlined' onClick={() => {
                         if(demoFile != "files/bn_methylation_100k.bed") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/bn_methylation_100k.bed")
                         setTitleState("Canola Methylation")
                         setDemoCollinearity()
-                    }}>Canola Methylation</Button>
+                    }}>Canola Methylation</Button> */}
                     <Button variant='outlined' onClick={() => {
-                         if(demoFile != "files/at_coordinate.gff") setLoading(true)
+                        if (demoFile != "files/at_coordinate.gff") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/at_coordinate.gff")
                         setTitleState("Aradopsis thaliana")
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
+                        setBitmap(false)
                     }}>Aradopsis thaliana</Button>
                     <Button variant='outlined' onClick={() => {
-                        if(demoFile != "files/bn_coordinate.gff") setLoading(true)
+                        if (demoFile != "files/bn_coordinate.gff") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/bn_coordinate.gff")
                         setTitleState("Brassica napus")
                         setDemoCollinearity()
                     }}>Brassica napus</Button>
                     <Button variant='outlined' onClick={() => {
-                        if(demoFile != "files/ta_hb_coordinate.gff") setLoading(true)
+                        if (demoFile != "files/ta_hb_coordinate.gff") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/ta_hb_coordinate.gff")
                         setTitleState("Triticum aestivum")
                         setDemoCollinearity()
                     }}>Triticum aestivum</Button>
-                    <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
-                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
-                    <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
-                    <FormControlLabel control={<Switch onChange={changeResolution} checked={resolution} />} label={"Use Max Resolution"} />
-                    {/* <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
 
                 </Stack>
+                <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+                {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />}
+                {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeResolution} checked={resolution} />} label={"Use Max Resolution"} />}
+                <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
                 {/* <Stack mt={2} spacing={2}> */}
-                        <Stack direction='row' justifyContent={"flex-start"}>
-                            <Autocomplete sx={{ width: '15%' }}
-                                multiple
-                                size="small"
-                                onChange={(event, newValue) => {
-                                    setSearchingChromosome(newValue)
+                <Stack direction='row' justifyContent={"flex-start"}>
+                    <Autocomplete sx={{ width: '15%' }}
+                        multiple
+                        size="small"
+                        onChange={(event, newValue) => {
+                            setSearchingChromosome(newValue)
+                        }}
+                        id="Chromosome Category"
+                        options={window.chromosomes ? window.chromosomes : []}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Chromosome"
+                                InputProps={{
+                                    ...params.InputProps,
+                                    type: 'search',
                                 }}
-                                id="Chromosome Category"
-                                options={window.chromosomes ? window.chromosomes : []}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Chromosome"
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            type: 'search',
-                                        }}
-                                    />
-                                )}
                             />
-                            {window.dataset && <Autocomplete sx={{ width: '70%' }}
-                                multiple
-                                size="small"
-                                onChange={(event, newValue) => {
-                                    setSearchTerms(newValue)
+                        )}
+                    />
+                    {window.dataset && <Autocomplete sx={{ width: '70%' }}
+                        multiple
+                        size="small"
+                        onChange={(event, newValue) => {
+                            setSearchTerms(newValue)
+                        }}
+                        id="Gene Search"
+                        options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome)}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Search input"
+                                InputProps={{
+                                    ...params.InputProps,
+                                    type: 'search',
                                 }}
-                                id="Gene Search"
-                                options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome)}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Search input"
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            type: 'search',
-                                        }}
-                                    />
-                                )}
-                            />}
-                            <Button onClick={() => {
-                                let gt = window.gt;
+                            />
+                        )}
+                    />}
+                    <Button onClick={() => {
+                        let gt = window.gt;
 
-                                dispatch(clearSearches())
-                                if (gt) {
-                                    gt.updateState({ Action: "clearSearch" })
-                                }
+                        dispatch(clearSearches())
+                        if (gt) {
+                            gt.updateState({ Action: "clearSearch" })
+                        }
 
-                                if (!searchTerms || searchTerms.length < 1) return
-                                searchTerms.forEach(term => {
-                                    let gene = window.dataset[term]
-                                    let annotation = {
-                                        key: gene.chromosome,
-                                        note: gene.key,
-                                        location: +gene.start
-                                    }
-                                    dispatch(addSearch(annotation))
-                                    if (gt) {
-                                        gt.updateState({ Action: "handleSearch", annotation })
-                                    }
-                                })
+                        if (!searchTerms || searchTerms.length < 1) return
+                        searchTerms.forEach(term => {
+                            let gene = window.dataset[term]
+                            let annotation = {
+                                key: gene.chromosome,
+                                note: gene.key,
+                                location: +gene.start
                             }
+                            dispatch(addSearch(annotation))
+                            if (gt) {
+                                gt.updateState({ Action: "handleSearch", annotation })
+                            }
+                        })
+                    }
 
-                            }>
-                                Update Search
-                            </Button>
+                    }>
+                        Update Search
+                    </Button>
 
-                        </Stack>
+                </Stack>
 
-                        {/* <Slider className="widthSlider"
+                {/* <Slider className="widthSlider"
                             step={1}
                             min={75}
                             max={300}
@@ -591,7 +629,7 @@ function RenderDemo({ isDark }) {
                             Upload files
                         </Button>
                     </Stack> */}
-                
+
                 {/* {previewSelector.visible && <Miniview
                     className={'preview'}
                     array={previewSelector.linkedTrack.includes('ortholog') ? genomeSelector[previewSelector.linkedTrack.substring(0, 3)].array : genomeSelector[previewSelector.linkedTrack].array}
@@ -631,27 +669,27 @@ function RenderDemo({ isDark }) {
                                         )
                                     }
                                     else {
-                                            return (
-                                                <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                    <TrackContainer
-                                                        key={genomeSelector[x].key + "_container"}
-                                                        id={genomeSelector[x].key}
-                                                        array={genomeSelector[x].array}
-                                                        color={basicTrackSelector[x].color}
-                                                        isDark={isDark}
-                                                        offset={basicTrackSelector[x].offset}
-                                                        zoom={basicTrackSelector[x].zoom}
-                                                        pastZoom={basicTrackSelector[x].pastZoom}
-                                                        normalizedLength={basicTrackSelector[x].normalizedLength}
-                                                        height={1}
-                                                        trackType={basicTrackSelector[x].trackType}
-                                                        renderTrack={bitmap ? "bitmap" : 'basic'}
-                                                        normalize={normalize}
-                                                        cap={basicTrackSelector[x].end}
-                                                        resolution={resolution}
-                                                    />
-                                                </Draggable>
-                                            )
+                                        return (
+                                            <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                                <TrackContainer
+                                                    key={genomeSelector[x].key + "_container"}
+                                                    id={genomeSelector[x].key}
+                                                    array={genomeSelector[x].array}
+                                                    color={basicTrackSelector[x].color}
+                                                    isDark={isDark}
+                                                    offset={basicTrackSelector[x].offset}
+                                                    zoom={basicTrackSelector[x].zoom}
+                                                    pastZoom={basicTrackSelector[x].pastZoom}
+                                                    normalizedLength={basicTrackSelector[x].normalizedLength}
+                                                    height={1}
+                                                    trackType={basicTrackSelector[x].trackType}
+                                                    renderTrack={bitmap ? "bitmap" : 'basic'}
+                                                    normalize={normalize}
+                                                    cap={basicTrackSelector[x].end}
+                                                    resolution={resolution}
+                                                />
+                                            </Draggable>
+                                        )
                                     }
                                 })}
                             </DragContainer>
