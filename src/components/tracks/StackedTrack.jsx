@@ -113,27 +113,13 @@ const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trac
 
     console.log(maxHeight, maxWidth)
     useEffect(() => {
-        console.log("PREEEEEEEEE")
+
         activeChromosome = activeChromosome.toUpperCase();
-        // canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
-        // if alt key is pressed then stop the event 
-        // function preventScroll(e) {
-        //     if (e.altKey == true) {
-        //         e.preventDefault();
-        //         // e.stopPropagation();
-        //         return false;
-        //     }
-        // }
 
-        // let { activeSubGenome = "N/A", activeChromosome } = this.props;
-
-        // get the source name based on window query params
-        // let { sourceID = "" } = this.props.params;
         let activeSubGenome= "N/A" ;
         let sourceID= "" ;
 
-        // If no source ID is set, check if there is a default set in the window object
-        // this default is set when the webapp is launched with a sourceID set in the URL
+
         if (sourceID.length == 0) {
             // If there is no default set in the window object then default to AT camelina
             if (window.defaultSourceID && window.defaultSourceID.length > 0) {
@@ -153,8 +139,7 @@ const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trac
 
 
         
-        // Turn loader onON
-        // this.setState({ 'loader': true });
+
         setLoader(true)
 
         let geneData = [];
