@@ -1,12 +1,11 @@
 /** @jsxImportSource @emotion/react */
-import { addComplicatedTrack, selectComplicatedTracks, appendComplicatedTrack } from 'components/tracks/complicatedTrackSlice'
+import { addComplicatedTrack } from 'components/tracks/complicatedTrackSlice'
 import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup, setDraggables } from 'features/draggable/draggableSlice'
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import parseGFF from 'features/parsers/gffParser';
 import { addGenome, deleteAllGenome, selectGenome } from 'components/tracks/genomeSlice';
-import _, { reject } from 'lodash';
+import _ from 'lodash';
 import { scaleOrdinal } from 'd3-scale';
 import { css } from '@emotion/react';
 import DragContainer from 'features/draggable/DragContainer';
@@ -15,11 +14,10 @@ import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, up
 import { Typography, Slider, Tooltip } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
-import Miniview from '../features/miniview/Miniview';
 import OrthologLinks from '../components/tracks/OrthologLinks'
-import { selectMiniviews, moveCollabPreview } from '../features/miniview/miniviewSlice';
+import { moveCollabPreview } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
-import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
+import { Switch, Button, Stack, Divider, FormControlLabel } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import processFile from '../utils/processFile'
@@ -34,8 +32,6 @@ import { text } from "d3-fetch"
 
 function RenderDemo({ isDark }) {
 
-    const previewSelector = useSelector(selectMiniviews)['newPreview']
-    const trackSelector = useSelector(selectComplicatedTracks)
     const basicTrackSelector = useSelector(selectBasicTracks)
     const draggableSelector = useSelector(selectDraggables)['draggables']
     const genomeSelector = useSelector(selectGenome)
@@ -145,13 +141,15 @@ function RenderDemo({ isDark }) {
                     }
                     setLoading(false)
                     break
+                default:
+                    setLoading(false)
+
             }
 
-            let x = text(demoFile).then(data => {
+            text(demoFile).then(async data => {
                 if(demoCollinearity){
-                    return text(demoCollinearity).then(c =>{
-                        return processFile(data, c)
-                    })
+                    const c = await text(demoCollinearity);
+                    return await processFile(data, c);
                 }
                 else{
                     return processFile(data)
@@ -165,7 +163,7 @@ function RenderDemo({ isDark }) {
         }
         if (firstLoad) {
             setFirstLoad(false)
-            let x = text(demoFile).then(data => {
+            text(demoFile).then(data => {
 
                 return text(demoCollinearity).then(c =>{
                     return processFile(data, c)
@@ -285,7 +283,7 @@ function RenderDemo({ isDark }) {
                 }
             </Stack>)
         }
-        if (Object.keys(basicTrackSelector).length == 0) return
+        if (Object.keys(basicTrackSelector).length === 0) return
         if (basicTrackSelector[genomeNames[0]].end) {
             return <>{genomeTracks}</>
         }
@@ -509,6 +507,7 @@ function RenderDemo({ isDark }) {
                     break
                 case "handleDeleteAnnotation":
                     dispatch(removeAnnotation(payload.annotation))
+                    break
                 case "handleSearch":
                     dispatch(addSearch(payload.annotation))
                     break
@@ -524,6 +523,8 @@ function RenderDemo({ isDark }) {
                 case "handlePreviewPosition":
                     dispatch(moveCollabPreview(payload.info))
                     break
+                default:
+                    console.log(`Error, no cases to handle {payload}`)
             }
 
         })
@@ -567,21 +568,21 @@ function RenderDemo({ isDark }) {
                         setDemoCollinearity()
                     }}>Canola Methylation</Button> */}
                     <Button variant='outlined' onClick={() => {
-                        if (demoFile != "files/at_coordinate.gff") setLoading(true)
+                        if (demoFile !== "files/at_coordinate.gff") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/at_coordinate.gff")
                         setTitleState("Aradopsis thaliana")
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
                     }}>Aradopsis thaliana</Button>
                     <Button variant='outlined' onClick={() => {
-                        if (demoFile != "files/bn_coordinate.gff") setLoading(true)
+                        if (demoFile !== "files/bn_coordinate.gff") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/bn_coordinate.gff")
                         setTitleState("Brassica napus")
                         setDemoCollinearity()
                     }}>Brassica napus</Button>
                     <Button variant='outlined' onClick={() => {
-                        if (demoFile != "files/ta_hb_coordinate.gff") setLoading(true)
+                        if (demoFile !== "files/ta_hb_coordinate.gff") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/ta_hb_coordinate.gff")
                         setTitleState("Triticum aestivum")
@@ -625,7 +626,7 @@ function RenderDemo({ isDark }) {
                             setSearchTerms(newValue)
                         }}
                         id="Gene Search"
-                        options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome == searchingChromosome)}
+                        options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome === searchingChromosome)}
                         renderInput={(params) => (
                             <TextField
                                 {...params}
@@ -710,7 +711,7 @@ function RenderDemo({ isDark }) {
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
                             <DragContainer startingList={draggableSelector}>
                                 {draggableSelector.map((x, i) => {
-                                    if (x == "links") {
+                                    if (x === "links") {
                                         return (
                                             <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
                                                 <OrthologLinks key={x} id={x} index={draggableSelector.indexOf(x)} normalize={false} dragGroup={"draggables"}></OrthologLinks>
@@ -719,30 +720,19 @@ function RenderDemo({ isDark }) {
                                     }
                                     else {
                                         return (
-                                            <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                            <Draggable 
+                                                key={x} 
+                                                grouped={groupSelector.includes(x)} 
+                                                groupID={groupSelector} 
+                                                className={"draggable"} 
+                                                dragGroup={"draggables"}
+                                                >
                                                 <Track
                                                     id={x}
                                                     normalize={normalize}
                                                     isDark={isDark}
                                                     renderTrack={bitmap ? "bitmap" : 'basic'}
                                                 />
-                                                {/* <TrackContainer
-                                                    key={genomeSelector[x].key + "_container"}
-                                                    id={genomeSelector[x].key}
-                                                    array={genomeSelector[x].array}
-                                                    color={basicTrackSelector[x].color}
-                                                    isDark={isDark}
-                                                    offset={basicTrackSelector[x].offset}
-                                                    zoom={basicTrackSelector[x].zoom}
-                                                    pastZoom={basicTrackSelector[x].pastZoom}
-                                                    normalizedLength={basicTrackSelector[x].normalizedLength}
-                                                    height={1}
-                                                    trackType={basicTrackSelector[x].trackType}
-                                                    renderTrack={bitmap ? "bitmap" : 'basic'}
-                                                    normalize={normalize}
-                                                    cap={basicTrackSelector[x].end}
-                                                    resolution={resolution}
-                                                /> */}
                                             </Draggable>
                                         )
                                     }

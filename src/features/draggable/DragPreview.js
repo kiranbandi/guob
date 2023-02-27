@@ -6,8 +6,6 @@ import OrthologLinks from 'components/tracks/OrthologLinks'
 import ImageTrack from 'components/tracks/ImageTrack'
 import { selectBasicTracks } from 'components/tracks/basicTrackSlice';
 import { selectGenome } from 'components/tracks/genomeSlice';
-import { selectDraggables } from './draggableSlice';
-
 
 /**
  * Used in conjunction with "CustomDragLayer" to render components while being dragged.
@@ -18,11 +16,7 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
     const basicTrackSelector = useSelector(selectBasicTracks)
     const genomeSelector = useSelector(selectGenome)
 
-    // Do I need this for some tracks?
-    const draggableSelector = useSelector(selectDraggables)
-    console.log(component)
-    // console.log(className)
-    if (component == "basic") {
+    if (component === "basic") {
         return (
             <div className={className}>
                 <BasicTrack
@@ -42,10 +36,10 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
             </div>
         )
     }
-    else if (component == "OrthologLinks") {
+    else if (component === "OrthologLinks") {
         return <OrthologLinks index={index} dragGroup={dragGroup}></OrthologLinks>
     }
-    else if (component == "bitmap") {
+    else if (component === "bitmap") {
         // return (<></>)
         let suffix = isDark ? "_50K_track_dark" : "_50K_track"
         let image = 'files/track_images/' + item + suffix + ".png"

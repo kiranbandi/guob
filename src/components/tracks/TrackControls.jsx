@@ -1,9 +1,8 @@
 
 import React from 'react'
 import { Stack } from '@mui/material'
-import { IconButton, Button } from "@mui/material"
-import { styled } from "@mui/material/styles"
-import { teal, deepOrange } from '@mui/material/colors';
+import { IconButton } from "@mui/material"
+import { deepOrange } from '@mui/material/colors';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import MultilineChartIcon from '@mui/icons-material/MultilineChart';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';

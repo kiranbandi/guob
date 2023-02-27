@@ -15,9 +15,9 @@ function Window({ color=undefined, coordinateX, coordinateY, width, height, prev
         return (
             <>
             {label && <Typography variant="caption" style={{  WebkitUserSelect: 'none',position: "absolute", top: coordinateY-20, left: coordinateX, zIndex: 3, background: "#a89b97"}}>{label}</Typography>}
-           { preview && style=="box" && <div className={className} style={{position: 'absolute', backgroundColor: chosenColor, opacity: opaq, top: coordinateY, left: coordinateX, width: width, height: height, zIndex: 1, pointerEvents: 'none' }}>
+           { preview && style==="box" && <div className={className} style={{position: 'absolute', backgroundColor: chosenColor, opacity: opaq, top: coordinateY, left: coordinateX, width: width, height: height, zIndex: 1, pointerEvents: 'none' }}>
             </div>}
-            { preview && style=="caret"  && 
+            { preview && style==="caret"  && 
             <div className={className} style={{
                 position: 'absolute',
                 backgroundColor: "inherit",
@@ -32,7 +32,7 @@ function Window({ color=undefined, coordinateX, coordinateY, width, height, prev
                 zIndex: 1, 
                 pointerEvents: 'none' }}>
             </div>} 
-            { preview && style=="genome"  && 
+            { preview && style==="genome"  && 
             <div className={className} style={{
                 position: 'absolute',
                 backgroundColor: "inherit",

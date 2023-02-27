@@ -2,22 +2,14 @@
 import React from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
-import { useRef, useState, useEffect } from "react"
-import { IoReorderFourSharp } from 'react-icons/io5'
+import { useRef, useState } from "react"
 import { useDispatch } from "react-redux"
-import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables, removeDraggable } from "./draggableSlice"
-import { toggleTrackType, removeBasicTrack, changeBasicTrackColor } from "../../components/tracks/basicTrackSlice"
-import { IconButton, Button } from "@mui/material"
-import { styled } from "@mui/material/styles"
-import { teal, deepOrange } from '@mui/material/colors';
+import { switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables } from "./draggableSlice"
+import { IconButton } from "@mui/material"
+import { teal } from '@mui/material/colors';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
-import MultilineChartIcon from '@mui/icons-material/MultilineChart';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import ColorLensIcon from '@mui/icons-material/ColorLens';
 import { useSelector } from "react-redux"
-import { GroupAddOutlined } from "@mui/icons-material"
-import { countBy } from "lodash"
-import { ChromePicker } from 'react-color';
+
 
 /**
  * Container for draggable components. Should render any children and provide a button on the right to re-arrange
@@ -36,7 +28,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
     let [change, setChange] = useState()
     // let [component, setComponent] = useState()
 
-    const component = children.type.name == "Track" ? children.props.renderTrack : children.type.name
+    const component = children.type.name === "Track" ? children.props.renderTrack : children.type.name
 
     function updateTimer() {
         clearTimeout(waiting)
@@ -79,7 +71,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
             }
 
             // Updating the redux store - using conditional to keep calls to a minimum
-            if (dragIndex != hoverIndex) {
+            if (dragIndex !== hoverIndex) {
                 dispatch(switchDraggable({
                     dragGroup: dragGroup,
                     startKey: item.id,
@@ -91,7 +83,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
                     // If outside the group, the entire group needs to be moved as opposed to just switching two
                     let offset = 1;
                     groupID.forEach((x) => {
-                        if (x != item.id) {
+                        if (x !== item.id) {
                             dispatch(insertDraggable({
                                 dragGroup: dragGroup,
                                 startKey: item.id,
@@ -110,8 +102,8 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
         },
     }), [index, groupID])
 
-    // Drag function
-    const [{ isDragging }, drag, preview] = useDrag(
+    // Drag function - preview used if not using custom drag layer
+    const [{ isDragging }, drag, preview ] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,
             item: () => { return { id, index, grouped, groupID, ref, className, dragGroup, component } },
@@ -145,7 +137,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
         window.gt.on('state_updated_reliable', (userID, payload) => {
             // TODO this feels like a hacky way of doing this
             if (userID === document.title) return
-            if (payload.Action == "handleDragged") {
+            if (payload.Action === "handleDragged") {
                 if (payload.id !== id) return
                 dispatch(setDraggables({
                     dragGroup,
@@ -153,18 +145,6 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
                 }))
             }
         })
-    }
-
-    const popover = {
-        position: 'absolute',
-        zIndex: '2',
-    }
-    const cover = {
-        position: 'fixed',
-        top: '0px',
-        right: '0px',
-        bottom: '0px',
-        left: '0px',
     }
 
     return (

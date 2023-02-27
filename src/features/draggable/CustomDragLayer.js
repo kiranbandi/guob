@@ -2,8 +2,6 @@ import { useDragLayer } from 'react-dnd'
 import { ItemTypes } from './ItemTypes.js'
 import { DragPreview } from './DragPreview.js'
 import { nanoid } from '@reduxjs/toolkit'
-import OrthologLinks from 'components/tracks/OrthologLinks.jsx'
-
 
 const layerStyle = {
     position: 'fixed',
@@ -18,12 +16,11 @@ const layerStyle = {
 
 export const CustomDragLayer = (props) => {
 
-    const { isDragging, item, itemType, initialOffset, currentOffset } =
+    const { isDragging, item, itemType, currentOffset } =
         useDragLayer((monitor) => ({
             item: monitor.getItem(),
             itemType: monitor.getItemType(),
             isDragging: monitor.isDragging(),
-            initialOffset: monitor.getInitialSourceClientOffset(),
             currentOffset: monitor.getSourceClientOffset(),
         }))
 

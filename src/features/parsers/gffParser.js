@@ -214,7 +214,7 @@ function buildBitmapModel(dataset, trackType) {
     
 
     for (let item in dataset) {
-        if (!chromosomeNameList.some((x) => x.chromosome == dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
+        if (!chromosomeNameList.some((x) => x.chromosome === dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
             var check = item
             var temp = {
                 chromosome: dataset[item].chromosome,
@@ -228,7 +228,7 @@ function buildBitmapModel(dataset, trackType) {
     // Changing the default lexicographical order, since chromosome11 should come after chromosome2 
     // additional logic so that all chromosomes from the same line should be grouped   
     chromosomeNameList.sort((a, b) => {
-        if (a.chromosome[0].localeCompare(b.chromosome[0]) == 0) {
+        if (a.chromosome[0].localeCompare(b.chromosome[0]) === 0) {
             return a.chromosome.length - b.chromosome.length
         }
         else {
@@ -238,7 +238,7 @@ function buildBitmapModel(dataset, trackType) {
 
     chromosomeNameList.forEach((chr, chrIndex) => {
         var subset = Object.entries(dataset).filter(d => {
-            return d[1].chromosome == chr.chromosome
+            return d[1].chromosome === chr.chromosome
         }).map(x => x[1])
 
         var temp = {
@@ -269,7 +269,7 @@ function buildModel(dataset, trackType) {
     let ignore = "Scaffold"
 
     for (let item in dataset) {
-        if (!chromosomeNameList.some((x) => x.chromosome == dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
+        if (!chromosomeNameList.some((x) => x.chromosome === dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
             var check = item
             var temp = {
                 chromosome: dataset[item].chromosome,
@@ -283,7 +283,7 @@ function buildModel(dataset, trackType) {
     // Changing the default lexicographical order, since chromosome11 should come after chromosome2 
     // additional logic so that all chromosomes from the same line should be grouped   
     chromosomeNameList.sort((a, b) => {
-        if (a.chromosome[0].localeCompare(b.chromosome[0]) == 0) {
+        if (a.chromosome[0].localeCompare(b.chromosome[0]) === 0) {
             return a.chromosome.length - b.chromosome.length
         }
         else {
@@ -293,7 +293,7 @@ function buildModel(dataset, trackType) {
 
     chromosomeNameList.forEach((chr, chrIndex) => {
         var subset = Object.entries(dataset).filter(d => {
-            return d[1].chromosome == chr.chromosome
+            return d[1].chromosome === chr.chromosome
         }).map(x => x[1])
 
         var temp = {
@@ -332,7 +332,10 @@ function process(collinearityData) {
     alignmentList.push(alignmentBuffer);
     // get the unique list of IDs of all chromosomes or scaffolds that have alignments mapped to them
     let uniqueIDList = [];
-    alignmentList.map((d) => { uniqueIDList.push(d.source, d.target) });
+    alignmentList.map((d) => { 
+        uniqueIDList.push(d.source, d.target) 
+        return 0
+    });
     return { "information": {}, "alignmentList": alignmentList, 'uniqueIDList': uniqueIDList.filter(onlyUnique) };
 };
 
@@ -343,7 +346,7 @@ function parseAlignmentDetails(alignmentDetails) {
         'score': Number(alignmentDetailsList[3].split('=')[1].trim()),
         'e_value': Number(alignmentDetailsList[4].split('=')[1].trim()),
         'count': Number(alignmentDetailsList[5].split('=')[1].trim()),
-        'type': alignmentDetailsList[7].trim() == 'plus' ? 'regular' : 'flipped',
+        'type': alignmentDetailsList[7].trim() === 'plus' ? 'regular' : 'flipped',
         'source': alignmentDetailsList[6].split('&')[0].trim(),
         'target': alignmentDetailsList[6].split('&')[1].trim(),
         'sourceKey': Number(alignmentDetailsList[6].split('&')[0].trim().slice(2)),
@@ -377,7 +380,7 @@ async function pullGeneInfo(collinearityFile, nomenclature) {
             selectedCollinearity.push(...temporaryCollinearity)
         })
         let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
-        let trueMatch = genePairs.filter((x) => +x.e_value == 0)
+        let trueMatch = genePairs.filter((x) => +x.e_value === 0)
         return trueMatch
     })
 }
@@ -391,7 +394,7 @@ async function pullSubmittedGeneInfo(collinearityFile, nomenclature) {
         selectedCollinearity.push(...temporaryCollinearity)
     })
     let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
-    let trueMatch = genePairs.filter((x) => +x.e_value == 0)
+    let trueMatch = genePairs.filter((x) => +x.e_value === 0)
     return trueMatch
 
 }

@@ -1,13 +1,10 @@
 import React, { useEffect, useRef, useState } from "react"
 import { scaleLinear } from "d3-scale"
-import { useDispatch, useSelector } from "react-redux"
+import { useDispatch } from "react-redux"
 import { Typography } from '@mui/material';
 import { gene } from './gene.js'
-import { selectMiniviews, selectComparison } from 'features/miniview/miniviewSlice.js'
 import { updateTrack } from "./basicTrackSlice";
 import { line } from 'd3-shape';
-import Window from "features/miniview/Window.js";
-
 
 /**
  * Updated version of the BasicTrack - renders bars based on the information passed through the "array" prop
@@ -19,8 +16,6 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
     const [drawnGenes, setDrawnGenes] = useState([])
     const [start, setStart] = useState(0)
     const [cap, setCap] = useState(0)
-
-    const gt = window.gt;
     const dispatch = useDispatch()
     let trackTitle = trackType === 'default' ? "Chromosome: " + title + ", GFF" : "Chromosome: " + title + ", BED"
 
@@ -35,7 +30,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
 
 
     // const paddingRight = genome ? 10 : 30, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
-    const paddingRight = genome ? 0 : 30, paddingLeft = 0, paddingTop = 0, paddingBottom = 0;
+    const paddingRight = genome ? 0 : 30, paddingLeft = 0
     let style = {
         position: 'relative',
         top: coordinateY,
@@ -52,7 +47,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
         canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
         // if alt key is pressed then stop the event 
         function preventScroll(e) {
-            if (e.altKey == true) {
+            if (e.altKey === true) {
                 e.preventDefault();
                 // e.stopPropagation();
                 return false;
@@ -101,9 +96,6 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
 
 
         let xScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
-
-        let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth * zoom])
-
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
         let minValue = 0, maxValue = max ? max : 100;
 
@@ -118,7 +110,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
 
         // TODO Loops around to be negative?
         if (drawnGenes.length === 0) {
-            if (trackType == 'line') {
+            if (trackType === 'line') {
                 let pathArray = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset),
                         y = maxHeight - yScale(dataPoint.value);
@@ -149,7 +141,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
 
         else {
 
-            if (trackType == 'line') {
+            if (trackType === 'line') {
 
                 let pathArray = [];
                 array.map(dataPoint => {
@@ -159,9 +151,10 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
                     let rectWidth = widthScale(dataPoint.end - dataPoint.start)
 
                     if (x + rectWidth < 0 || x > maxWidth) {
-                        return
+                        return 0
                     }
                     pathArray.push([x, y]);
+                    return 0
                 });
 
                 let lineFunction = line().context(ctx);

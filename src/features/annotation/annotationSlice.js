@@ -24,7 +24,7 @@ export const annotationSlice = createSlice({
             }
             else {
                 if (state.annotations[action.payload.key].some(x => {
-                    return x.note == action.payload.note && x.location == action.payload.location
+                    return x.note === action.payload.note && x.location === action.payload.location
                 })) {
                     return
                 }
@@ -47,7 +47,7 @@ export const annotationSlice = createSlice({
             }
             else {
                 if (state.searches[action.payload.key].some(x => {
-                    return x.note == action.payload.note && x.location == action.payload.location
+                    return x.note === action.payload.note && x.location === action.payload.location
                 })) {
                     return
                 }
@@ -63,7 +63,7 @@ export const annotationSlice = createSlice({
             }
             else {
                 if (state.ortholog[action.payload.key].some(x => {
-                    return x.note == action.payload.note && x.location == action.payload.location
+                    return x.note === action.payload.note && x.location === action.payload.location
                 })) {
                     return
                 }

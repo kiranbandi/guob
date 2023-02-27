@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { selectBasicTracks, updateTrack } from './basicTrackSlice'
-import { Typography, Stack, Tooltip } from '@mui/material';
-import { scaleLinear } from 'd3-scale'
-import { resolveConfig } from 'prettier';
+import React, { useRef } from 'react'
+import { useSelector } from 'react-redux'
+import { selectBasicTracks } from './basicTrackSlice'
+import { Typography} from '@mui/material';
 
 
+/**
+ * Component for rendering bitmap tracks once passed an image file
+ */
 function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLength, normalize, height, width, orthologs }) {
 
     const imageRef = useRef()
@@ -13,49 +14,21 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
 
     let originalWidth = width ? width : (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
     if (normalize) originalWidth = originalWidth * cap/normalizedLength;
-    let maxWidth = originalWidth * zoom
     let adjustedHeight = height ? height : document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50
 
-    useEffect(() => {
-
-        imageRef.current.addEventListener('wheel', preventScroll, { passive: false });
-        // if alt key is pressed then stop the event 
-
-        function preventScroll(e) {
-            if (e.altKey == true) {
-                e.preventDefault();
-                // e.stopPropagation();
-                return false;
-            }
-        }
-
-    }, [])
-
+    
     function trackStyle(currentOffset, currentZoom, index) {
-        if (currentOffset == undefined) {
+        if (currentOffset === undefined) {
             return {
                 display: 'none',
             }
         }
-
-        let queryHeight = document.querySelector('.draggable')?.getBoundingClientRect()?.height - 75
-        
+      
         let x = currentOffset + (index * (originalWidth * zoom))
         let y = orthologs ? -index *(adjustedHeight - 18) : -index *(adjustedHeight + 2)
 
-        let deg = 0
-        let lightness = 100
-        let saturation = 100
-
         const transform = `matrix(${currentZoom}, 0, 0,  ${1}, ${x}, ${y})`
-        const hue = `hue-rotate(${deg}deg)`
-        // brightness(${lightness}%) saturate(${saturation}%)
-        //TODO going to need the padding on the left and right
-
-        //! Following conditional used for demo purposes
-        if(image[index] == "files/track_images/at1track_2.png"){
-            color = "red"
-        }
+        
         return ({
             width: originalWidth,
             height: orthologs || genome ? adjustedHeight - 25 : adjustedHeight - 5,
@@ -65,19 +38,15 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
             WebkitUserSelect: "none",
             msUserSelect: "none",
             MozUserSelect: "none",
-            filter: hue,
             cursor: "crosshair",
             pointerEvents: 'none',
-            // marginLeft: index == 1 ? "-15px" : "0px",
-            // marginRight: index == 0 ? "-5px" : "0px",
-
             background: color,
 
         })
     }
 
     function orthologStyle(currentOffset, currentZoom) {
-        if (currentOffset == undefined) {
+        if (currentOffset === undefined) {
             return {
                 display: 'none',
             }
@@ -86,14 +55,7 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
         let x = trackSelector[id] ? trackSelector[id].offset : 0
         let scale = trackSelector[id] ? trackSelector[id].zoom : 1
 
-        let deg = 0
-        let lightness = 100
-        let saturation = 100
-
         const transform = `matrix(${scale}, 0, 0,  ${1}, ${x}, ${0})`
-        const hue = `hue-rotate(${deg}deg)`
-        // brightness(${lightness}%) saturate(${saturation}%)
-        //TODO going to need the padding on the left and right
 
         return ({
             WebkitUserSelect: 'none',
@@ -102,7 +64,6 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
             transformOrigin: "top left",
             WebkitTransform: transform,
             WebkitUserDrag: "none",
-            filter: hue,
             marginBottom: -6,
 
         })
@@ -133,8 +94,9 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
                     src={orthologs}
                     id={id + "ortholog_imageTrack"}
                     style={orthologStyle(offset, zoom, 0)}
+                    alt={`Track showing {id} chromosome ortholog locations.`}
                 />}
-                <div className={genome ? "genome_trakcs" : "tracks"} style={{float: "left", display: "inline", height: orthologs || genome ? adjustedHeight -20 : adjustedHeight}}>
+                <div className={genome ? "genome_tracks" : "tracks"} style={{float: "left", display: "inline", height: orthologs || genome ? adjustedHeight -20 : adjustedHeight}}>
 
                 {image.map((image, index) => {
                     return(<img
@@ -144,6 +106,7 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
                         style={trackStyle(offset, zoom, index)}
                         tabIndex={-1}
                         draggable={false}
+                        alt={`Track showing {id} gene locations.`}
                     >
                     </img>)
                 })}
