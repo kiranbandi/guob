@@ -9,12 +9,14 @@ import { selectBasicTracks, updateTrack } from './basicTrackSlice'
 import { set } from 'lodash'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
+import StackedTrack from './StackedTrack';
+
 import { selectGenome } from './genomeSlice'
 import { Typography, Stack, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
 
-function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, width, height, pastZoom, renderTrack }) {
+function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, width, height, pastZoom, renderTrack, activeChromosome }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
   //! to be passed from the slice to the track. In the return statement, check the "renderTrack" prop
@@ -328,7 +330,11 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
           onDragStart={(e) => e.preventDefault()}
         >
 
-          {renderTrack == "bitmap" && (zoom > numberOfImages ?
+          {
+          renderTrack ==  "stackedTrack"?
+          <StackedTrack height={adjustedHeight} activeChromosome={activeChromosome}></StackedTrack>
+            :
+          renderTrack == "bitmap" && (zoom > numberOfImages ?
             bunchOfTracks(zoom, offset)
             :
             <TestImage

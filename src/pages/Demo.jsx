@@ -19,6 +19,7 @@ import testing_array3 from '../data/testing_array3';
 import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
+import StackedTrack from 'components/tracks/StackedTrack';
 import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks, changeBasicTrackColor } from 'components/tracks/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import { text } from "d3-request";
@@ -898,6 +899,11 @@ ${'' /* .genomeTrack {
                                             })}
 
                                         </DragContainer>}
+
+
+
+
+
 
                                 </div>
                             </>

@@ -380,6 +380,19 @@ function RenderDemo({ isDark }) {
                                     height={1}
                                     trackType={basicTrackSelector[x].trackType}
                                     renderTrack={"bitmap"}
+                                    // <TrackContainer
+                                    // key={genomeSelector[x].key + "_stackscontainer"}
+                                    // id={genomeSelector[x].key}
+                                    // array={genomeSelector[x].array}
+                                    // color={basicTrackSelector[x].color}
+                                    // isDark={isDark}
+                                    // offset={basicTrackSelector[x].offset}
+                                    // zoom={basicTrackSelector[x].zoom}
+                                    // pastZoom={basicTrackSelector[x].pastZoom}
+                                    // height={1}
+                                    // trackType={basicTrackSelector[x].trackType}
+                                    // activeChromosome={x}
+                                    // renderTrack={"stackedTrack"} 
                                 />
                             </Draggable>
                         )
