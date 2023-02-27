@@ -2,7 +2,7 @@
 import React from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { IoReorderFourSharp } from 'react-icons/io5'
 import { useDispatch } from "react-redux"
 import { moveDraggable, switchDraggable, toggleGroup, clearGroup, insertDraggable, sortGroup, selectDraggables, setDraggables, removeDraggable } from "./draggableSlice"
@@ -34,8 +34,9 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
 
     let [waiting, setWaiting] = useState()
     let [change, setChange] = useState()
+    // let [component, setComponent] = useState()
 
-    const component = children.type.name == "TrackContainer" ? children.props.renderTrack : children.type.name
+    const component = children.type.name == "Track" ? children.props.renderTrack : children.type.name
 
     function updateTimer() {
         clearTimeout(waiting)
@@ -43,6 +44,12 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
             setChange(true)
         }, 500))
     }
+
+    // useEffect(()=>{
+    //     console.log("?")
+    //     console.log(children.props.renderTrack )
+    //     setComponent(children.type.name == "TrackContainer" ? children.props.renderTrack : children.type.name)
+    // },[children.props.renderTrack])
 
 
     const [, drop] = useDrop(() => ({

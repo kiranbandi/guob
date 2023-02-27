@@ -20,7 +20,9 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
 
     // Do I need this for some tracks?
     const draggableSelector = useSelector(selectDraggables)
-    if (component == "BasicTrack") {
+    console.log(component)
+    // console.log(className)
+    if (component == "basic") {
         return (
             <div className={className}>
                 <BasicTrack
@@ -44,8 +46,10 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
         return <OrthologLinks index={index} dragGroup={dragGroup}></OrthologLinks>
     }
     else if (component == "bitmap") {
-        let suffix = isDark ? "track_dark" : "track"
+        // return (<></>)
+        let suffix = isDark ? "_50K_track_dark" : "_50K_track"
         let image = 'files/track_images/' + item + suffix + ".png"
+        // let image = 'files/track_images/' + designation + suffix + ".png"
         return (
             <ImageTrack
                 image={[image]}
@@ -57,6 +61,9 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
                 color={basicTrackSelector[item].color}
             />
         )
+    }
+    else{
+        return(<></>)
     }
 
 

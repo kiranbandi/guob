@@ -27,6 +27,7 @@ import { addAnnotation, clearSearches, addSearch, removeAnnotation } from 'featu
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import Track from 'components/tracks/Track'
 
 import { text } from "d3-fetch"
 
@@ -719,7 +720,13 @@ function RenderDemo({ isDark }) {
                                     else {
                                         return (
                                             <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                <TrackContainer
+                                                <Track
+                                                    id={x}
+                                                    normalize={normalize}
+                                                    isDark={isDark}
+                                                    renderTrack={bitmap ? "bitmap" : 'basic'}
+                                                />
+                                                {/* <TrackContainer
                                                     key={genomeSelector[x].key + "_container"}
                                                     id={genomeSelector[x].key}
                                                     array={genomeSelector[x].array}
@@ -735,7 +742,7 @@ function RenderDemo({ isDark }) {
                                                     normalize={normalize}
                                                     cap={basicTrackSelector[x].end}
                                                     resolution={resolution}
-                                                />
+                                                /> */}
                                             </Draggable>
                                         )
                                     }

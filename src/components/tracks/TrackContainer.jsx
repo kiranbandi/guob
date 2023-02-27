@@ -249,7 +249,8 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   function getXLocation(x) {
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
-    let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
+    let xScale =  normalize ? scaleLinear().domain([0,cap]).range([0, maxWidth * cap /normalizedLength]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
+    // originalWidth * cap/normalizedLength
     return xScale.invert(x - left)
   }
 
@@ -335,11 +336,11 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     let verticalScroll = document.documentElement.scrollTop
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
 
-    let adjustedPos = (e.clientX - trackBoundingRectangle.left) - offset
+    let adjustedPos = (e.clientX) - offset
 
     let xScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
     let widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, originalWidth])
-    let bpPosition = xScale.invert(adjustedPos)
+    let bpPosition = getXLocation(adjustedPos)
 
     if (!previewSelector.visible) {
       dispatch(changePreviewVisibility({
@@ -357,6 +358,17 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
         if (renderTrack == "bitmap") {
           setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings : 'No Orthologs'}`)
           setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
+        }
+        else if (renderTrack == "basic"){
+          setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings : 'No Orthologs'}`)
+          setHoverStyle({ 
+            pointerEvents: "none", zIndex: 2,
+            position: "absolute",
+            left: xScale(array[i].start) + trackBoundingRectangle.left + offset, 
+            width: width, 
+            top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25,
+            height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, 
+            backgroundColor: "red" })
         }
         // console.log(info)
         return
@@ -390,8 +402,8 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
     let bpPosition = previewSelector.center
 
+    
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
-
     if (xScale(bpPosition) + left + offset < trackRef.current.offsetLeft + maxWidth) {
       let cursorColor = isDark ? "white" : "black"
       if (genome) {
@@ -433,7 +445,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
       >
         <div
           className={"parent"}
-          id={id}
+          id={genome ? id + "_genome_view" : id}
           // style={{pointerEvents: "none"}}
           ref={trackRef}
           onWheel={handleScroll}
