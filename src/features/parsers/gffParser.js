@@ -82,7 +82,6 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
 
 export async function parseSubmittedGFF(data, collinearityFile = undefined) {
 
-
     let temporary = data.split(/\n/)
     let dataset = {}
     let trackType = 'default'
@@ -131,28 +130,7 @@ export async function parseSubmittedGFF(data, collinearityFile = undefined) {
 
 }
 
-// export async function parseSubmittedCollinearity(collinearityFile, dataset){
-//         debugger
-//     let nomenclature = Object.keys(dataset)[0].slice(0,2)
-//         pullGeneInfo(collinearityFile, nomenclature).then(pairs => {
-//             pairs.forEach(x => {
-//                 let sourceIndex = x.source.toLowerCase()
-//                 let targetIndex = x.target.toLowerCase()
-//                 dataset[sourceIndex].ortholog = true
-//                 dataset[targetIndex].ortholog = true
-//                 dataset[sourceIndex].siblings.push(x.target)
-//                 dataset[targetIndex].siblings.push(x.source)
-
-//             })
-
-//             // return buildModel(dataset, trackType)
-//         })
-//         // return m
-
-// }
-
 export async function parseBitSubmittedGFF(data, collinearityFile = undefined) {
-
 
     let temporary = data.split(/\n/)
     let dataset = {}
@@ -263,6 +241,9 @@ function buildBitmapModel(dataset, trackType) {
 
 function buildModel(dataset, trackType) {
 
+
+
+    let channel = new BroadcastChannel("testing")
     // Building up the different chromosomes
     let chromosomeNameList = []
     let chromosomalData = []
@@ -296,13 +277,18 @@ function buildModel(dataset, trackType) {
             return d[1].chromosome === chr.chromosome
         }).map(x => x[1])
 
+        var end = Math.max(...subset.map(d => d.end))
+
         var temp = {
             key: chr,
             data: subset,
-            trackType
+            trackType,
+            end
         }
         chromosomalData.push(temp)
+        channel.postMessage(temp)
     })
+    channel.close()
     return { chromosomalData, dataset }
 }
 

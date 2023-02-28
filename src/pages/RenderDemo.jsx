@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { addComplicatedTrack } from 'components/tracks/complicatedTrackSlice'
 import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup, setDraggables } from 'features/draggable/draggableSlice'
 import React from 'react'
 import { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import { scaleOrdinal } from 'd3-scale';
 import { css } from '@emotion/react';
 import DragContainer from 'features/draggable/DragContainer';
 import Draggable from 'features/draggable/Draggable';
-import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, updateBothTracks} from 'components/tracks/basicTrackSlice';
+import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, updateBothTracks } from 'components/tracks/basicTrackSlice';
 import { Typography, Slider, Tooltip } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
@@ -47,7 +46,7 @@ function RenderDemo({ isDark }) {
     const [resolution, setResolution] = useState(false)
     let [loading, setLoading] = useState(false)
     const [firstLoad, setFirstLoad] = useState(true)
-
+    const [listening, setListening] = useState(false)
 
 
     const dispatch = useDispatch()
@@ -56,9 +55,27 @@ function RenderDemo({ isDark }) {
 
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
 
-    // const fileWorker = new Worker("test.worker.js");
+    function checking(e){
+        console.log(e.data)
+        dispatch(addGenome({
+            key: e.data.key.chromosome,
+            array: e.data.data
+        }))
+        dispatch(addBasicTrack({
+            key: e.data.key.chromosome,
+            trackType: e.data.trackType,
+            start: 0,
+            end: e.data.end
+        }))
+    }
 
     useEffect(() => {
+
+        if (!listening) {
+            setListening(true)
+            const channel = new BroadcastChannel("testing")
+            channel.addEventListener('message', checking);
+        }
         if (loading) {
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
@@ -147,12 +164,12 @@ function RenderDemo({ isDark }) {
             }
 
             text(demoFile).then(async data => {
-                if(demoCollinearity){
+                if (demoCollinearity) {
                     const c = await text(demoCollinearity);
-                    return await processFile(data, c);
+                    return await processFile('gff', data, c);
                 }
-                else{
-                    return processFile(data)
+                else {
+                    return processFile('gff', data)
                 }
 
             }).then(parsedData => {
@@ -163,10 +180,10 @@ function RenderDemo({ isDark }) {
         }
         if (firstLoad) {
             setFirstLoad(false)
-            text(demoFile).then(data => {
+            text(demoFile).then(async data => {
 
-                return text(demoCollinearity).then(c =>{
-                    return processFile(data, c)
+                return text(demoCollinearity).then(c => {
+                    return processFile('gff', data, c)
                 })
             }).then(parsedData => {
                 buildDemo(parsedData.chromosomalData, parsedData.dataset)
@@ -194,33 +211,6 @@ function RenderDemo({ isDark }) {
             }
 
             let end = Math.max(...point.data.map(d => d.end))
-            dispatch(addGenome({
-                key: point.key.chromosome,
-                array: point.data
-            }))
-            dispatch(addComplicatedTrack({
-                key: point.key.chromosome,
-                // array: point.data,
-                zoom: 1,
-                pastZoom: 1,
-                offset: 0,
-                color,
-            }))
-            dispatch(addBasicTrack({
-                key: point.key.chromosome,
-                trackType: point.trackType,
-                normalizedLength,
-                color,
-                start: 0,
-                end,
-                zoom: 1.0,
-                pastZoom: 1.0,
-                offset: 0,
-            }))
-            // dispatch(addDraggable({
-            //     key: point.key.chromosome,
-            //     dragGroup: "draggables"
-            // }))
             window.maximumLength += end;
         })
 
@@ -283,6 +273,7 @@ function RenderDemo({ isDark }) {
                 }
             </Stack>)
         }
+        debugger
         if (Object.keys(basicTrackSelector).length === 0) return
         if (basicTrackSelector[genomeNames[0]].end) {
             return <>{genomeTracks}</>
@@ -465,7 +456,7 @@ function RenderDemo({ isDark }) {
 
 
 
-    let maxWidth = Math.round(document.querySelector('.tracks')?.getBoundingClientRect()?.width );
+    let maxWidth = Math.round(document.querySelector('.tracks')?.getBoundingClientRect()?.width);
     function updateSingleTrack(event) {
         dispatch(updateTrack({
             key: event.id,
@@ -484,7 +475,7 @@ function RenderDemo({ isDark }) {
         }))
     }
 
-     if (window.gt) {
+    if (window.gt) {
         window.gt.on('state_updated_reliable', (userID, payload) => {
 
             // TODO this feels like a hacky way of doing this
@@ -538,25 +529,19 @@ function RenderDemo({ isDark }) {
 
 
         <div css={styling}>
-            <Slider className="widthSlider"
-                step={1}
-                min={75}
-                max={300}
-                valueLabelDisplay={"auto"}
-                onChange={handleSlider}
-            />
+
             <Typography variant={'h5'} sx={{
                 WebkitUserSelect: 'none',
             }}>
                 {"Render Demo"}
             </Typography>
             <Tooltip title={<Typography
-          variant="caption"
-          style={{ whiteSpace: 'pre-line' }}
-        >
-          {longtext}
-        </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
-            <HelpOutlineIcon size="large"></HelpOutlineIcon>
+                variant="caption"
+                style={{ whiteSpace: 'pre-line' }}
+            >
+                {longtext}
+            </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
+                <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
             <TrackListener>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
@@ -592,11 +577,11 @@ function RenderDemo({ isDark }) {
                 </Stack>
                 <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
-                <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
-                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
-                {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />}
-                {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeResolution} checked={resolution} />} label={"Use Max Resolution"} />}
-                <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
+                    <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+                    {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />}
+                    {titleState !== "Canola Methylation" && <FormControlLabel control={<Switch onChange={changeResolution} checked={resolution} />} label={"Use Max Resolution"} />}
+                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
                 </Stack>
                 {/* <Stack mt={2} spacing={2}> */}
                 <Stack direction='row' justifyContent={"flex-start"}>
@@ -667,19 +652,13 @@ function RenderDemo({ isDark }) {
 
                 </Stack>
 
-                {/* <Slider className="widthSlider"
-                            step={1}
-                            min={75}
-                            max={300}
-                            valueLabelDisplay={"auto"}
-                            onChange={handleSlider}
-                        />
-
-                        <Button variant="outline" onClick={toggleDrawer} >
-                            Upload files
-                        </Button>
-                    </Stack> */}
-
+                <Slider className="widthSlider"
+                    step={1}
+                    min={75}
+                    max={300}
+                    valueLabelDisplay={"auto"}
+                    onChange={handleSlider}
+                />
                 {/* {previewSelector.visible && <Miniview
                     className={'preview'}
                     array={previewSelector.linkedTrack.includes('ortholog') ? genomeSelector[previewSelector.linkedTrack.substring(0, 3)].array : genomeSelector[previewSelector.linkedTrack].array}
@@ -720,13 +699,13 @@ function RenderDemo({ isDark }) {
                                     }
                                     else {
                                         return (
-                                            <Draggable 
-                                                key={x} 
-                                                grouped={groupSelector.includes(x)} 
-                                                groupID={groupSelector} 
-                                                className={"draggable"} 
+                                            <Draggable
+                                                key={x}
+                                                grouped={groupSelector.includes(x)}
+                                                groupID={groupSelector}
+                                                className={"draggable"}
                                                 dragGroup={"draggables"}
-                                                >
+                                            >
                                                 <Track
                                                     id={x}
                                                     normalize={normalize}
@@ -737,6 +716,7 @@ function RenderDemo({ isDark }) {
                                         )
                                     }
                                 })}
+
                             </DragContainer>
                         </>
                 }
