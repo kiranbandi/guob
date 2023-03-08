@@ -55,8 +55,7 @@ export default function App() {
           <Route path="comparison" element={<Comparison isDark={isDark}/>} />
           <Route path="documentation" element={<Documentation />} />
           <Route path="renderdemo" element={<RenderDemo  isDark={isDark}/>} />
-          <Route path="*" element={<NotFound />}
-          />
+          {/* <Route path="*" element={<NotFound />}/> */}
         </Route>
       </Routes>
     </HashRouter>

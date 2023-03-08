@@ -19,7 +19,7 @@ import TrackContainer from 'components/tracks/TrackContainer'
 import { Switch, Button, Stack, Divider, FormControlLabel } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import processFile from '../utils/processFile'
+import sendFileToWorkers from '../utils/sendFileToWorkers'
 import { addAnnotation, clearSearches, addSearch, removeAnnotation } from 'features/annotation/annotationSlice';
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
@@ -55,8 +55,33 @@ function RenderDemo({ isDark }) {
 
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
 
-    function checking(e){
-        console.log(e.data)
+    //! Receive a message once done
+    function checking(e) {
+
+        fetch('http://localhost:8080', {
+            method: 'POST',
+            headers: {
+                'Accept': 'image/png',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chromosome: e.data.key.chromosome,
+                data: e.data.data,
+                isDark: isDark,
+                end: e.data.end
+            })
+        })
+            .then(response =>{
+                return response.blob()
+                })
+            .then(blob => {
+                const imageObjectURL = URL.createObjectURL(blob);
+                var img = document.createElement("img");
+                img.src = imageObjectURL
+                document.body.appendChild(img);
+            })
+
+
         dispatch(addGenome({
             key: e.data.key.chromosome,
             array: e.data.data
@@ -132,6 +157,28 @@ function RenderDemo({ isDark }) {
                     }
                     setLoading(false)
                     break
+                case "files/bn_methylation_100k.bed":
+                    for (let k = 1; k < 20; k++) {
+                        let color = ColourScale((k - 1) % 10)
+                        dispatch(addBasicTrack({
+                            key: "N-METHYL-" + k,
+                            trackType: 'default',
+                            color,
+                            start: 0,
+                            zoom: 1.0,
+                            offset: 0,
+                        }))
+                        dispatch(addDraggable({
+                            key: "N-METHYL-" + k,
+                            dragGroup: "draggables"
+                        }))
+                        dispatch(addGenome({
+                            key: "N-METHYL-" + k,
+                            array: []
+                        }))
+                    }
+                    setLoading(false)
+                    break
                 case "files/ta_hb_coordinate.gff":
                     let totalIndex = 0
                     for (let k = 1; k < 8; k++) {
@@ -163,13 +210,18 @@ function RenderDemo({ isDark }) {
 
             }
 
-            text(demoFile).then(async data => {
+            text(demoFile).then(data => {
                 if (demoCollinearity) {
-                    const c = await text(demoCollinearity);
-                    return await processFile('gff', data, c);
+                    const c = text(demoCollinearity);
+                    return sendFileToWorkers('gff', data, c);
                 }
                 else {
-                    return processFile('gff', data)
+                    if (demoFile.includes(".bed")) {
+                        return sendFileToWorkers('bed', data)
+                    }
+                    else {
+                        return sendFileToWorkers('gff', data)
+                    }
                 }
 
             }).then(parsedData => {
@@ -181,9 +233,8 @@ function RenderDemo({ isDark }) {
         if (firstLoad) {
             setFirstLoad(false)
             text(demoFile).then(async data => {
-
                 return text(demoCollinearity).then(c => {
-                    return processFile('gff', data, c)
+                    return sendFileToWorkers('gff', data, c)
                 })
             }).then(parsedData => {
                 buildDemo(parsedData.chromosomalData, parsedData.dataset)
@@ -210,19 +261,20 @@ function RenderDemo({ isDark }) {
                 color = ColourScale(3)
             }
 
-            let end = Math.max(...point.data.map(d => d.end))
-            window.maximumLength += end;
+            // let end = Math.max(...point.data.map(d => d.end))
+            window.maximumLength += point.end;
         })
 
     }
 
 
     const buildGenomeView = () => {
+        //! This is breaking the entire page
         let genomeTracks = []
         let genomeNames = Object.keys(basicTrackSelector)
 
-        let totalSize = Object.keys(basicTrackSelector).map(x => basicTrackSelector[x].end).reduce((z, sum) => sum + z, 0)
-
+        // let totalSize = Object.keys(basicTrackSelector).map(x => basicTrackSelector[x].end).reduce((z, sum) => sum + z, 0)
+        let totalSize = window.maximumLength
 
         let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
         let x = 0
@@ -273,7 +325,6 @@ function RenderDemo({ isDark }) {
                 }
             </Stack>)
         }
-        debugger
         if (Object.keys(basicTrackSelector).length === 0) return
         if (basicTrackSelector[genomeNames[0]].end) {
             return <>{genomeTracks}</>
@@ -545,13 +596,13 @@ function RenderDemo({ isDark }) {
             </Tooltip>
             <TrackListener>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                    {/* <Button variant='outlined' onClick={() => {
-                        if(demoFile != "files/bn_methylation_100k.bed") setLoading(true)
+                    <Button variant='outlined' onClick={() => {
+                        if (demoFile != "files/bn_methylation_100k.bed") setLoading(true)
                         // clearComparisonTracks()
                         setDemoFile("files/bn_methylation_100k.bed")
                         setTitleState("Canola Methylation")
                         setDemoCollinearity()
-                    }}>Canola Methylation</Button> */}
+                    }}>Canola Methylation</Button>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile !== "files/at_coordinate.gff") setLoading(true)
                         // clearComparisonTracks()
@@ -686,7 +737,7 @@ function RenderDemo({ isDark }) {
                             <Typography variant="h3">
                                 {titleState}
                             </Typography>
-                            {buildGenomeView()}
+                            {/* {buildGenomeView()} */}
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
                             <DragContainer startingList={draggableSelector}>
                                 {draggableSelector.map((x, i) => {

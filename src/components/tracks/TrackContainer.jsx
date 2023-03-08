@@ -34,12 +34,25 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   const [dragging, setDragging] = useState(false)
 
   let designation = resolution ? id + "_1000K_" : id + "_50K_"
+  
   let suffix = isDark ? "track_dark" : "track"
   let orthologSuffix = isDark ? "_orthologs_dark" : "_orthologs"
-  let image = 'files/track_images/' + designation + suffix + ".png"
+  // let location = 'files/track_images/'
+  let location = 'http://localhost:8080/static/'
+  let image =  location + designation + suffix + ".png"
   // let image = 'files/track_images/' + id + '_output.png'
-  let orthologImage = 'files/track_images/' + designation + orthologSuffix + ".png"
-  let imageBunch = resolution ? 'files/track_images/' + id + "_1000K_" + suffix : 'files/track_images/' + id + "_50K_" + suffix
+  if(id.includes("METHYL")){
+    let split = id.split("-")
+    if(genome){
+      console.log(split)
+    }
+    let res = resolution ? "_1000K_" : "_50K_"
+    let starter = location + split[0] + split[2] + res
+    let finisher = "_methylation.png"
+    image = trackType === "default" || trackType == "heatmap" ? starter +  "heatmap" + finisher : starter +  "histogram" + finisher
+  }
+  let orthologImage = location + designation + orthologSuffix + ".png"
+  let imageBunch = resolution ? location + id + "_1000K_" + suffix : location + id + "_50K_" + suffix
   // Moved from imageTrack
   let originalWidth = width ? width : (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
   let maxWidth = originalWidth * zoom
@@ -347,8 +360,8 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
       center: bpPosition
     })
     )
-
-    for (let i = 0; i < array.length; i++) {
+    let len = array.length
+    for (let i = 0; i < len; i++) {
       if (bpPosition > array[i].start && bpPosition < array[i].end) {
         let width = widthScale(array[i].end - array[i].start)
         if (renderTrack === "bitmap") {

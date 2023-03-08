@@ -31,7 +31,6 @@ const TrackListener = ({ children }) => {
         "label" : d
     }))
     function handleChange(e){
-        console.log(e)
         dispatch(toggleTrackType({ 'id': showTypeSelection, 'type' : e.value }))
         setshowTypeOptions(false)
     }
