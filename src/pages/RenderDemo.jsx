@@ -22,7 +22,8 @@ import TrackContainer from 'components/tracks/TrackContainer'
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-
+import StackedProcessor from 'features/parsers/stackedProcessoor'
+ 
 
 function RenderDemo({ isDark }) {
 
@@ -40,6 +41,8 @@ function RenderDemo({ isDark }) {
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [normalize, setNormalize] = useState(false)
     let [loading, setLoading] = useState(false)
+    const [stackedArray, setStackedArray] = useState({})
+
 
 
     const dispatch = useDispatch()
@@ -49,6 +52,15 @@ function RenderDemo({ isDark }) {
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
 
     useEffect(() => {
+
+        StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
+            window.stackData = {data};
+            setStackedArray({...data});
+            
+
+        
+        })
+
         if (loading) {
             parseGFF(demoFile).then(({ chromosomalData, dataset }) => {
                 buildDemo(chromosomalData, dataset)
@@ -366,36 +378,88 @@ function RenderDemo({ isDark }) {
                             )
                         }
                         else{
-                        return (
-                            <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                <TrackContainer
-                                    key={genomeSelector[x].key + "_container"}
-                                    id={genomeSelector[x].key}
-                                    array={genomeSelector[x].array}
-                                    color={basicTrackSelector[x].color}
-                                    isDark={isDark}
-                                    offset={basicTrackSelector[x].offset}
-                                    zoom={basicTrackSelector[x].zoom}
-                                    pastZoom={basicTrackSelector[x].pastZoom}
-                                    height={1}
-                                    trackType={basicTrackSelector[x].trackType}
-                                    renderTrack={"bitmap"}
-                                    // {/* <TrackContainer
-                                    // key={genomeSelector[x].key + "_stackscontainer"}
-                                    // id={genomeSelector[x].key}
-                                    // array={genomeSelector[x].array}
-                                    // color={basicTrackSelector[x].color}
-                                    // isDark={isDark}
-                                    // offset={basicTrackSelector[x].offset}
-                                    // zoom={basicTrackSelector[x].zoom}
-                                    // pastZoom={basicTrackSelector[x].pastZoom}
-                                    // height={1}
-                                    // trackType={basicTrackSelector[x].trackType}
-                                    // activeChromosome={x}
-                                    // renderTrack={"stackedTrack"} */}
-                                />
-                            </Draggable>
-                        )
+                            // console.log(window.stackData)
+
+                            // console.log(stackedData)
+
+                            if (window.stackData != undefined  && window.stackData.data != undefined && window.stackData.data.triadBrowserStore!=undefined && window.stackData.data.triadBrowserStore.genomeData!=undefined){
+
+                                console.log(window.stackData.data.triadBrowserStore.genomeData)
+                                let stackedData =  window.stackData.data;
+
+                                // console.log(stackedData)
+
+                                return (
+                                    <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                        <TrackContainer
+                                            // key={genomeSelector[x].key + "_container"}
+                                            // id={genomeSelector[x].key}
+                                            // array={genomeSelector[x].array}
+                                            // color={basicTrackSelector[x].color}
+                                            // isDark={isDark}
+                                            // offset={basicTrackSelector[x].offset}
+                                            // zoom={basicTrackSelector[x].zoom}
+                                            // pastZoom={basicTrackSelector[x].pastZoom}
+                                            // height={1}
+                                            // trackType={basicTrackSelector[x].trackType}
+                                            // renderTrack={"bitmap"}
+                                            // <TrackContainer
+                                           
+                                            key={genomeSelector[x].key + "_stackscontainer"}
+                                            id={genomeSelector[x].key}
+                                            array={stackedData.triadBrowserStore.genomeData[x.toUpperCase()]}
+                                            color={basicTrackSelector[x].color}
+                                            isDark={isDark}
+                                            offset={basicTrackSelector[x].offset}
+                                            zoom={basicTrackSelector[x].zoom}
+                                            pastZoom={basicTrackSelector[x].pastZoom}
+                                            height={1}
+                                            trackType={basicTrackSelector[x].trackType}
+                                            activeChromosome={x}
+                                            renderTrack={"stackedTrack"}
+                                            subGenomes={stackedData.triadBrowserStore.subGenomes}
+                                        />
+                                    </Draggable>
+                                )
+                                
+                            }
+                            else{
+                                return (
+                                    <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                        <TrackContainer
+                                            // key={genomeSelector[x].key + "_container"}
+                                            // id={genomeSelector[x].key}
+                                            // array={genomeSelector[x].array}
+                                            // color={basicTrackSelector[x].color}
+                                            // isDark={isDark}
+                                            // offset={basicTrackSelector[x].offset}
+                                            // zoom={basicTrackSelector[x].zoom}
+                                            // pastZoom={basicTrackSelector[x].pastZoom}
+                                            // height={1}
+                                            // trackType={basicTrackSelector[x].trackType}
+                                            // renderTrack={"bitmap"}
+                                            // <TrackContainer
+                                           
+                                            key={genomeSelector[x].key + "_stackscontainer"}
+                                            id={genomeSelector[x].key}
+                                            array={[]}
+                                            color={basicTrackSelector[x].color}
+                                            isDark={isDark}
+                                            offset={basicTrackSelector[x].offset}
+                                            zoom={basicTrackSelector[x].zoom}
+                                            pastZoom={basicTrackSelector[x].pastZoom}
+                                            height={1}
+                                            trackType={basicTrackSelector[x].trackType}
+                                            activeChromosome={x}
+                                            renderTrack={"stackedTrack"}
+                                            subGenomes={[]}
+                                        />
+                                    </Draggable>
+                                )
+                            }
+
+
+                        
 
                         }
                     })}

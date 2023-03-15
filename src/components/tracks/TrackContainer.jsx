@@ -10,13 +10,14 @@ import { set } from 'lodash'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
 import StackedTrack from './StackedTrack';
+import StackedTrack2 from './StackedTrack2'
 
 import { selectGenome } from './genomeSlice'
 import { Typography, Stack, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
 
-function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, width, height, pastZoom, renderTrack, activeChromosome }) {
+function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom, offset, width, height, pastZoom, renderTrack, activeChromosome }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
   //! to be passed from the slice to the track. In the return statement, check the "renderTrack" prop
@@ -47,6 +48,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   const [info, setInfo] = useState("")
   const [startOfTrack, setStartOfTrack] = useState()
   const [endCap, setEndCap] = useState()
+  const [activeSubGenome, setActiveSubGenome] =  useState("N/A")
 
   const positionRef = React.useRef({
     x: 0,
@@ -55,6 +57,12 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   const popperRef = React.useRef(null);
 
   useEffect(() => {
+
+
+    console.log
+    (
+      array
+    )
     let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth])
     setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
     setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), cap))
@@ -216,6 +224,30 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
       setHoverStyle({ display: "none" })
       return
     }
+    if (renderTrack == "stackedTrack" && array.length!=0){
+      let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height,
+        parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
+
+        const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width;
+
+
+
+        let verticalScroll = document.documentElement.scrollTop
+      let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
+
+      let adjustedPos = (e.clientX - trackBoundingRectangle.left)
+
+      let xScale = scaleLinear().domain([0, array.length]).range([0, raw_width-20])
+      let widthScale = scaleLinear().domain([0, array.length]).range([0, originalWidth])
+
+      console.log(adjustedPos)
+      let bpPosition = xScale.invert(adjustedPos)
+      console.log(bpPosition)
+      let num = Math.round(bpPosition)
+      setInfo(`${JSON.stringify(array[num])}\n}`)
+      setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(num) + trackBoundingRectangle.left , width: width, top: trackBoundingRectangle.top + verticalScroll + 50, height: adjustedHeight, backgroundColor: "red" })
+     return
+    }
 
     let verticalScroll = document.documentElement.scrollTop
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
@@ -237,11 +269,12 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     )
 
     for (let i = 0; i < array.length; i++) {
-      if (bpPosition > array[i].start && bpPosition < array[i].end) {
-        let width = widthScale(array[i].end - array[i].start)
+     
+          if (bpPosition > array[i].start && bpPosition < array[i].end) {
+            let width = widthScale(array[i].end - array[i].start)
         setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings : 'No Orthologs'}`)
         setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: trackBoundingRectangle.top + verticalScroll + 50, height: adjustedHeight, backgroundColor: "red" })
-        // console.log(info)
+
         return
       }
     }
@@ -332,7 +365,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
           {
           renderTrack ==  "stackedTrack"?
-          <StackedTrack height={adjustedHeight} activeChromosome={activeChromosome}></StackedTrack>
+          <StackedTrack2 width={maxWidth}  height={adjustedHeight} array={array} subGenomes={subGenomes}></StackedTrack2>
             :
           renderTrack == "bitmap" && (zoom > numberOfImages ?
             bunchOfTracks(zoom, offset)

@@ -40,6 +40,7 @@ import { removeAnnotation } from '../features/annotation/annotationSlice';
 import TrackListener from 'components/tracks/TrackListener';
 import { resolveConfig } from 'prettier';
 import { addGenome, deleteAllGenome, selectGenome } from 'components/tracks/genomeSlice';
+import StackedProcessor from 'features/parsers/stackedProcessoor'
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -363,6 +364,8 @@ ${'' /* .genomeTrack {
     let [submittedData, setSubmittedData] = useState(false)
 
     useEffect(() => {
+
+    StackedProcessor("AT1","N/A", "AT_camelina"  ).then((data)=>{console.log(data)})
         if (demoFile) {
             parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
                 buildDemo(chromosomalData, dataset)

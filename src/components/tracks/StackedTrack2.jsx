@@ -24,7 +24,7 @@ import { selectGenome } from "./genomeSlice.js";
 
 
 
-const StackedTrack = ({ array, activeChromosome, genome = false,activeSubGenome = "N/A", color = 0, trackType = 'stacked', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
+const StackedTrack2 = ({ array, activeChromosome,activeSubGenome= "N/A", subGenomes, genome = false, color = 0, trackType = 'stacked', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -43,7 +43,7 @@ const StackedTrack = ({ array, activeChromosome, genome = false,activeSubGenome 
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
     const [savedWidth, setSavedWidth] = useState()
-    const [subGenomes, setSubGenomes] = useState([])
+
     const [loader, setLoader] = useState(false)
 //this.setState({ subGenomes, chromosomes });
 
@@ -72,19 +72,19 @@ const StackedTrack = ({ array, activeChromosome, genome = false,activeSubGenome 
     // }
 
 
-    const getFile = function (filepath) {
-        console.log(filepath)
-        return new Promise((resolve, reject) => {
-            // get the file
-            axios.get(filepath, { headers: { 'content-encoding': 'gzip' } })
-                .then((response) => { resolve(response.data) })
-                // if there is an error  reject the promise and let user know through toast
-                .catch((err) => {
-                    alert("Failed to fetch the file", "ERROR");
-                    reject();
-                })
-        });
-    }
+    // const getFile = function (filepath) {
+    //     console.log(filepath)
+    //     return new Promise((resolve, reject) => {
+    //         // get the file
+    //         axios.get(filepath, { headers: { 'content-encoding': 'gzip' } })
+    //             .then((response) => { resolve(response.data) })
+    //             // if there is an error  reject the promise and let user know through toast
+    //             .catch((err) => {
+    //                 alert("Failed to fetch the file", "ERROR");
+    //                 reject();
+    //             })
+    //     });
+    // }
 
     const clearAndGetContext = function (canvas) {
         let context = canvas.getContext('2d');
@@ -111,143 +111,21 @@ const StackedTrack = ({ array, activeChromosome, genome = false,activeSubGenome 
         maxHeight = parentWrapperHeight ? (parentWrapperHeight) : height,
         CHART_WIDTH = maxWidth;
 
+    console.log(maxHeight, maxWidth)
     useEffect(() => {
-        console.log(maxHeight, maxWidth)
 
-
-        activeChromosome = activeChromosome.toUpperCase();
-
-        let activeSubGenome= "N/A" ;
-        let sourceID= "" ;
-
-
-        if (sourceID.length == 0) {
-            // If there is no default set in the window object then default to AT camelina
-            if (window.defaultSourceID && window.defaultSourceID.length > 0) {
-                sourceID = window.defaultSourceID;
-            }
-            else {
-                sourceID = "AT_camelina";
-            }
-        }
-        else {
-            // store the sourceID that the webapp was launched with so it can be used when the tab is switched
-            window.defaultSourceID = sourceID;
-        }
-        // The first part tells you the reference gene file name and the second part tells you the gene expression file name
-        let geneSource = sourceID.split("_")[0] + "_genes.gff",
-            expressionFileSource = sourceID.split("_")[1] + ".txt";
-
-
-        
-
-        setLoader(true)
-
-        let geneData = [];
-        getFile('files/' + geneSource)
-            .then((geneFile) => {
-
-                let lineData = geneFile.split('\n').slice(1).map((d) => d.split('\t'));
-
-                geneData = _.groupBy(_.map(lineData, (d) => {
-                    let coords = _.sortBy([+d[2], +d[3]]);
-                    return {
-                        'Chromosome': d[0],
-                        'gene': d[1],
-                        'start': coords[0],
-                        'end': coords[1]
-                    };
-                    // group the array by Chromosome
-                }), (e) => e.Chromosome);
-                return getFile('files/' + expressionFileSource);
-            })
-            .then((rawData) => {
-                // processing the data
-                let lineArray = rawData.split("\n");
-                let columns = lineArray.slice(0, 1)[0].trim().split('\t'),
-                    records = lineArray.slice(1)
-                        .map((d) => {
-                            let lineData = d.split('\t'), tempStore = {};
-                            columns.map((columnName, columnIndex) => {
-                                // typecast to number 
-                                tempStore[columnName] = columnIndex == 0 ? lineData[columnIndex] : +lineData[columnIndex];
-                            })
-                            // TODO deal with +10 chromosomes
-                            tempStore['activeChromosome'] = lineData[0].slice(0, 3);
-                            return tempStore;
-                        });
-
-                // actions.setActiveSubGenome("N/A");
-
-
-                let genomeData = _.groupBy(records, (d) => d.activeChromosome);
-                let originalGenomeData = _.cloneDeep(genomeData);
-
-
-                // Get the chromosome names and put into array
-                let chromosomes = _.sortBy(Object.keys(genomeData));
-
-
-
-                // Sort each array of chromosomes by the active subGenome
-                _.map(chromosomes, (chromosome) => {
-                    genomeData[chromosome] = _.sortBy(genomeData[chromosome], (d) => d[activeSubGenome])
-                })
-
-                
-
-                // sort the data by the default set sort key
-
-                let chromosomeData = _.sortBy(genomeData[activeChromosome], (d) => d[activeSubGenome]);
-
-
-                let originalChromosomeData = _.cloneDeep(chromosomeData);
-
-                let something = [...columns.slice(1)]
-                console.log(something)
-                setSubGenomes([...columns.slice(1)])
-
-
-                // Dumping original data to window so that it can be used later on
-                window.triadBrowserStore = { 'chromosomeData': originalChromosomeData, 'genomeData': originalGenomeData, 'subGenomes': something};
-
-                const chartScale = scaleLinear()
-                    .domain([0, chromosomeData.length - 1])
-                    .range([0, CHART_WIDTH]);
-
-                // want window to be 50px, take 25 on either side
-                let genomeWindowRange = chartScale.invert(75);
-
-                let centerPoint = chromosomeData.length / 2;
-
-                let start = centerPoint - genomeWindowRange;
-                let end = centerPoint + genomeWindowRange;
-
-                // actions.setDefaultDataChromosome(chromosomeData, genomeData, geneData, { start, end });
-
-                // Set the data onto the state
-                // this.setState({ subGenomes, chromosomes });
-                // setSubGenomes(chromosomes)
-
-            })
-            .catch(() => {
-                alert("Sorry there was an error in fetching and parsing the file");
-                console.log('error');
-            })
-            .finally(() => { 
-                // this.setState({ 'loader': false })
-                setLoader(false)
-                drawChart();
-             });
+        drawChart()
              
-    }, [maxHeight, maxWidth])
+    }, [maxHeight, maxWidth,array])
 
 
 
     const drawChart = () => {
+        console.log("array")
 
-        let chromosomeData = window.triadBrowserStore.chromosomeData;
-        let subGdata = window.triadBrowserStore.subGenomes;;
+        let chromosomeData = _.sortBy(array, (d) => d[activeSubGenome]);
+
+        let subGdata = subGenomes;
         console.log(subGdata)
         const chartScale = scaleLinear()
                     .domain([0, chromosomeData.length - 1])
@@ -300,7 +178,7 @@ const StackedTrack = ({ array, activeChromosome, genome = false,activeSubGenome 
     )
 }
 
-StackedTrack.defaultProps = {
+StackedTrack2.defaultProps = {
     color: 0,
     coordinateX: 0,
     coordinateY: 0,
@@ -312,4 +190,4 @@ StackedTrack.defaultProps = {
 }
 
 
-export default StackedTrack
+export default StackedTrack2
