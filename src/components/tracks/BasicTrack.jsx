@@ -296,6 +296,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
             //  Needs to be panned so that the zoom location remains the same
             let dx = ((normalizedLocation - offset) * (factor - 1))
+            console.log(dx)
             let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * zoom * factor) - maxWidth))
             if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
 

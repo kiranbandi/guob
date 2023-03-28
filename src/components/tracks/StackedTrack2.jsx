@@ -111,8 +111,17 @@ const StackedTrack2 = ({ array, activeChromosome,activeSubGenome= "N/A", subGeno
         maxHeight = parentWrapperHeight ? (parentWrapperHeight) : height,
         CHART_WIDTH = maxWidth;
 
-    console.log(maxHeight, maxWidth)
+    // console.log(maxHeight, maxWidth)
     useEffect(() => {
+
+        let dataArray =  [];
+        for (let gene of array){
+
+                dataArray.push([gene["SG1"], gene["SG2"], gene["SG3"]])
+
+        }
+
+        // console.log(dataArray)
 
         drawChart()
              
@@ -121,12 +130,12 @@ const StackedTrack2 = ({ array, activeChromosome,activeSubGenome= "N/A", subGeno
 
 
     const drawChart = () => {
-        console.log("array")
+        
 
         let chromosomeData = _.sortBy(array, (d) => d[activeSubGenome]);
 
         let subGdata = subGenomes;
-        console.log(subGdata)
+        // console.log(subGdata)
         const chartScale = scaleLinear()
                     .domain([0, chromosomeData.length - 1])
                     .range([0, CHART_WIDTH]);

@@ -384,7 +384,7 @@ function RenderDemo({ isDark }) {
 
                             if (window.stackData != undefined  && window.stackData.data != undefined && window.stackData.data.triadBrowserStore!=undefined && window.stackData.data.triadBrowserStore.genomeData!=undefined){
 
-                                console.log(window.stackData.data.triadBrowserStore.genomeData)
+                                // console.log(window.stackData.data.triadBrowserStore.genomeData)
                                 let stackedData =  window.stackData.data;
 
                                 // console.log(stackedData)

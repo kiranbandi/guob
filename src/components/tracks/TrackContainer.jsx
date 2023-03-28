@@ -16,6 +16,19 @@ import { selectGenome } from './genomeSlice'
 import { Typography, Stack, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
+import { ContentPasteOffSharp, EditNotificationsOutlined } from '@mui/icons-material'
+
+
+function indexTopixel(index, zoom,array, maxWidth){
+  let pixel =  scaleLinear().domain([0, array.length]).range([0, maxWidth*zoom])
+  return pixel(index)
+}
+
+function pixelToindex(pixel, zoom, array, maxWidth){
+  let index =  scaleLinear().domain([0, maxWidth*zoom]).range([0, array.length])
+  return index(pixel)
+
+}
 
 function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom, offset, width, height, pastZoom, renderTrack, activeChromosome }) {
 
@@ -49,6 +62,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
   const [startOfTrack, setStartOfTrack] = useState()
   const [endCap, setEndCap] = useState()
   const [activeSubGenome, setActiveSubGenome] =  useState("N/A")
+  const [dataArray, setDataArray] = useState([...array])
 
   const positionRef = React.useRef({
     x: 0,
@@ -56,16 +70,46 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
   });
   const popperRef = React.useRef(null);
 
+
+  useEffect(() => {
+    setDataArray([...array])
+    // console.log(array)
+
+  }, [array])
+
   useEffect(() => {
 
 
-    console.log
-    (
-      array
-    )
-    let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth])
+    // console.log("offset", pixelToindex(offset, zoom, array, maxWidth), "zoom", zoom)
+    // let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth])
+
+
+    let scalingIncrements = scaleLinear().domain([0, array.length]).range([0, maxWidth])
+
+    console.log("ZOOM", zoom, "START", Math.max(0, scalingIncrements.invert(0 - offset)), "END", Math.min(array.length, scalingIncrements.invert(originalWidth - offset)))
+    // setDataArray()
+    if (renderTrack ==  "stackedTrack"){
+
+
+      setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
+    setEndCap(Math.min(array.length, scalingIncrements.invert(originalWidth - offset)))
+
+    }
+
+    else{
     setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
     setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), cap))
+}
+    console.log("Start of Track", startOfTrack, "EndCap", endCap)
+
+    if (zoom == 1){
+      setDataArray(array)
+    }
+
+    else{
+
+      setDataArray(array.slice(Math.round(startOfTrack),  Math.round(endCap)))
+    }
 
   }, [zoom, offset, cap])
 
@@ -85,11 +129,29 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 
       // Finding the location of the mouse on the track, the rendered track is adjusted with css,
       // so the mouse location needs to be normalized to the canvas
+      // if (renderTrack=="stackedTrack"){
+
+
+      // }
+
       let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * originalWidth
 
-      //  Needs to be panned so that the zoom location remains the same
+      //  Needs to be panned so that the  location remains the same
       let dx = ((normalizedLocation - offset) * (factor - 1))
-      let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * factor) - originalWidth))
+
+      let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height,
+        parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
+
+        const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width;
+
+      let offsetX = 0;
+      if (renderTrack == "stackedTrack"){
+         offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * factor) - originalWidth))
+      }
+      else{
+       offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * factor) - originalWidth))
+      }
+      
       if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
 
 
@@ -112,6 +174,18 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
     let dx = e.movementX
 
     //  let offsetX = Math.max(Math.min(offset + dx, 0), -(maxWidth - originalWidth))
+
+
+    if (renderTrack  == "stackedTrack"){
+      if (startOfTrack == 0 && dx >0){
+        return
+      }
+      if (endCap == array.length && dx<0){
+
+
+        return
+      }
+    }
     let offsetX = offset + dx
 
     // Either end of the track
@@ -134,7 +208,6 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
       setNumberOfImages(Math.ceil(endBP / 1000000))
     }
   }, [cap, isDark])
-
 
   function bunchOfTracks(currentZoom, currentOffset) {
 
@@ -237,12 +310,12 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 
       let adjustedPos = (e.clientX - trackBoundingRectangle.left)
 
-      let xScale = scaleLinear().domain([0, array.length]).range([0, raw_width-20])
-      let widthScale = scaleLinear().domain([0, array.length]).range([0, originalWidth])
+      let xScale = scaleLinear().domain([0, dataArray.length]).range([0, raw_width-20])
+      let widthScale = scaleLinear().domain([0, dataArray.length]).range([0, originalWidth])
 
-      console.log(adjustedPos)
+      // console.log(adjustedPos)
       let bpPosition = xScale.invert(adjustedPos)
-      console.log(bpPosition)
+      // console.log(bpPosition)
       let num = Math.round(bpPosition)
       setInfo(`${JSON.stringify(array[num])}\n}`)
       setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(num) + trackBoundingRectangle.left , width: width, top: trackBoundingRectangle.top + verticalScroll + 50, height: adjustedHeight, backgroundColor: "red" })
@@ -365,7 +438,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 
           {
           renderTrack ==  "stackedTrack"?
-          <StackedTrack2 width={maxWidth}  height={adjustedHeight} array={array} subGenomes={subGenomes}></StackedTrack2>
+          <StackedTrack2 width={maxWidth}  height={adjustedHeight} array={dataArray} subGenomes={subGenomes}></StackedTrack2>
             :
           renderTrack == "bitmap" && (zoom > numberOfImages ?
             bunchOfTracks(zoom, offset)

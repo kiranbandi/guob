@@ -9,7 +9,7 @@ import MultilineChartIcon from '@mui/icons-material/MultilineChart';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 function TrackControls(props) {
-    console.log(props)
+    
     // const buttonHeight = props.height/3
     
 
