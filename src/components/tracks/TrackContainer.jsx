@@ -2,6 +2,8 @@
 import { nanoid } from '@reduxjs/toolkit'
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import _ from 'lodash';
+
 import { selectComplicatedTracks, appendComplicatedTrack } from './complicatedTrackSlice'
 import BasicTrack from './BasicTrack'
 import TestImage from './ImageTrack'
@@ -10,7 +12,7 @@ import { set } from 'lodash'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
 import StackedTrack from './StackedTrack';
-import StackedTrack2 from './StackedTrack2'
+
 
 import { selectGenome } from './genomeSlice'
 import { Typography, Stack, Tooltip } from '@mui/material';
@@ -39,6 +41,9 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
   const dispatch = useDispatch()
   const genomeSelector = useSelector(selectGenome)
 
+  const [activeSubGenome, setActiveSubGenome] = useState("N/A")
+  const [numChange, setNumChange] = useState(0)
+
   const trackRef = useRef()
   const [cap, setCap] = useState()
   const [numberOfImages, setNumberOfImages] = useState(0)
@@ -61,8 +66,16 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
   const [info, setInfo] = useState("")
   const [startOfTrack, setStartOfTrack] = useState()
   const [endCap, setEndCap] = useState()
-  const [activeSubGenome, setActiveSubGenome] =  useState("N/A")
+  // const [activeSubGenome, setActiveSubGenome] =  useState("N/A")
   const [dataArray, setDataArray] = useState([...array])
+
+  const updateActiveSubgenome = (SG) => {
+    // console.log("YESSS"
+
+    setActiveSubGenome(SG);
+
+    // console.log(activeSubGenome)
+  };
 
   const positionRef = React.useRef({
     x: 0,
@@ -90,7 +103,14 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
     // setDataArray()
     if (renderTrack ==  "stackedTrack"){
 
-
+      if (zoom == 1){
+        setDataArray(array)
+      }
+  
+      else{
+  
+        setDataArray(array.slice(Math.round(startOfTrack),  Math.round(endCap)))
+      }
       setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
     setEndCap(Math.min(array.length, scalingIncrements.invert(originalWidth - offset)))
 
@@ -102,16 +122,17 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 }
     console.log("Start of Track", startOfTrack, "EndCap", endCap)
 
-    if (zoom == 1){
-      setDataArray(array)
-    }
-
-    else{
-
-      setDataArray(array.slice(Math.round(startOfTrack),  Math.round(endCap)))
-    }
+    
 
   }, [zoom, offset, cap])
+
+  useEffect(()=>{
+    const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
+      console.log(dataArray)
+      console.log(subgenomeSortedData);
+      setDataArray(subgenomeSortedData);
+      setNumChange(numChange+1);
+  },[activeSubGenome])
 
   function handleScroll(e) {
 
@@ -317,7 +338,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
       let bpPosition = xScale.invert(adjustedPos)
       // console.log(bpPosition)
       let num = Math.round(bpPosition)
-      setInfo(`${JSON.stringify(array[num])}\n}`)
+      setInfo(`${JSON.stringify(dataArray[num])}\n}`)
       setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(num) + trackBoundingRectangle.left , width: width, top: trackBoundingRectangle.top + verticalScroll + 50, height: adjustedHeight, backgroundColor: "red" })
      return
     }
@@ -438,7 +459,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 
           {
           renderTrack ==  "stackedTrack"?
-          <StackedTrack2 width={maxWidth}  height={adjustedHeight} array={dataArray} subGenomes={subGenomes}></StackedTrack2>
+          <StackedTrack width={maxWidth}  height={adjustedHeight} activeSubGenome={activeSubGenome}  array={dataArray} subGenomes={subGenomes}></StackedTrack>
             :
           renderTrack == "bitmap" && (zoom > numberOfImages ?
             bunchOfTracks(zoom, offset)
@@ -463,7 +484,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
         width={originalWidth}
         paddingLeft={0}
         paddingRight={0} />
-      <TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} />
+      <TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} activeSubGenome={activeSubGenome} subGenomes={subGenomes}  updateActiveSubgenome={updateActiveSubgenome} renderTrack={renderTrack}/>
 
     </>
 

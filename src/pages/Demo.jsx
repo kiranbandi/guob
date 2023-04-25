@@ -365,7 +365,6 @@ ${'' /* .genomeTrack {
 
     useEffect(() => {
 
-    StackedProcessor("AT1","N/A", "AT_camelina"  ).then((data)=>{console.log(data)})
         if (demoFile) {
             parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
                 buildDemo(chromosomalData, dataset)
