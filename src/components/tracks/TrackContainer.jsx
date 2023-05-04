@@ -32,7 +32,7 @@ function pixelToindex(pixel, zoom, array, maxWidth){
 
 }
 
-function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom, offset, width, height, pastZoom, renderTrack, activeChromosome }) {
+function TrackContainer({ array = [], trackType, id, subGenomes, color, isDark, zoom, offset, width, height, pastZoom, renderTrack, activeChromosome }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
   //! to be passed from the slice to the track. In the return statement, check the "renderTrack" prop
@@ -43,6 +43,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 
   const [activeSubGenome, setActiveSubGenome] = useState("N/A")
   const [numChange, setNumChange] = useState(0)
+  const [SGThreshold, setSGThreshold]  = useState()
 
   const trackRef = useRef()
   const [cap, setCap] = useState()
@@ -77,6 +78,14 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
     // console.log(activeSubGenome)
   };
 
+  const updateSGThreshold = (data) => {
+    // console.log("YESSS"
+
+    setSGThreshold(data);
+
+    // console.log(activeSubGenome)
+  };
+
   const positionRef = React.useRef({
     x: 0,
     y: 0,
@@ -99,7 +108,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 
     let scalingIncrements = scaleLinear().domain([0, array.length]).range([0, maxWidth])
 
-    console.log("ZOOM", zoom, "START", Math.max(0, scalingIncrements.invert(0 - offset)), "END", Math.min(array.length, scalingIncrements.invert(originalWidth - offset)))
+    // console.log("ZOOM", zoom, "START", Math.max(0, scalingIncrements.invert(0 - offset)), "END", Math.min(array.length, scalingIncrements.invert(originalWidth - offset)))
     // setDataArray()
     if (renderTrack ==  "stackedTrack"){
 
@@ -108,8 +117,9 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
       }
   
       else{
-  
-        setDataArray(array.slice(Math.round(startOfTrack),  Math.round(endCap)))
+        const requiredData = array.slice(Math.round(startOfTrack),  Math.round(endCap))
+        const subgenomeSortedData = _.sortBy(requiredData, (d) => d[activeSubGenome]);
+        setDataArray(subgenomeSortedData)
       }
       setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
     setEndCap(Math.min(array.length, scalingIncrements.invert(originalWidth - offset)))
@@ -128,11 +138,15 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
 
   useEffect(()=>{
     const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
-      console.log(dataArray)
-      console.log(subgenomeSortedData);
+
+
       setDataArray(subgenomeSortedData);
       setNumChange(numChange+1);
   },[activeSubGenome])
+  
+  useEffect(() => {
+    console.log(SGThreshold)
+  },[SGThreshold])
 
   function handleScroll(e) {
 
@@ -484,7 +498,7 @@ function TrackContainer({ array, trackType, id, subGenomes, color, isDark, zoom,
         width={originalWidth}
         paddingLeft={0}
         paddingRight={0} />
-      <TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} activeSubGenome={activeSubGenome} subGenomes={subGenomes}  updateActiveSubgenome={updateActiveSubgenome} renderTrack={renderTrack}/>
+      <TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} updateSGThreshold={updateSGThreshold} activeSubGenome={activeSubGenome} subGenomes={subGenomes}  updateActiveSubgenome={updateActiveSubgenome} renderTrack={renderTrack}/>
 
     </>
 

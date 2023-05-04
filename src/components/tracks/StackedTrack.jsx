@@ -43,7 +43,6 @@ const StackedTrack = ({ array, activeChromosome,activeSubGenome, subGenomes, gen
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
     const [savedWidth, setSavedWidth] = useState()
-
     const [loader, setLoader] = useState(false)
 //this.setState({ subGenomes, chromosomes });
 
@@ -113,7 +112,7 @@ const StackedTrack = ({ array, activeChromosome,activeSubGenome, subGenomes, gen
 
     // console.log(maxHeight, maxWidth)
     useEffect(() => {
-        console.log(array)
+
         let dataArray =  [];
         for (let gene of array){
 
@@ -135,7 +134,7 @@ const StackedTrack = ({ array, activeChromosome,activeSubGenome, subGenomes, gen
         let chromosomeData = array;
 
         let subGdata = subGenomes;
-        console.log(chromosomeData)
+
         const chartScale = scaleLinear()
                     .domain([0, chromosomeData.length - 1])
                     .range([0, CHART_WIDTH]);

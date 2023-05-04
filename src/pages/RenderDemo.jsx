@@ -17,12 +17,17 @@ import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import Miniview from '../features/miniview/Miniview';
 import OrthologLinks from '../components/tracks/OrthologLinks'
+import SVTrack from '../components/tracks/SVTrack'
+
 import { selectMiniviews } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
+import IndexBased from  'components/tracks/IndexBased'
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
-import StackedProcessor from 'features/parsers/stackedProcessoor'
+import StackedProcessor from 'features/parsers/stackedProcessoor';
+
+ 
  
 
 function RenderDemo({ isDark }) {
@@ -42,6 +47,10 @@ function RenderDemo({ isDark }) {
     const [normalize, setNormalize] = useState(false)
     let [loading, setLoading] = useState(false)
     const [stackedArray, setStackedArray] = useState({})
+    const [alignmentList, setAlignmentList] = useState([])
+    const [chromosomeMap, setChromosomeMap] = useState({})
+
+
 
 
 
@@ -52,6 +61,22 @@ function RenderDemo({ isDark }) {
     let previewBackground = isDark ? 'grey' : 'whitesmoke'
 
     useEffect(() => {
+
+        // GetGenomicsData("bm4").then((data)=>{
+            
+        //     // let chosen = _.fiter(data, function(d){
+        //     //     if (d.source=="1" && d.target == "3"){
+        //     //         return true
+        //     //     }
+        //     // })
+        //     // console.log(data)
+        //     setAlignmentList(data.alignmentList);
+        //     setChromosomeMap(data.chromosomeMap);
+        //     // console.log("SV:   ",  filtered_array)
+        
+        // })
+
+
 
         StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
             window.stackData = {data};
@@ -373,7 +398,7 @@ function RenderDemo({ isDark }) {
                         if( x == "links"){
                             return (
                                 <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                <OrthologLinks key={x} id={x} index={draggableSelector.indexOf(x)} normalize={false} dragGroup={"draggables"}></OrthologLinks>
+                                <SVTrack key={x} id={x} index={draggableSelector.indexOf(x)} normalize={false} dragGroup={"draggables"} ></SVTrack>
                                 </Draggable>
                             )
                         }
@@ -426,7 +451,8 @@ function RenderDemo({ isDark }) {
                             else{
                                 return (
                                     <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                        <TrackContainer
+
+<TrackContainer
                                             // key={genomeSelector[x].key + "_container"}
                                             // id={genomeSelector[x].key}
                                             // array={genomeSelector[x].array}
@@ -453,7 +479,7 @@ function RenderDemo({ isDark }) {
                                             activeChromosome={x}
                                             renderTrack={"stackedTrack"}
                                             subGenomes={[]}
-                                        />
+                                            />
                                     </Draggable>
                                 )
                             }
