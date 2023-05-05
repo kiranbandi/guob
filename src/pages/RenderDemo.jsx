@@ -752,7 +752,7 @@ function RenderDemo({ isDark }) {
                             </Typography>
                             {/* {buildGenomeView()} */}
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
-                            <DragContainer startingList={draggableSelector}>
+                            <DragContainer startingList={draggableSelector} isDark={isDark}>
                                 {draggableSelector.map((x, i) => {
                                     if (x === "links") {
                                         return (
@@ -785,7 +785,7 @@ function RenderDemo({ isDark }) {
 
                             </DragContainer>
                             {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("_splitview")) &&
-                                <DragContainer startingList={orthologDraggableSelector} style={{ float: "left" }}>
+                                <DragContainer startingList={orthologDraggableSelector} style={{ float: "left" }} isDark={isDark}>
                                     {orthologDraggableSelector.map(item => {
                                         console.log(item)
                                         return (

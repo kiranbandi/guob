@@ -15,7 +15,7 @@ import { useSelector } from "react-redux"
  * Container for draggable components. Should render any children and provide a button on the right to re-arrange
  * the component. Used in conjunction with "DragContainer" component.
  */
-const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup }) => {
+const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup, isDark }) => {
 
     // One ref for handle, one for preview
     const ref = useRef(null)
@@ -47,7 +47,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
     const [, drop] = useDrop(() => ({
         accept: ItemTypes.BOUNDED,
         hover(item, monitor) {
-            
+
 
             if (!ref.current) return
 
@@ -103,7 +103,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
     }), [index, groupID])
 
     // Drag function - preview used if not using custom drag layer
-    const [{ isDragging }, drag, preview ] = useDrag(
+    const [{ isDragging }, drag, preview] = useDrag(
         () => ({
             type: ItemTypes.BOUNDED,
             item: () => { return { id, index, grouped, groupID, ref, className, dragGroup, component } },
@@ -159,10 +159,10 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
                 {children}
             </div>
             <IconButton ref={ref} className={'handle'} sx={{
-                backgroundColor: teal[100],
+                backgroundColor: isDark ? teal[500] : teal[100],
                 borderRadius: 1,
                 '&:hover': {
-                    backgroundColor: teal[500]
+                    backgroundColor: isDark ? teal[200] : teal[500]
                 }
             }}
                 onClick={(e) => {

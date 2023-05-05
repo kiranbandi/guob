@@ -854,7 +854,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
             paddingLeft={0}
             paddingRight={0} />)}
           {(!genome) &&
-            (<TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} />)}
+            (<TrackControls id={id} height={adjustedHeight} gap={adjustedHeight + 25} isDark={isDark} />)}
         </div>
       </Tooltip>
 

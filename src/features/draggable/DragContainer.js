@@ -1,6 +1,6 @@
 import React from 'react'
 
-function DragContainer({ children, startingList }) {
+function DragContainer({ children, startingList, isDark }) {
 
     const renderChild = (child, index, id) => {
         if (child !== undefined) {
@@ -10,6 +10,7 @@ function DragContainer({ children, startingList }) {
                     index={index}
                     id={id}
                     key={id}
+                    isDark={isDark}
                 />
             )
         }

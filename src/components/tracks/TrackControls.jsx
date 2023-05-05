@@ -14,14 +14,17 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 function TrackControls(props) {
 
+    const color = props.isDark ? deepOrange[500] : deepOrange[100]
+    const highlight = props.isDark ? deepOrange[200] : deepOrange[500]
+
     return (
         <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"} style={{float: "right"}}>
                 <IconButton className='trackButtons' id={"toggleTrackType_" + props.id} sx={{
-                    backgroundColor: deepOrange[100],
+                    backgroundColor: color,
                     borderRadius: 1,
                     // height: buttonHeight,
                     '&:hover': {
-                        backgroundColor: deepOrange[500]
+                        backgroundColor: highlight
                     }
                 }}
                 >
@@ -29,22 +32,22 @@ function TrackControls(props) {
                 </IconButton>
 
                 <IconButton className='trackButtons'id={"deleteTrack_" + props.id} sx={{
-                    backgroundColor: deepOrange[100],
+                    backgroundColor: color,
                     borderRadius: 1,
                     // height: buttonHeight,
                     '&:hover': {
-                        backgroundColor: deepOrange[500]
+                        backgroundColor: highlight
                     }
                 }}
                 >
                     <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
                 </IconButton>
                 <IconButton className='trackButtons' id={"pickColor_" + props.id} sx={{
-                    backgroundColor: deepOrange[100],
+                    backgroundColor: color,
                     borderRadius: 1,
                     // height: buttonHeight,
                     '&:hover': {
-                        backgroundColor: deepOrange[500]
+                        backgroundColor: highlight
                     }
                 }}>
                     <ColorLensIcon fontSize="small" className="handle_image" />
