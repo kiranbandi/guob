@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import RenderTrack from './RenderTrack'
 import ImageTrack from './ImageTrack'
-import ImageTrack1 from './ImageTrack1'
 import { updateTrack, selectBasicTracks, addBasicTrack } from './basicTrackSlice'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
