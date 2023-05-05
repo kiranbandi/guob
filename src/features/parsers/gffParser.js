@@ -80,7 +80,7 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
 
 }
 
-export async function parseSubmittedGFF(fileType, data, collinearityFile = undefined) {
+export async function parseSubmittedGFF(fileType, data, designation, collinearityFile = undefined) {
 
     let temporary = data.split(/\n/)
     let dataset = {}
@@ -94,7 +94,7 @@ export async function parseSubmittedGFF(fileType, data, collinearityFile = undef
             if (info.length > 1) {
                 let key = info[0] + "-" + info[1] + "-" + info[2]
                 var stats = {
-                    chromosome: info[0],
+                    chromosome: designation + "_" + info[0],
                     start: +info[1],
                     end: +info[2],
                     key,
@@ -110,12 +110,13 @@ export async function parseSubmittedGFF(fileType, data, collinearityFile = undef
 
         trackType = 'default'
         // gff file parser
+        // debugger
         temporary.forEach(d => {
             let info = d.split('\t')
             if (info.length > 1) {
                 let key = info[1].toLowerCase()
                 var stats = {
-                    chromosome: info[0],
+                    chromosome: designation + "_" + info[0],
                     start: +info[2],
                     end: +info[3],
                     key: key,
@@ -127,6 +128,7 @@ export async function parseSubmittedGFF(fileType, data, collinearityFile = undef
             }
         })
     }
+    // debugger
     if (collinearityFile) {
         let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
         let m = pullSubmittedGeneInfo(collinearityFile, nomenclature).then(pairs => {
@@ -134,10 +136,19 @@ export async function parseSubmittedGFF(fileType, data, collinearityFile = undef
             pairs.forEach(x => {
                 let sourceIndex = x.source.toLowerCase()
                 let targetIndex = x.target.toLowerCase()
+                // debugger
                 dataset[sourceIndex].ortholog = true
                 dataset[targetIndex].ortholog = true
-                dataset[sourceIndex].siblings.push(x.target)
-                dataset[targetIndex].siblings.push(x.source)
+                dataset[sourceIndex].siblings.push(
+                   {
+                    key:x.target,
+                    chromosome: dataset[targetIndex].chromosome
+                 }
+                    )
+                dataset[targetIndex].siblings.push({
+                    key:x.source,
+                    chromosome: dataset[sourceIndex].chromosome
+                })
 
             })
 
@@ -209,6 +220,7 @@ function buildModel(dataset, trackType) {
             trackType,
             end
         }
+        // debugger
         chromosomalData.push(temp)
         channel.postMessage(temp)
     })

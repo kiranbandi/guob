@@ -72,6 +72,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
             let raw_width = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width
             let updatedWidth = raw_width - 20
             let ratio = updatedWidth / maxWidth
+            //! This is probably where the linkages are going wrong 
             if (Math.abs(ratio - 1) > 0.001) {
                 let offsetX = Math.max(Math.min(offset * ratio, 0), -((maxWidth * zoom) - maxWidth))
 

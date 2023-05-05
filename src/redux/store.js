@@ -15,4 +15,8 @@ export const store = configureStore({
     annotation: annotationReducer,
     genome: genomeReducer,
   },
+  middleWare: getDefaultMiddleWare => getDefaultMiddleWare({
+    serializableCheck: false,
+    immutableCheck: false,
+  })
 });

@@ -2,7 +2,7 @@
 import gffWorker from "workerize-loader?inline!../workers/gff.worker"
 // import triadWorker from "workerize-loader?inline!../workers/triad.worker";
 
-export default function(typeOfFile, bedFile, collinearityFile=undefined, additionalParams={}){
+export default function(typeOfFile, bedFile, designation, collinearityFile=undefined, additionalParams={}){
     return new Promise((resolve, reject) => {
 
         let instance = gffWorker();
@@ -15,7 +15,7 @@ export default function(typeOfFile, bedFile, collinearityFile=undefined, additio
         //     //     break
 
         // } 
-        instance.process(typeOfFile, bedFile, collinearityFile).catch(() => {
+        instance.process(typeOfFile, bedFile, designation, collinearityFile).catch(() => {
             console.log("Error in parsing file")
             // console.log("Error in parsing " + bedFile)
             reject()

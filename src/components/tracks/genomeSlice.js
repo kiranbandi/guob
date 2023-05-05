@@ -14,27 +14,27 @@ import bn13_array from '../../data/bn13_array'
 const initialState = {
     // Currently just a placeholder 
     genome: {
-        'at1': {
+        'coordinate_at1': {
             key: 'at1',
             array: at1_array,
         },
-        'at2': {
+        'coordinate_at2': {
             key: 'at2',
             array: at2_array,
         },
-        'at3': {
+        'coordinate_at3': {
             key: 'at3',
             array: at3_array,
         },
-        'at4': {
+        'coordinate_at4': {
             key: 'at4',
             array: at4_array,
         },
-        'at5': {
+        'coordinate_at5': {
             key: 'at5',
             array: at5_array,
         },
-        'bn13': {
+        'coordinate_bn13': {
             key: 'bn13',
             array: bn13_array,
         },

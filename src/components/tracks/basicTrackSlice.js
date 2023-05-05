@@ -9,7 +9,7 @@ const trackTypes = ['heatmap', 'histogram', 'scatter', 'line']
 const initialState = {
     // Currently just a placeholder 
     BasicTracks: {
-        'at1': {
+        'coordinate_at1': {
             // array: at1_array,
             key: 'at1',
             color: "#4e79a7",
@@ -19,7 +19,7 @@ const initialState = {
             end: 30425192,
             offset: 0,
         },
-        'at2': {
+        'coordinate_at2': {
             key: 'at2',
             // array: at2_array,
             color: "#e15759",
@@ -29,7 +29,7 @@ const initialState = {
             end:19696821,
             offset: 0,
         },
-        'at3': {
+        'coordinate_at3': {
             key: 'at3',
             // array: at3_array,
             color: "#76b7b2",
@@ -39,7 +39,7 @@ const initialState = {
             end:23458459,
             offset: 0,
         },
-        'at4': {
+        'coordinate_at4': {
             key: 'at4',
             // array: at4_array,
             color: "#59a14f",
@@ -49,7 +49,7 @@ const initialState = {
             end:18584524,
             offset: 0,
         },
-        'at5': {
+        'coordinate_at5': {
             key: 'at5',
             // array: at5_array,
             color: "#edc949",

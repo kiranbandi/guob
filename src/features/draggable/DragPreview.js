@@ -9,56 +9,110 @@ import { selectGenome } from 'components/tracks/genomeSlice';
 
 /**
  * Used in conjunction with "CustomDragLayer" to render components while being dragged.
- */ 
+ */
 
 export const DragPreview = memo(function DragPreview({ item, groupID, width, height, className, component, index, dragGroup, isDark }) {
 
-    const basicTrackSelector = useSelector(selectBasicTracks)
-    const genomeSelector = useSelector(selectGenome)
+  const basicTrackSelector = useSelector(selectBasicTracks)
+  const genomeSelector = useSelector(selectGenome)
 
-    if (component === "basic") {
-        return (
-            <div className={className}>
-                <BasicTrack
-                    array={item.length < 4 ? genomeSelector[item].array : genomeSelector[item.substring(0, 3)].array}
-                    color={basicTrackSelector[item].color}
-                    id={nanoid() + "preview"}
-                    zoom={basicTrackSelector[item].zoom}
-                    pastZoom={basicTrackSelector[item].pastZoom}
-                    offset={basicTrackSelector[item].offset}
-                    height={height / 2}
-                    noScale={true}
-                    trackType={basicTrackSelector[item].trackType}
-                // isDark={false}
-                // normalize={false}
+  if (component === "basic") {
+    return (
+      <div className={className}>
+        <BasicTrack
+          array={item.length < 4 ? genomeSelector[item].array : genomeSelector[item.substring(0, 3)].array}
+          color={basicTrackSelector[item].color}
+          id={nanoid() + "preview"}
+          zoom={basicTrackSelector[item].zoom}
+          pastZoom={basicTrackSelector[item].pastZoom}
+          offset={basicTrackSelector[item].offset}
+          height={height / 2}
+          noScale={true}
+          trackType={basicTrackSelector[item].trackType}
+        // isDark={false}
+        // normalize={false}
 
-                />
-            </div>
-        )
-    }
-    else if (component === "OrthologLinks") {
-        return <OrthologLinks index={index} dragGroup={dragGroup}></OrthologLinks>
-    }
-    else if (component === "bitmap") {
-        // return (<></>)
-        let suffix = isDark ? "_50K_track_dark" : "_50K_track"
-        let image = 'files/track_images/' + item + suffix + ".png"
-        // let image = 'files/track_images/' + designation + suffix + ".png"
-        return (
-            <ImageTrack
-                image={[image]}
-                id={item}
-                zoom={basicTrackSelector[item].zoom}
+        />
+      </div>
+    )
+  }
+  else if (component === "OrthologLinks") {
+    return <OrthologLinks index={index} dragGroup={dragGroup}></OrthologLinks>
+  }
+  else if (component === "bitmap") {
+    // return (<></>)
+    // let suffix = isDark ? "_50K_track_dark" : "_50K_track"
+    // let image = 'files/track_images/' + item + suffix + ".png"
+    // let image = 'files/track_images/' + designation + suffix + ".png"
+    let suffix = isDark ? "_track_dark" : "_track"
+    // let location = 'files/track_images/'
+    let location = 'http://localhost:8080/static/'
 
-                offset={basicTrackSelector[item].offset}
-                // cap={cap}
-                color={basicTrackSelector[item].color}
-            />
-        )
+    // debugger
+    let directoryName, fileName, designation, image
+    let split_id = item.split("_")
+    // debugger
+
+    if (split_id[1].includes("at")) {
+      designation = "at_coordinate/" + split_id[1]
+      directoryName = "at_coordinate"
+      fileName = split_id[1]
     }
-    else{
-        return(<></>)
+    else if (split_id[1].includes("bn")) {
+      designation = `${split_id[0].replace("-", "_")}/${split_id[1]}`
+      directoryName = `${split_id[0].replace("-", "_")}`
+      fileName = split_id[1]
     }
+    else if (split_id[1].includes("hb")) {
+      directoryName = `ta_hb_coordinate`
+      // debugger
+      // directoryName = `${split_id[0].replace("-", "_")}`
+      fileName = split_id[0] + split_id[2].split("coordinate")[1]
+    }
+    else if (split_id[0].includes("all") || split_id[0].includes("leaf") || split_id[0].includes("seed")) {
+
+      directoryName = `topas/${split_id[0].replaceAll("-", "_")}`
+      fileName = split_id[1]
+
+      let darkModifier = isDark ? "_dark" : ""
+      suffix = item.trackType === "default" || item.trackType == "heatmap" ? "_heatmap" + darkModifier : "_histogram" + darkModifier
+
+    }
+    else if (item.includes("N-METHYL")) {
+
+      designation = "bn_methylation_100k/" + split_id[1]
+
+      directoryName = "bn_methylation_100k"
+      fileName = split_id[1]
+
+      let darkModifier = isDark ? "_dark" : ""
+      suffix = item.trackType === "default" || item.trackType == "heatmap" ? "_heatmap" + darkModifier : "_histogram" + darkModifier
+    }
+    else if (item.includes("rna")) {
+      designation = `bn_${split_id[0]}_100k/${split_id[1]}`
+      directoryName = `bn_${split_id[0]}_100k`
+      fileName = split_id[1]
+      let darkModifier = isDark ? "_dark" : ""
+      suffix = item.trackType === "default" || item.trackType == "heatmap" ? "_heatmap" + darkModifier : "_histogram" + darkModifier
+    }
+
+    // image = location + directoryName + fileName + suffix + ".webp"
+    image = `${location}${directoryName}/${fileName}${suffix}.webp`
+    return (
+      <ImageTrack
+        image={[image]}
+        id={item}
+        zoom={basicTrackSelector[item].zoom}
+
+        offset={basicTrackSelector[item].offset}
+        // cap={cap}
+        color={basicTrackSelector[item].color}
+      />
+    )
+  }
+  else {
+    return (<></>)
+  }
 
 
 })

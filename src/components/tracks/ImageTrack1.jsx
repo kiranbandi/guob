@@ -1,15 +1,13 @@
-/** @jsxImportSource @emotion/react */
 import React, { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { selectBasicTracks } from './basicTrackSlice'
 import { Typography } from '@mui/material';
-import { css, keyframes } from "@emotion/react";
 
 
 /**
  * Component for rendering bitmap tracks once passed an image file
  */
-function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLength, normalize, height, width, orthologs, isHighDef = false }) {
+function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLength, normalize, height, width, orthologs }) {
 
     const imageRef = useRef()
     const canvasRef = useRef(null)
@@ -18,8 +16,6 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
     let originalWidth = width ? width : (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
     if (normalize) originalWidth = originalWidth * cap / normalizedLength;
     let adjustedHeight = height ? height : document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50
-
-
 
 
     function trackStyle(currentOffset, currentZoom, index) {
@@ -32,43 +28,29 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
         let x = currentOffset + (index * (originalWidth * zoom))
         let y = orthologs ? -index * (adjustedHeight - 18) : -index * (adjustedHeight + 2)
 
-
+       
         const transform = `matrix(${currentZoom}, 0, 0,  ${1}, ${x}, ${y})`
-        const imageRender = image.length > 1 || id.includes("METHYL") || id.includes("all")  || id.includes("seed") || id.includes("leaf") ? "pixelated" : "auto"
+        const imageRender = image.length > 1 || id.includes("METHYL") ? "pixelated" : "auto" 
         // console.log(currentZoom)
-        // scale: `{currentZoom}`,
-        // translate: `{x} {y}`,
-        // left: x,
 
-        const myEffect = keyframes`
-0% {
-    background: transparent;
-}
-  100% {
-   background: ${color};
-  }
-`;
+        return ({
+            width: originalWidth,
+            height: orthologs || genome ? adjustedHeight - 25 : adjustedHeight - 5,
+            transformOrigin: "top left",
+            // scale: `{currentZoom}`,
+            // translate: `{x} {y}`,
+            // left: x,
+            WebkitUserDrag: "none",
+            WebkitUserSelect: "none",
+            msUserSelect: "none",
+            MozUserSelect: "none",
+            cursor: "crosshair",
+            pointerEvents: 'none',
+            background: color,
+            imageRendering: imageRender,
+            WebkitTransform: transform,
 
-        let style = css(css`
-            width: ${originalWidth + "px"};
-            height: ${orthologs || genome ? adjustedHeight - 25 + "px" : adjustedHeight - 5 + "px"};
-            transform-origin: top left;
-            -webkit-user-drag: none;
-            user-select: none;
-            msUserSelect: none;
-            MozUserSelect: none;
-            cursor: crosshair;
-            pointer-events: none;
-            content: "";
-            image-rendering: ${imageRender};
-            -webkit-transform: ${transform};
-            background: ${color};
-            animation: ${myEffect} 300ms ease-in;
-            
-            `)
-
-        return (style)
-
+        })
     }
 
     function orthologStyle(currentOffset, currentZoom) {
@@ -83,7 +65,7 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
 
         const transform = `matrix(${scale}, 0, 0,  ${1}, ${x}, ${0})`
 
-        const imageRender = image.length > 1 ? "pixelated" : "auto"
+        const imageRender = image.length > 1 ? "pixelated" : "auto" 
 
         return ({
             WebkitUserSelect: 'none',
@@ -98,7 +80,7 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
         })
     }
 
-    let dynamicID = id + "imageTrack" + (isHighDef ? "highDef" : "-")
+
     return (
         <>
             <div style={{ width: '100%', paddingRight: 10 }} ref={imageRef}>
@@ -128,20 +110,21 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
                     loading="lazy"
                 />}
                 <div className={genome ? "genome_tracks" : "tracks"} style={{ float: "left", display: "inline", height: orthologs || genome ? adjustedHeight - 20 : adjustedHeight }}>
+
                     {image.map((image, index) => {
-                        return (<img
-                            className='imageTrack'
-                            key={dynamicID + index}
-                            src={image}
-                            id={dynamicID + index}
-                            css={trackStyle(offset, zoom, index)}
-                            tabIndex={-1}
-                            draggable={false}
-                            alt={`Track showing {id} gene locations.`}
-                            loading="lazy"
-                        >
-                        </img>)
-                    })}
+                    return(<img
+                        className='imageTrack'
+                        key={id + "imageTrack" + index}
+                        src={image}
+                        id={id + "imageTrack" + index}
+                        style={trackStyle(offset, zoom, index)}
+                        tabIndex={-1}
+                        draggable={false}
+                        alt={`Track showing {id} gene locations.`}
+                        loading="lazy"
+                    >
+                    </img>)
+                })}
 
                 </div>
 

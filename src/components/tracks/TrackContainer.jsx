@@ -4,16 +4,19 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import RenderTrack from './RenderTrack'
 import ImageTrack from './ImageTrack'
-import { updateTrack } from './basicTrackSlice'
+import ImageTrack1 from './ImageTrack1'
+import { updateTrack, selectBasicTracks, addBasicTrack } from './basicTrackSlice'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
 import { selectGenome } from './genomeSlice'
+import { addDraggable, clearDraggables } from '../../features/draggable/draggableSlice'
 import { Typography, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
-import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch } from '../../features/annotation/annotationSlice'
+import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs } from '../../features/annotation/annotationSlice'
+import { nanoid } from '@reduxjs/toolkit'
 
-function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, normalizedLength, renderTrack, genome, resolution }) {
+function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, renderTrack, genome, resolution, usePreloadedImages }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
   //! to be passed from the slice to the track. In the return statement, check the "renderTrack" prop
@@ -22,38 +25,121 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   //! any extra that needs to be done.
 
   //! This is also still in the process of refactoring - for example, the gt still needs to be added
+  // const array = useSelector(selectGenome)[id].array
+  let array, normalizedLength
+  let true_id = id.includes("_splitview") ? id.split("_splitview")[0] : id
+  // console.log(window.chromosomalData)
+  if (window.chromosomalData) {
+    // debugger
 
+    let info = window.chromosomalData.find(x => x.key.chromosome == true_id)
+    if (info) {
+      array = info.data
+      normalizedLength = info.normalizedLength
+    }
+    else {
+      array = []
+      normalizedLength = 0
+    }
+
+  }
+  else {
+    array = []
+  }
   const dispatch = useDispatch()
-  const genomeSelector = useSelector(selectGenome)
-  const annotationSelector = useSelector(selectAnnotations)[id]
+  const annotationSelector = useSelector(selectAnnotations)[true_id]
+  const allAnnotations = useSelector(selectAnnotations)
+  const allSearches = useSelector(selectSearch)
+  const allOrthologs = useSelector(selectOrthologs)
+  const trackSelector = useSelector(selectBasicTracks)
 
   const trackRef = useRef()
-  // const [cap, setCap] = useState()
   const [numberOfImages, setNumberOfImages] = useState(0)
 
   const [dragging, setDragging] = useState(false)
 
-  let designation = resolution ? id + "_1000K_" : id + "_50K_"
-  
-  let suffix = isDark ? "track_dark" : "track"
+  let designation, pixelWidth, image
+  let directoryName, fileName
+  pixelWidth = 16383 * 60
+
+  let suffix = isDark ? "_track_dark" : "_track"
   let orthologSuffix = isDark ? "_orthologs_dark" : "_orthologs"
   // let location = 'files/track_images/'
-  let location = 'http://localhost:8080/static/'
-  let image =  location + designation + suffix + ".png"
-  // let image = 'files/track_images/' + id + '_output.png'
-  if(id.includes("METHYL")){
-    let split = id.split("-")
-    if(genome){
-      console.log(split)
-    }
-    let res = resolution ? "_1000K_" : "_50K_"
-    let starter = location + split[0] + split[2] + res
-    let finisher = "_methylation.png"
-    image = trackType === "default" || trackType == "heatmap" ? starter +  "heatmap" + finisher : starter +  "histogram" + finisher
+  let location = 'http://localhost:3010/static/'
+
+  // debugger
+
+  //! Split into a function, and make better
+  let split_id = id.split("_")
+  if (split_id.length === 1) {
+    split_id = id
   }
-  let orthologImage = location + designation + orthologSuffix + ".png"
-  let imageBunch = resolution ? location + id + "_1000K_" + suffix : location + id + "_50K_" + suffix
-  // Moved from imageTrack
+  if (split_id[1].includes("at")) {
+    designation = "at_coordinate/" + split_id[1]
+    directoryName = "at_coordinate"
+    fileName = split_id[1]
+  }
+  else if (split_id[0].includes("bn")) {
+    designation = `${split_id[0].replace("-", "_")}/${split_id[1]}`
+    directoryName = `${split_id[0].replaceAll("-", "_")}`
+    fileName = split_id[1]
+
+    let darkModifier = isDark ? "_dark" : ""
+    suffix = trackType === "default" || trackType == "heatmap" ? "_heatmap" + darkModifier : "_histogram" + darkModifier
+
+  }
+  else if (split_id[1].includes("hb")) {
+    directoryName = `ta_hb_coordinate`
+    // debugger
+    // directoryName = `${split_id[0].replace("-", "_")}`
+    fileName = split_id[0] + split_id[2].split("coordinate")[1]
+  }
+  else if (split_id[0].includes("all") || split_id[0].includes("leaf") || split_id[0].includes("seed")) {
+   
+    directoryName = `topas/${split_id[0].replaceAll("-", "_")}`
+    fileName = split_id[1]
+
+  }
+  else if (id.includes("N-METHYL")) {
+
+    designation = "bn_methylation_100k/" + split_id[1]
+
+    directoryName = "bn_methylation_100k"
+    fileName =  split_id[1]
+
+    let darkModifier = isDark ? "_dark" : ""
+    suffix = trackType === "default" || trackType == "heatmap" ? "_heatmap" + darkModifier : "_histogram" + darkModifier
+  }
+  else if (id.includes("rna")) {
+    designation = `bn_${split_id[0]}_100k/${split_id[1]}`
+    directoryName = `bn_${split_id[0]}_100k`
+    fileName = split_id[1]
+    let darkModifier = isDark ? "_dark" : ""
+    suffix = trackType === "default" || trackType == "heatmap" ? "_heatmap" + darkModifier : "_histogram" + darkModifier
+  }
+
+  let darkModifier = isDark ? "_dark" : ""
+  switch (trackType){
+    case "heatmap":
+      suffix = "_heatmap"
+      break
+    case "histogram":
+      suffix = "_histogram"
+      break
+    default:
+      suffix = "_track"
+  }
+  suffix += darkModifier
+
+
+
+  // image = location + directoryName + fileName + suffix + ".webp"
+  image = `${location}${directoryName}/${fileName}${suffix}.webp`
+
+  let orthologImage = `${location}${directoryName}_orthologs/${fileName}${suffix}.webp`
+  // console.log(orthologImage)
+  // let imageBunch = location + designation + suffix
+  let imageBunch = `${location}${directoryName}/${fileName}`
   let originalWidth = width ? width : (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
   let maxWidth = originalWidth * zoom
   let adjustedHeight = genome ? 50 : (document.querySelector('.draggable')?.getBoundingClientRect()?.height - 75)
@@ -64,12 +150,13 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   const [endCap, setEndCap] = useState()
   const [renderOrthologs, setRenderOrthologs] = useState()
   const [clickLocation, setClickLocation] = useState()
-  const searchSelector = useSelector(selectSearch)[id]
+  const searchSelector = useSelector(selectSearch)[true_id]
 
+  const [chosenImages, setChosenImages] = useState()
 
   const gt = window.gt;
 
-  let pixelWidth = resolution ? 1000000 : 50000
+  // let pixelWidth = resolution ? 1000000 * 60: 50000 * 60
 
   let [posWaiting, setPosWaiting] = useState()
 
@@ -85,7 +172,62 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     }, 80))
   }
 
+
+
+  function generateImage() {
+    return fetch('http://localhost:8080', {
+      method: 'POST',
+      headers: {
+        'Accept': 'image/png',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chromosome: id,
+        data: array,
+        isDark: isDark,
+        end: cap
+      })
+    })
+      .then(response => {
+        return response.blob()
+      })
+      .then(blob => {
+        const imageObjectURL = URL.createObjectURL(blob);
+        return imageObjectURL
+      })
+
+    // fetch('http://localhost:8080', {
+    //     method: 'POST',
+    //     headers: {
+    //         'Accept': 'image/png',
+    //         'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //         chromosome: e.data.key.chromosome,
+    //         data: e.data.data,
+    //         isDark: isDark,
+    //         end: e.data.end
+    //     })
+    // })
+    //     .then(response =>{
+    //         return response.blob()
+    //         })
+    //     .then(blob => {
+    //         const imageObjectURL = URL.createObjectURL(blob);
+    //         var img = document.createElement("img");
+    //         img.src = imageObjectURL
+    //         document.body.appendChild(img);
+    //     })
+
+
+
+
+  }
+
+
+
   let imageExists = () => {
+  
     if (renderOrthologs !== undefined) return
     const img = new Image()
     img.onload = () => setRenderOrthologs(true)
@@ -101,6 +243,42 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   });
   const popperRef = React.useRef(null);
 
+  // Quick and dirty speed hover implementation
+  const [bpMapping, setBPMapping] = useState()
+  useEffect(() => {
+    if (array.length < 1) return
+    if (bpMapping) return
+    imageExists()
+
+    let info = window.chromosomalData.find(x => x.key.chromosome == true_id)
+    // let endBP = Math.max(...array.map(d => d.end))
+    let endBP = info.end
+    setNumberOfImages(Math.ceil((endBP) / pixelWidth))
+
+    let number = 1000
+    let entries = array.length
+    let spacing = Math.floor(entries / number)
+    let mapping = {}
+
+    for (let x = 0; x < number; x++) {
+      // debugger
+      mapping[+array[x * spacing].start] = {
+        firstIndex: x * spacing,
+        lastIndex: x + 1 === number ? entries - 1 : (x + 1) * spacing
+      }
+    }
+    setBPMapping(mapping)
+
+
+  }, [array])
+
+
+  const [test, setTest] = useState(resolution)
+
+  useEffect(() => {
+    setTest(resolution)
+    setNumberOfImages(Math.ceil((cap) / pixelWidth))
+  }, [resolution])
 
   useEffect(() => {
 
@@ -108,28 +286,32 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     // if alt key is pressed then stop the event 
 
     function preventScroll(e) {
-        if (e.altKey === true) {
-            e.preventDefault();
-            // e.stopPropagation();
-            return false;
-        }
+      if (e.altKey === true) {
+        e.preventDefault();
+        // e.stopPropagation();
+        return false;
+      }
     }
 
-}, [])
+  }, [])
 
 
 
 
   useEffect(() => {
   }, [isDark])
+
   useEffect(() => {
-    let endBP = Math.max(...genomeSelector[id].array.map(d => d.end))
-    setNumberOfImages(Math.ceil(endBP / pixelWidth))
     let scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth])
     setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
     setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), cap))
-    imageExists()
-  }, [zoom, offset, cap, array, resolution])
+    if (!usePreloadedImages) {
+      generateImage().then(url => {
+        setChosenImages(url)
+        // console.log(url)
+      })
+    }
+  }, [zoom, offset, cap, resolution, usePreloadedImages])
 
   function handleScroll(e) {
     if (genome) return
@@ -190,26 +372,28 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
     let currentImageScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
 
-    let ratio = cap / pixelWidth
+    let ratio = (cap) / pixelWidth
     let adjustedZoom = currentZoom / ratio
 
     let bpLocation = Math.round(currentImageScale.invert(Math.abs(offset)))
 
-    let correctImage = Math.floor(bpLocation / pixelWidth)
+    let correctImage = Math.floor((bpLocation) / pixelWidth)
     let startOfImage = correctImage * pixelWidth + 1
 
     let newImageScale = scaleLinear().domain([startOfImage, startOfImage + pixelWidth]).range([0, originalWidth * adjustedZoom])
     let adjustedOffset = newImageScale(bpLocation)
 
+    let darkModifier = isDark ? "_dark" : ""
+
     // As each image is at least 50,000 pixels wide, no more than two will ever be needed
-    for (let x = 0; x < 2; x++) {
+    for (let x = 0; x < 3; x++) {
       let imageChoice = correctImage + x
       if (imageChoice > -1 && imageChoice < numberOfImages) {
         if (resolution) {
-          bunch.push(imageBunch + "_" + imageChoice + ".png")
+          bunch.push(imageBunch + "_" + imageChoice + darkModifier + ".webp")
         }
         else {
-          bunch.push(imageBunch + "_" + imageChoice + ".png")
+          bunch.push(imageBunch + "_" + imageChoice + darkModifier + ".webp")
         }
       }
     }
@@ -217,6 +401,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
       image={bunch}
       orthologs={renderOrthologs ? orthologImage : renderOrthologs}
       genome={genome}
+      isHighDef={true}
       id={id}
       zoom={adjustedZoom}
       offset={-adjustedOffset}
@@ -249,7 +434,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
   function deleteAnnotation(x) {
     let annotation = {
-      key: id,
+      key: true_id,
       location: previewSelector.center
     }
     dispatch(removeAnnotation(annotation))
@@ -263,7 +448,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
   function getXLocation(x) {
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
-    let xScale =  normalize ? scaleLinear().domain([0,cap]).range([0, maxWidth * cap /normalizedLength]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
+    let xScale = normalize ? scaleLinear().domain([0, cap]).range([0, maxWidth * cap / normalizedLength]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     return xScale.invert(x - left)
   }
 
@@ -283,6 +468,43 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
         if (e.ctrlKey) {
           deleteAnnotation(e.clientX - offset)
         }
+        let gene = findGene(getBasePairPosition(e))
+        //! Will need logic to align tracks
+        console.log(gene)
+        if (gene && gene.siblings.length > 0) {
+          console.log("There's siblings")
+          dispatch(clearDraggables({ dragGroup: "ortholog" }))
+          gene.siblings.forEach(sibling => {
+            console.log(sibling)
+            dispatch(addBasicTrack({
+              key: sibling.chromosome + "_splitview",
+              zoom: 1,
+              offset: 0,
+              trackType,
+              color: trackSelector[sibling.chromosome].color,
+              isDark,
+              normalize,
+            }))
+            dispatch(addDraggable({
+              key: sibling.chromosome + "_splitview",
+              dragGroup: "ortholog"
+            }))
+            let annotation = {
+              key: id,
+              note: gene.key,
+              location: gene.start
+            }
+            let orthologAnnotation = {
+              key: sibling.chromosome + "_splitview",
+              note: sibling.key,
+              location: window.dataset[sibling.key.toLowerCase()].start
+            }
+            console.log(window.dataset[sibling.key.toLowerCase()].start)
+            dispatch(addOrtholog(annotation))
+            dispatch(addOrtholog(orthologAnnotation))
+          })
+
+        }
       }
       setClickLocation(null)
     }
@@ -298,25 +520,43 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     // setCursorStyle({display: "none"})
   }
 
-  function displayTrackMarker(selector) {
+
+  function displayRelatedMarkers(selector) {
+    let chromosomeNumber = id.replace(/^\D+/g, '').split("_")[0]
+    let related = []
+    Object.keys(selector).forEach(x => {
+      if (x === true) return
+      selector[x].forEach(z => {
+        if (z.chromosome === chromosomeNumber) {
+          related.push(z)
+        }
+      })
+    })
+    // console.log(chromosomeNumber)
+    // console.log(related)
+    if (related.length < 1) return
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y + 27
     let verticalScroll = document.documentElement.scrollTop
 
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
-    let cursorColor = isDark ? "white" : "black"
+    // let cursorColor = isDark ? "white" : "black"
+    let cursorColor = "grey"
 
-    return selector.map(x => {
+    return related.map(x => {
       return (
         <>
-          <div style={{
+          <div key={nanoid()} 
+          style={{
             pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent",
             borderBottom: "5px solid transparent", borderTop: `5px solid ${cursorColor}`, position: "absolute",
             left: xScale(x.location) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24,
           }}>
           </div>
-          {!genome && <div style={{
+          {!genome && <div
+          key={nanoid()} 
+           style={{
             pointerEvents: "none", zIndex: 2, position: "absolute", WebkitUserSelect: "none",
             left: xScale(x.location) + left + offset - 2, top: top + verticalScroll - 20, height: genome ? adjustedHeight : adjustedHeight + 24,
           }}>
@@ -329,10 +569,98 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
     })
   }
 
+  function displayTrackMarker(selector) {
+    // debugger
+    if (!trackRef.current) return
+    let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
+    let left = trackBoundingRectangle.x
+    let top = trackBoundingRectangle.y + 27
+    let verticalScroll = document.documentElement.scrollTop
+
+    let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
+    let cursorColor = isDark ? "white" : "black"
+
+    // debugger
+    if (selector) {
+
+      return selector.map(x => {
+        console.log(xScale(x.location))
+        return (
+          <>
+            <div key={nanoid()}
+              style={{
+                pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent",
+                borderBottom: "5px solid transparent", borderTop: `5px solid ${cursorColor}`, position: "absolute",
+                left: xScale(x.location) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24,
+              }}>
+            </div>
+            {!genome && <div
+              key={nanoid()}
+              style={{
+                pointerEvents: "none", zIndex: 2, position: "absolute", WebkitUserSelect: "none",
+                left: xScale(x.location) + left + offset - 2, top: top + verticalScroll - 20, height: genome ? adjustedHeight : adjustedHeight + 24,
+              }}>
+              {x.note}
+            </div>
+
+            }
+          </>
+        )
+      })
+    }
+  }
+
+  function handleMouseMove(e) {
+    if (dragging) {
+      handlePan(e)
+    }
+    else {
+      hover(e)
+      handleTooltip(e)
+    }
+  }
+
   function generateAnnotations() {
     if (annotationSelector) {
       return displayTrackMarker(annotationSelector)
     }
+  }
+
+  function generateOrthologMarkers() {
+    if (allOrthologs[id]) {
+      return displayTrackMarker(allOrthologs[id])
+    }
+  }
+
+  function findGene(bpPosition) {
+    if (bpMapping) {
+      let keys = Object.keys(bpMapping)
+      let numberOfKeys = 1000
+      let firstIndex, lastIndex
+      for (let x = 0; x < numberOfKeys; x++) {
+        if (bpPosition < +keys[x]) break
+        firstIndex = bpMapping[keys[x]].firstIndex
+        lastIndex = bpMapping[keys[x]].lastIndex
+      }
+      console.log(bpPosition)
+      for (let i = +firstIndex; i < +lastIndex; i++) {
+        if (bpPosition > array[i].start && bpPosition < array[i].end) {
+          return array[i]
+        }
+      }
+    }
+  }
+
+  function getBasePairPosition(e) {
+    let verticalScroll = document.documentElement.scrollTop
+    let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
+
+    let adjustedPos = (e.clientX) - offset
+
+    let xScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
+    let widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, originalWidth])
+    let bpPosition = getXLocation(adjustedPos)
+    return bpPosition
   }
 
   function hover(e) {
@@ -360,35 +688,48 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
       center: bpPosition
     })
     )
-    let len = array.length
-    for (let i = 0; i < len; i++) {
-      if (bpPosition > array[i].start && bpPosition < array[i].end) {
-        let width = widthScale(array[i].end - array[i].start)
-        if (renderTrack === "bitmap") {
-          setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings : 'No Orthologs'}`)
-          setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
-        }
-        else if (renderTrack === "basic"){
-          setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings : 'No Orthologs'}`)
-          setHoverStyle({ 
-            pointerEvents: "none", zIndex: 2,
-            position: "absolute",
-            left: xScale(array[i].start) + trackBoundingRectangle.left + offset, 
-            width: width, 
-            top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25,
-            height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, 
-            backgroundColor: "red" })
-        }
-        // console.log(info)
-        return
+
+    if (bpMapping) {
+      let keys = Object.keys(bpMapping)
+      let numberOfKeys = 1000
+      let firstIndex, lastIndex
+      for (let x = 0; x < numberOfKeys; x++) {
+        if (bpPosition < +keys[x]) break
+        firstIndex = bpMapping[keys[x]].firstIndex
+        lastIndex = bpMapping[keys[x]].lastIndex
       }
+      // debugger
+      for (let i = +firstIndex; i < +lastIndex; i++) {
+        if (bpPosition > array[i].start && bpPosition < array[i].end) {
+          let width = widthScale(array[i].end - array[i].start)
+          if (renderTrack === "bitmap") {
+            setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
+            setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
+          }
+          else if (renderTrack === "basic") {
+            setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
+            setHoverStyle({
+              pointerEvents: "none", zIndex: 2,
+              position: "absolute",
+              left: xScale(array[i].start) + trackBoundingRectangle.left + offset,
+              width: width,
+              top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25,
+              height: renderOrthologs ? adjustedHeight : adjustedHeight + 25,
+              backgroundColor: "red"
+            })
+          }
+          // console.log(info)
+          return
+        }
+      }
+
     }
     setHoverStyle({ display: "none", pointerEvents: "none" })
     setInfo("")
   }
 
 
-  const handleTooltip = (event) => {
+  function handleTooltip(event) {
     positionRef.current = { x: event.clientX, y: event.clientY };
 
     if (popperRef.current != null) {
@@ -409,7 +750,7 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
 
     let bpPosition = previewSelector.center
 
-    
+
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     if (xScale(bpPosition) + left + offset < trackRef.current.offsetLeft + maxWidth) {
       let cursorColor = isDark ? "white" : "black"
@@ -421,12 +762,17 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
       }
     }
   }
+
   return (
     <>
       <div style={cursorStyle}></div>
       <div style={hoverStyle}></div>
       {previewSelector.visible && generateAnnotations()}
+      {previewSelector.visible && displayRelatedMarkers(allAnnotations)}
+      {previewSelector.visible && displayRelatedMarkers(allSearches)}
       {searchSelector && displayTrackMarker(searchSelector)}
+      {allOrthologs[id] && generateOrthologMarkers()}
+
       <Tooltip
         title={info ? <Typography
           variant="caption"
@@ -456,30 +802,20 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
           // style={{pointerEvents: "none"}}
           ref={trackRef}
           onWheel={handleScroll}
-          onMouseMove={(e) => {
-            if (dragging) {
-              handlePan(e)
-            }
-            else {
-              hover(e)
-              handleTooltip(e)
-
-            }
-          }
-          }
-          onMouseDown={(e) => handleClick(e)}
-          onMouseUp={(e) => handleClick(e)}
+          onMouseMove={handleMouseMove}
+          onMouseDown={handleClick}
+          onMouseUp={handleClick}
           onMouseLeave={leaveTrack}
           onDragStart={(e) => e.preventDefault()}
           style={{ marginLeft: "10px" }}
         >
 
-          {((renderTrack === "bitmap")  &&
+          {((renderTrack === "bitmap") &&
             (zoom > numberOfImages && numberOfImages > 0 ?
               bunchOfTracks(zoom, offset)
               :
               <ImageTrack
-                image={[image]}
+                image={usePreloadedImages ? [image] : [chosenImages]}
                 orthologs={renderOrthologs ? orthologImage : renderOrthologs}
                 genome={genome}
                 id={id}
@@ -493,23 +829,23 @@ function TrackContainer({ array, trackType, id, color, isDark, zoom, offset, wid
                 width={width}
               />))
             ||
-           ( renderTrack === "basic" &&
-            <RenderTrack
-              title={id}
-              key={id}
-              id={id}
-              array={array}
-              color={color}
-              isDark={isDark}
-              offset={offset}
-              zoom={zoom}
-              pastZoom={pastZoom}
-              height={1}
-              trackType={trackType}
-              normalize={genome ? false : normalize}
-              normalizedLength={normalizedLength}
-              width={genome ? width : undefined}
-            />)
+            (renderTrack === "basic" &&
+              <RenderTrack
+                title={id}
+                key={id}
+                id={id}
+                array={array}
+                color={color}
+                isDark={isDark}
+                offset={offset}
+                zoom={zoom}
+                pastZoom={pastZoom}
+                height={1}
+                trackType={trackType}
+                normalize={genome ? false : normalize}
+                normalizedLength={normalizedLength}
+                width={genome ? width : undefined}
+              />)
           }
 
           {(!genome) && (<TrackScale

@@ -110,8 +110,8 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
             if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) bottomOffset = 0
 
             dispatch(updateBothTracks({
-                topKey: topTrack.key,
-                bottomKey: bottomTrack.key,
+                topKey: indexSelector[index - 1],
+                bottomKey: indexSelector[index + 1],
                 topOffset: offsetX,
                 bottomOffset: bottomOffset,
                 topZoom: Math.max(topTrack.zoom * factor, 1.0),
@@ -144,9 +144,10 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
             let bottomOffset = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
   
+
             dispatch(updateBothTracks({
-                topKey: topTrack.key,
-                bottomKey: bottomTrack.key,
+                topKey: indexSelector[index - 1],
+                bottomKey: indexSelector[index + 1],
                 topOffset: offsetX,
                 bottomOffset: bottomOffset,
                 topZoom: topTrack.zoom,
@@ -173,7 +174,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
         // If near the bottom, snap to the bottom, if near the top, snap to top
         let topOffset = topTrack.offset
         let bottomOffset = bottomTrack.offset
-        let track, offset, scaling
+        let track, offset, scaling, trackName
         if (e.clientY > boundingBox.top +( boundingBox.height / 2)) {
             
             // Find location of gene on top track to snap
@@ -181,6 +182,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
             offset = -(topRatio * maxWidth * topTrack.zoom) + bottomLocation
             scaling = scaleLinear().domain([0, aboveCap]).range([0, maxWidth * topTrack.zoom])
             track = topTrack
+            trackName = indexSelector[index - 1]
             // topOffset = offset
             topOffset = -scaling(bottomLocation)
         }
@@ -189,11 +191,12 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
             let topLocation = topRatio * maxWidth * topTrack.zoom + topTrack.offset
             offset =  -(bottomRatio * maxWidth * bottomTrack.zoom) + topLocation
             scaling = scaleLinear().domain([0, aboveCap]).range([0, maxWidth * topTrack.zoom])
-            track= bottomTrack
+            track = bottomTrack
+            trackName = indexSelector[index + 1]
             bottomOffset = offset
         }
         dispatch(updateTrack({
-            key: track.key,
+            key: trackName,
             offset: offset,
             zoom:track.zoom
         }))

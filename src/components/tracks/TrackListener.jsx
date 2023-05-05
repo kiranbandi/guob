@@ -43,7 +43,7 @@ const TrackListener = ({ children }) => {
             }
             goal = goal.parentElement
         }
-        let buttonInfo = goal.id.split("_")
+        let buttonInfo = goal.id.split(/_(.*)/s)
         // console.log(buttonInfo)
         switch (buttonInfo[0]) {
             case "deleteTrack":
@@ -54,7 +54,7 @@ const TrackListener = ({ children }) => {
                 setshowTypeOptions(true)
                 setshowTypeSelection(buttonInfo[1])
                 let buttonsLocation = goal.getBoundingClientRect()
-                setshowTypeLocation({ x: buttonsLocation.x, y: buttonsLocation.y })
+                setshowTypeLocation({ x: buttonsLocation.x, y: buttonsLocation.y + document.documentElement.scrollTop })
                 // dispatch(toggleTrackType({ 'id': buttonInfo[1] }))
                 break
             case "pickColor":
@@ -62,7 +62,7 @@ const TrackListener = ({ children }) => {
                 setColorPickerColor(basicTrackSelector[buttonInfo[1]].color)
                 setColorPickerSelection(buttonInfo[1])
                 let buttonLocation = goal.getBoundingClientRect()
-                setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y })
+                setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y + document.documentElement.scrollTop })
                 break
             
         }
