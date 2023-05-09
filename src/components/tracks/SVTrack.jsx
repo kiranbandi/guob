@@ -269,7 +269,7 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
                     'position': 'relative',}}
                     id={id} ref={linkRef} onWheel={handleScroll} onMouseDown={handleClick} onMouseUp={handleClick} onMouseMove={handlePan} >
                 <SVLinks linkPositions={linkPositions} height={(parentWrapperHeight)} width={(parentWrapperWidth)}/>
-                <Slider className="Kuchh"
+                <Slider className="QualityScoreFilter"
                 orientation="vertical"
                 style = {{
                     'position': 'absolute',

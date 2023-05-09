@@ -214,7 +214,7 @@ function RenderDemo({ isDark }) {
         width: 98%;
         float: left;
         margin: 0px;
-        overflow: hidden;
+        // overflow: hidden;
     
         &.smaller {
           width: 95%;

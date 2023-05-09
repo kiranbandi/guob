@@ -8,10 +8,67 @@ import ColorLensIcon from '@mui/icons-material/ColorLens';
 import MultilineChartIcon from '@mui/icons-material/MultilineChart';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import Slider, { SliderTooltip  } from 'rc-slider';
+import Select from 'react-select';
+
 
 
 function TrackControls(props) {
     
+
+    const trackType = props.trackType;
+    const repeatOptions = props.repeatOptions;
+    const handleRepeatSelection = props.handleRepeatSelection;
+
+
+
+    const customStyles = {
+        // menu: (provided, state) => ({
+        //     ...provided,
+        //   })
+        option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+            return {
+              ...styles,
+              backgroundColor: 'white' ,
+              color: data.color,
+
+            //   zIndex: 9999
+
+            //   width: 200
+            };
+          }
+      };
+
+      const extraStyles = {
+        control: (provided, state) => ({
+          ...provided,
+          padding: 0
+        }),
+        input: (provided, state) => ({
+          ...provided,
+          margin: 0,
+          padding: 0
+        }),
+        menu: (provided, state) => ({
+          ...provided,
+          marginTop: 0,
+          paddingTop: 0
+        }),
+        option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+            return {
+              ...styles,
+              backgroundColor: 'white' ,
+              color: data.color,
+
+            //   zIndex: 9999
+
+            //   width: 200
+            };
+          }
+
+      };
+      
+
+
     // const buttonHeight = props.height/3
     const renderTrack = props.renderTrack;
     let subGenomes = "N/A";
@@ -123,7 +180,27 @@ function TrackControls(props) {
 
     return (
         <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"} style={{float: "right"}}>
-                <IconButton className='trackButtons' id={"toggleTrackType_" + props.id} sx={{
+
+            {trackType ===  "repeats"
+            ?  <span style = {{
+                'position': 'absolute',
+                top: 0,
+                right: 0,
+                height: 10,
+                display: 'flex',
+                'align-items': 'center',
+            //    zIndex: 9999,
+
+                'transform-origin': 'top right', display: 'flow-root'}} > <Select   onChange={handleRepeatSelection}
+
+                            // value={chosenRepeats}
+                            options={repeatOptions}
+                            styles={extraStyles}
+
+                            isMulti
+                            /> </span>
+
+            :    <IconButton className='trackButtons' id={"toggleTrackType_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
                     // height: buttonHeight,
@@ -134,7 +211,7 @@ function TrackControls(props) {
                 >
                     <MultilineChartIcon fontSize="small" className="handle_image" />
                 </IconButton>
-
+}
                 <IconButton className='trackButtons'id={"deleteTrack_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
@@ -157,31 +234,11 @@ function TrackControls(props) {
                   </option>
                 ))}
               </select>
-              
-              //</Stack>/* <IconButton onClick={handleButtonClick} className='trackButtons'id={"percentageSort" + props.id} sx={{
-                    // backgroundColor: deepOrange[100],
-                    // borderRadius: 1,
-                    // // height: buttonHeight,
-                    // '&:hover': {
-                    //     backgroundColor: deepOrange[500]
-                //     }
-                // }}
-                // >
-
-                // </IconButton> */}
-
-                      /* { showDiv && ( <div className="sliderContainer " style={{position: 'absolute', 'z-index': 1}}> 
-                        <span>
-                        {elements}
-                        </span>
-                        <Button className="sort-button" variant="primary" size="sm" onClick={handleThresholdChange}>
-                            Sort
-                        </Button>
-                    </div>)}
-              </> */
-
                 
-                :  <IconButton className='trackButtons' id={"pickColor_" + props.id} sx={{
+
+
+                    
+                :    <IconButton className='trackButtons' id={"pickColor_" + props.id} sx={{
                     backgroundColor: deepOrange[100],
                     borderRadius: 1,
                     // height: buttonHeight,
@@ -191,9 +248,9 @@ function TrackControls(props) {
                 }}>
                     <ColorLensIcon fontSize="small" className="handle_image" />
                 </IconButton>
-
-
                 }
+
+
 
         </Stack>
     )

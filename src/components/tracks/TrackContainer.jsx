@@ -130,7 +130,7 @@ function TrackContainer({ array = [], trackType, id, subGenomes, color, isDark, 
     setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
     setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), cap))
 }
-    console.log("Start of Track", startOfTrack, "EndCap", endCap)
+
 
     
 
@@ -145,7 +145,7 @@ function TrackContainer({ array = [], trackType, id, subGenomes, color, isDark, 
   },[activeSubGenome])
   
   useEffect(() => {
-    console.log(SGThreshold)
+
   },[SGThreshold])
 
   function handleScroll(e) {

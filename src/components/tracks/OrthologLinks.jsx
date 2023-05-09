@@ -90,7 +90,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     // These should have all the information from the tracks, including zoom level + offset
     let topTrack = trackSelector[indexSelector[index - 1]]
     let bottomTrack = trackSelector[indexSelector[index + 1]]
-    let topGenome = genomeSelector[indexSelector[index - 1]]
+    let ƒ = genomeSelector[indexSelector[index - 1]]
     let bottomGenome = genomeSelector[indexSelector[index + 1]]
     
     
@@ -185,7 +185,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
         let boundingBox = e.target.getBoundingClientRect()
 
-        let topGene = searchTrack(genes[0], topGenome.array)
+        let topGene = searchTrack(genes[0], ƒ.array)
         let bottomGene = searchTrack(genes[1], bottomGenome.array)
 
         let topRatio = topGene.start / aboveCap
@@ -219,8 +219,8 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     }
     //######################################################################################
     
-    let aboveLength = topGenome ? topGenome.array.length : 0
-    let aboveCap = aboveLength > 0 ? Math.max(...topGenome.array.map(d => d.end)) : 0
+    let aboveLength = ƒ ? ƒ.array.length : 0
+    let aboveCap = aboveLength > 0 ? Math.max(...ƒ.array.map(d => d.end)) : 0
     let belowLength = bottomGenome ? bottomGenome.array.length : 0
     let belowCap = belowLength > 0 ? Math.max(...bottomGenome.array.map(d => d.end)) : 0
 
@@ -233,7 +233,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
         )
     }
 
-    let orthologPairs = findOrthologs(topGenome, bottomGenome);
+    let orthologPairs = findOrthologs(ƒ, bottomGenome);
     //{type: "polygon", source: {x: 0,x1: 0,y1:0, y:0}, target: {x:100,x1: 200, y1: 100, y:100}}
 
     let arrayLinks = [];
@@ -254,7 +254,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     if(xScale1 && xScale2 && widthScale1 && widthScale2) for (var pair of orthologPairs) {
 
         // let geneAbove = findGene(pair.source);
-        let geneAbove = searchTrack(pair.source, topGenome.array)
+        let geneAbove = searchTrack(pair.source, ƒ.array)
         // let geneBelow = findGene(pair.target);
         let geneBelow = searchTrack(pair.target, bottomGenome.array)
 
