@@ -349,7 +349,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let offsetX = Math.max(Math.min(offset + dx, 0), -(maxWidth - originalWidth))
     // let offsetX = offset + dx
 
-    dispatch(updateTrack({
+    dispatch(updateMatchingTracks({
       key: id,
       offset: offsetX,
       zoom: zoom
