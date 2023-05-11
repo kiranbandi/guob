@@ -16,7 +16,7 @@ import TrackListener from 'components/tracks/TrackListener';
 import OrthologLinks from '../components/tracks/OrthologLinks'
 import { moveCollabPreview } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
-import { Switch, Button, Stack, Divider, FormControlLabel, RadioGroup } from '@mui/material'
+import { Switch, Button, Stack, Divider, FormControlLabel } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import sendFileToWorkers from '../utils/sendFileToWorkers'
@@ -45,7 +45,6 @@ function RenderDemo({ isDark }) {
     const [normalize, setNormalize] = useState(false)
     const [preloaded, setPreloaded] = useState(true)
     const [bitmap, setBitmap] = useState(true)
-    const [resolution, setResolution] = useState("med")
     let [loading, setLoading] = useState(false)
     const [firstLoad, setFirstLoad] = useState(true)
     const [listening, setListening] = useState(false)
@@ -296,7 +295,6 @@ function RenderDemo({ isDark }) {
                             isDark={isDark}
                             normalize={normalize}
                             renderTrack={"bitmap"}
-                            resolution={resolution}
                         />
                     )
                 })
@@ -483,16 +481,6 @@ function RenderDemo({ isDark }) {
             gt.updateState({ Action: "changeRender", Todo: e.target.checked })
         }
         setBitmap(e.target.checked)
-    }
-
-    function changeResolution(e) {
-
-        console.log(e.target.id)
-        let gt = window.gt;
-        if (gt) {
-            gt.updateState({ Action: "changeResolution", Todo: e.target.id })
-        }
-        setResolution(e.target.id)
     }
 
     function changeMargins(e) {
@@ -776,7 +764,6 @@ function RenderDemo({ isDark }) {
                                                     isDark={isDark}
                                                     renderTrack={bitmap ? "bitmap" : 'basic'}
                                                     usePreloadedImages={preloaded}
-                                                    resolution={resolution}
                                                 />
                                             </Draggable>
                                         )
@@ -797,7 +784,6 @@ function RenderDemo({ isDark }) {
                                                         isDark={isDark}
                                                         renderTrack={bitmap ? "bitmap" : 'basic'}
                                                         usePreloadedImages={preloaded}
-                                                        resolution={resolution}
                                                     /> || item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
                                                 {/* {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>} */}
                                             </Draggable>

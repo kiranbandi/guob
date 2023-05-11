@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import RenderTrack from './RenderTrack'
 import ImageTrack from './ImageTrack'
-import { updateTrack, selectBasicTracks, addBasicTrack } from './basicTrackSlice'
+import { updateTrack, selectBasicTracks, addBasicTrack, updateMatchingTracks } from './basicTrackSlice'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
 import { selectGenome } from './genomeSlice'
@@ -12,10 +12,10 @@ import { addDraggable, clearDraggables } from '../../features/draggable/draggabl
 import { Typography, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
-import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs } from '../../features/annotation/annotationSlice'
+import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs,  } from '../../features/annotation/annotationSlice'
 import { nanoid } from '@reduxjs/toolkit'
 
-function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, renderTrack, genome, resolution, usePreloadedImages }) {
+function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, renderTrack, genome, usePreloadedImages }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
   //! to be passed from the slice to the track. In the return statement, check the "renderTrack" prop
@@ -272,12 +272,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }, [array])
 
 
-  const [test, setTest] = useState(resolution)
 
   useEffect(() => {
-    setTest(resolution)
     setNumberOfImages(Math.ceil((cap) / pixelWidth))
-  }, [resolution])
+  }, [])
 
   useEffect(() => {
 
@@ -310,7 +308,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         // console.log(url)
       })
     }
-  }, [zoom, offset, cap, resolution, usePreloadedImages])
+  }, [zoom, offset, cap, usePreloadedImages])
 
   function handleScroll(e) {
     if (genome) return
@@ -330,7 +328,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       let dx = ((normalizedLocation - offset) * (factor - 1))
       let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * factor) - originalWidth))
       if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
-      dispatch(updateTrack({
+      dispatch(updateMatchingTracks({
         key: id,
         offset: offsetX,
         zoom: Math.max(zoom * factor, 1.0)
@@ -388,14 +386,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     for (let x = 0; x < 3; x++) {
       let imageChoice = correctImage + x
       if (imageChoice > -1 && imageChoice < numberOfImages) {
-        if (resolution) {
-          bunch.push(imageBunch + "_" + imageChoice + darkModifier + ".webp")
-        }
-        else {
           bunch.push(imageBunch + "_" + imageChoice + darkModifier + ".webp")
         }
       }
-    }
+    
     return (<ImageTrack
       image={bunch}
       orthologs={renderOrthologs ? orthologImage : renderOrthologs}
@@ -521,12 +515,13 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
 
   function displayRelatedMarkers(selector) {
-    let chromosomeNumber = id.replace(/^\D+/g, '').split("_")[0]
+    let chromosomeNumber = id.split("_")[1].replace(/^\D+/g, '')
     let related = []
     Object.keys(selector).forEach(x => {
-      if (x === true) return
+      // debugger
+      // if (x === true) return
       selector[x].forEach(z => {
-        if (z.chromosome === chromosomeNumber) {
+        if (z.key.split("_")[1].replace(/^\D+/g, '') === chromosomeNumber) {
           related.push(z)
         }
       })

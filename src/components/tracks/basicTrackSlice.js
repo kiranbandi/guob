@@ -25,8 +25,8 @@ const initialState = {
             color: "#e15759",
             zoom: 1,
             pastZoom: 1,
-            normalizedLength:30425192,
-            end:19696821,
+            normalizedLength: 30425192,
+            end: 19696821,
             offset: 0,
         },
         'coordinate_at3': {
@@ -35,8 +35,8 @@ const initialState = {
             color: "#76b7b2",
             zoom: 1,
             pastZoom: 1,
-            normalizedLength:30425192,
-            end:23458459,
+            normalizedLength: 30425192,
+            end: 23458459,
             offset: 0,
         },
         'coordinate_at4': {
@@ -45,8 +45,8 @@ const initialState = {
             color: "#59a14f",
             zoom: 1,
             pastZoom: 1,
-            normalizedLength:30425192,
-            end:18584524,
+            normalizedLength: 30425192,
+            end: 18584524,
             offset: 0,
         },
         'coordinate_at5': {
@@ -55,8 +55,8 @@ const initialState = {
             color: "#edc949",
             zoom: 1,
             pastZoom: 1,
-            normalizedLength:30425192,
-            end:26970641,
+            normalizedLength: 30425192,
+            end: 26970641,
             offset: 0,
         },
     },
@@ -73,7 +73,7 @@ export const basicTrackSlice = createSlice({
             if (!state.BasicTracks[action.payload.key]) {
                 state.BasicTracks[action.payload.key] = action.payload
             }
-            else{
+            else {
                 state.BasicTracks[action.payload.key].normalizedLength = action.payload.normalizedLength
                 state.BasicTracks[action.payload.key].end = action.payload.end
             }
@@ -101,15 +101,6 @@ export const basicTrackSlice = createSlice({
         },
         updateTrack: (state, action) => {
             if (action.payload.key === undefined) return
-            // if (state.BasicTracks[action.payload.key].meta && state.BasicTracks[action.payload.key].zoom > 3) {
-            //     let temp = state.BasicTracks[action.payload.key].complicated
-            //     let tempMax = state.BasicTracks[action.payload.key].max
-            //     state.BasicTracks[action.payload.key].complicated = state.BasicTracks[action.payload.key].complicatedZoomedFirst
-            //     state.BasicTracks[action.payload.key].max = state.BasicTracks[action.payload.key].complicatedZoomedMax
-            //     state.BasicTracks[action.payload.key].offset = 0
-            //     state.BasicTracks[action.payload.key].zoom = 1
-            //     return   
-            // }
             state.BasicTracks[action.payload.key].offset = action.payload.offset
             state.BasicTracks[action.payload.key].zoom = action.payload.zoom
 
@@ -121,7 +112,7 @@ export const basicTrackSlice = createSlice({
             // // push the track type to next in the array, if at end loop back to beginning
             // console.log(trackTypes)
             state.BasicTracks[action.payload.id].trackType = action.payload.type;
-            
+
         },
         updateBothTracks: (state, action) => {
             if (action.payload.topKey !== undefined) {
@@ -132,6 +123,18 @@ export const basicTrackSlice = createSlice({
                 state.BasicTracks[action.payload.bottomKey].offset = action.payload.bottomOffset
                 state.BasicTracks[action.payload.bottomKey].zoom = action.payload.bottomZoom
             }
+        },
+        updateMatchingTracks: (state, action) => {
+            if (action.payload.key === undefined) return
+            let chromosomeNumber = action.payload.key.split("_")[1].replace(/^\D+/g, '')
+            Object.keys(state.BasicTracks).forEach(key => {
+                let checkingNumber = key.split("_")[1].replace(/^\D+/g, '')
+                if (checkingNumber === chromosomeNumber) {
+                    state.BasicTracks[key].offset = action.payload.offset
+                    state.BasicTracks[key].zoom = action.payload.zoom
+                }
+            })
+
         },
         changeBasicTrackColor: (state, action) => {
             state.BasicTracks[action.payload.key].color = action.payload.color
@@ -151,9 +154,9 @@ export const basicTrackSlice = createSlice({
         deleteAllBasicTracks: (state, action) => {
             state.BasicTracks = {}
         },
-        deleteAllOrthologTracks: (state,action) => {
-            Object.keys(state.BasicTracks).forEach(x =>{
-                if(x.includes("ortholog")){
+        deleteAllOrthologTracks: (state, action) => {
+            Object.keys(state.BasicTracks).forEach(x => {
+                if (x.includes("ortholog")) {
                     delete state.BasicTracks[x]
                 }
             })
@@ -179,14 +182,14 @@ export const basicTrackSlice = createSlice({
                         value
                     }
                     densityView.push(temp)
-                } 
-                
+                }
+
                 state.BasicTracks[action.payload.key] = action.payload
                 state.BasicTracks[action.payload.key].meta = true
                 state.BasicTracks[action.payload.key].complicated = densityView
                 state.BasicTracks[action.payload.key].max = max
                 state.BasicTracks[action.payload.key].trackType = 'heatmap'
-                increment = cap /3000
+                increment = cap / 3000
                 max = 0
                 densityView = []
                 for (let i = 1; i <= 1500; i++) {
@@ -228,7 +231,7 @@ export const basicTrackSlice = createSlice({
 })
 
 
-export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllOrthologTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection } = basicTrackSlice.actions;
+export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllOrthologTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection, updateMatchingTracks } = basicTrackSlice.actions;
 
 
 export const selectBasicTracks = (state) => state.basictrack.BasicTracks

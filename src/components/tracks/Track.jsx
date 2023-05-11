@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import {selectBasicTracks} from './basicTrackSlice'
 import {selectGenome} from './genomeSlice'
 
-function Track({ id, renderTrack, isDark, resolution, normalize, usePreloadedImages }) {
+function Track({ id, renderTrack, isDark, normalize, usePreloadedImages }) {
 
     
     const basicTrackSelector = useSelector(selectBasicTracks)[id]
@@ -28,7 +28,6 @@ function Track({ id, renderTrack, isDark, resolution, normalize, usePreloadedIma
             renderTrack={renderTrack}
             normalize={normalize}
             cap={splitTrackSelector.end}
-            resolution={resolution}
             usePreloadedImages={usePreloadedImages}
         />
 
