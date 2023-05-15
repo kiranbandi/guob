@@ -254,7 +254,7 @@ function RenderDemo({ isDark }) {
 
         let totalSize = window.maximumLength
 
-        let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
+        let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width -100 : 600
         let x = 0
 
         while (x < genomeNames.length) {

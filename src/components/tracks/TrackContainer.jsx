@@ -530,8 +530,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         }
       })
     })
-    // console.log(chromosomeNumber)
-    // console.log(related)
     if (related.length < 1) return
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
@@ -542,6 +540,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     // let cursorColor = isDark ? "white" : "black"
     let cursorColor = "grey"
 
+    let yCoordinate = genome ? 0 : top + verticalScroll
     return related.map(x => {
       return (
         <>
@@ -549,14 +548,14 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           style={{
             pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent",
             borderBottom: "5px solid transparent", borderTop: `5px solid ${cursorColor}`, position: "absolute",
-            left: xScale(x.location) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24,
+            left: xScale(x.location) + left + offset - 2, width: 4, top: yCoordinate, height: genome ? 42 : adjustedHeight + 24,
           }}>
           </div>
           {!genome && <div
           key={nanoid()} 
            style={{
             pointerEvents: "none", zIndex: 2, position: "absolute", WebkitUserSelect: "none",
-            left: xScale(x.location) + left + offset - 2, top: top + verticalScroll - 20, height: genome ? adjustedHeight : adjustedHeight + 24,
+            left: xScale(x.location) + left + offset - 2, top: top + verticalScroll - 20, height: genome ? 42 : adjustedHeight + 24,
           }}>
             {x.note}
           </div>
@@ -581,22 +580,23 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     // debugger
     if (selector) {
 
+      let yCoordinate = genome ? 0 : top + verticalScroll
       return selector.map(x => {
-        console.log(xScale(x.location))
+
         return (
           <>
             <div key={nanoid()}
               style={{
                 pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent",
                 borderBottom: "5px solid transparent", borderTop: `5px solid ${cursorColor}`, position: "absolute",
-                left: xScale(x.location) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24,
+                left: xScale(x.location) + left + offset - 2, width: 4, top:yCoordinate, height: genome ? 42 : adjustedHeight + 24,
               }}>
             </div>
             {!genome && <div
               key={nanoid()}
               style={{
                 pointerEvents: "none", zIndex: 2, position: "absolute", WebkitUserSelect: "none",
-                left: xScale(x.location) + left + offset - 2, top: top + verticalScroll - 20, height: genome ? adjustedHeight : adjustedHeight + 24,
+                left: xScale(x.location) + left + offset - 2, top: top + verticalScroll - 20, height: genome ? 42 : adjustedHeight + 24,
               }}>
               {x.note}
             </div>
@@ -745,18 +745,27 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y
     let verticalScroll = document.documentElement.scrollTop
+    let trackWidth = trackBoundingRectangle.width
 
     let bpPosition = previewSelector.center
 
 
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
-    if (xScale(bpPosition) + left + offset < trackRef.current.offsetLeft + maxWidth) {
+    let current_location = xScale(bpPosition) + trackRef.current.offsetLeft + offset 
+    if (current_location < trackRef.current.offsetLeft + trackWidth && current_location > trackRef.current.offsetLeft) {
       let cursorColor = isDark ? "white" : "black"
       if (genome) {
         // console.log(top)
         let genome_position = top == 0 ? top : top + verticalScroll
-        console.log(genome_position)
-        cursorStyle = { pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid transparent", borderBottom: `5px solid ${cursorColor}`, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: {genome_position}, height: genome ? 42 : adjustedHeight + 24, }
+        if(id == "coordinate_at2_genome"){
+          console.log(trackBoundingRectangle)
+          console.log(left)
+          console.log(trackRef.current.offsetLeft)
+          console.log(trackWidth)
+          // console.log(trackRef.current.offsetLeft + maxWidth)
+          // console.log(xScale(bpPosition) + left + offset)
+        }
+        cursorStyle = { pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid transparent", borderBottom: `5px solid ${cursorColor}`, position: "absolute", left: current_location - 5, width: 4, top: {genome_position}, height: genome ? 42 : adjustedHeight + 24, }
       }
       else {
         cursorStyle = { pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + 27 + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, backgroundColor: cursorColor, opacity: 0.4 }
