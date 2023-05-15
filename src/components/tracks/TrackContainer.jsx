@@ -31,7 +31,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   offset = genome ? 0 : offset
   zoom = genome ? 1 : zoom
-  // console.log(window.chromosomalData)
   if (window.chromosomalData) {
     // debugger
 
@@ -134,14 +133,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }
   suffix += darkModifier
 
-
-
-  // image = location + directoryName + fileName + suffix + ".webp"
   image = `${location}${directoryName}/${fileName}${suffix}.webp`
 
   let orthologImage = `${location}${directoryName}_orthologs/${fileName}${suffix}.webp`
-  // console.log(orthologImage)
-  // let imageBunch = location + designation + suffix
   let imageBunch = `${location}${directoryName}/${fileName}`
   let originalWidth = width ? width : (document.querySelector('.draggable')?.getBoundingClientRect()?.width - 60)
   let maxWidth = originalWidth * zoom
@@ -309,7 +303,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     if (!usePreloadedImages) {
       generateImage().then(url => {
         setChosenImages(url)
-        // console.log(url)
+
       })
     }
   }, [zoom, offset, cap, usePreloadedImages])
@@ -467,12 +461,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         }
         let gene = findGene(getBasePairPosition(e))
         //! Will need logic to align tracks
-        console.log(gene)
         if (gene && gene.siblings.length > 0) {
-          console.log("There's siblings")
           dispatch(clearDraggables({ dragGroup: "ortholog" }))
           gene.siblings.forEach(sibling => {
-            console.log(sibling)
             dispatch(addBasicTrack({
               key: sibling.chromosome + "_splitview",
               zoom: 1,
@@ -496,7 +487,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
               note: sibling.key,
               location: window.dataset[sibling.key.toLowerCase()].start
             }
-            console.log(window.dataset[sibling.key.toLowerCase()].start)
             dispatch(addOrtholog(annotation))
             dispatch(addOrtholog(orthologAnnotation))
           })
@@ -640,7 +630,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         firstIndex = bpMapping[keys[x]].firstIndex
         lastIndex = bpMapping[keys[x]].lastIndex
       }
-      console.log(bpPosition)
       for (let i = +firstIndex; i < +lastIndex; i++) {
         if (bpPosition > array[i].start && bpPosition < array[i].end) {
           return array[i]
@@ -716,7 +705,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
               backgroundColor: "red"
             })
           }
-          // console.log(info)
           return
         }
       }
@@ -755,16 +743,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     if (current_location < trackRef.current.offsetLeft + trackWidth && current_location > trackRef.current.offsetLeft) {
       let cursorColor = isDark ? "white" : "black"
       if (genome) {
-        // console.log(top)
         let genome_position = top == 0 ? top : top + verticalScroll
-        if(id == "coordinate_at2_genome"){
-          console.log(trackBoundingRectangle)
-          console.log(left)
-          console.log(trackRef.current.offsetLeft)
-          console.log(trackWidth)
-          // console.log(trackRef.current.offsetLeft + maxWidth)
-          // console.log(xScale(bpPosition) + left + offset)
-        }
         cursorStyle = { pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid transparent", borderBottom: `5px solid ${cursorColor}`, position: "absolute", left: current_location - 5, width: 4, top: {genome_position}, height: genome ? 42 : adjustedHeight + 24, }
       }
       else {

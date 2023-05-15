@@ -177,6 +177,7 @@ function RenderDemo({ isDark }) {
             }
 
             demoFile.forEach(file => {
+                console.log(file)
                 text(file).then(data => {
                     let fileName = file.split(".")[0].split("/")
                     let nameDesignation = fileName[fileName.length - 1].split("_").join("-")
@@ -222,12 +223,21 @@ function RenderDemo({ isDark }) {
         window.chromosomalData.push(...chromosomalData)
         window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
         let normalizedLength = 0;
-
+        // let color;
+        // debugger
         normalizedLength = Math.max(...window.chromosomalData.map(d => d.end))
         chromosomalData.forEach((point, i) => {
-
+            // debugger
             point.normalizedLength = normalizedLength
+            // if (point.trackType === 'default') {
+            //     color = ColourScale(i % 10)
+            // }
+            // else {
+            //     color = ColourScale(3)
+            // }
 
+            // let end = Math.max(...point.data.map(d => d.end))
+            debugger
             window.maximumLength += point.end;
         })
 
@@ -235,7 +245,7 @@ function RenderDemo({ isDark }) {
 
 
     const buildGenomeView = () => {
-        if (!window.chromosomalData || window.chromosomalData.length === 0) return
+        if(!window.chromosomalData || window.chromosomalData.length === 0) return
         let genomeTracks = []
         let genomeNames = Object.keys(basicTrackSelector)
 
@@ -252,7 +262,7 @@ function RenderDemo({ isDark }) {
             for (let _ = 0; _ < currentGenomes.length; _++) {
 
                 let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / totalSize
-
+                // debugger
                 chosenGenomes.push({
                     genome: currentGenomes[_],
                     width
@@ -260,25 +270,26 @@ function RenderDemo({ isDark }) {
                 x++
 
             }
-
+            
+            // debugger
             genomeTracks.push(
 
-                <Stack direction="row" marginBottom={0} key={"Stack_" + x} justifyContent={"space-around"} style={{ position: "sticky", top: 0, zIndex: 2, background: isDark ? '#121212' : "white" }}>
-                    {chosenGenomes.map(genomeItem => {
-                        return (
-                            <Track
-                                id={genomeItem.genome + "_genome"}
-                                normalize={normalize}
-                                isDark={isDark}
-                                renderTrack={bitmap ? "bitmap" : 'basic'}
-                                usePreloadedImages={preloaded}
-                                genome={true}
-                                width={genomeItem.width}
-                            />
-                        )
-                    })
-                    }
-                </Stack>
+            <Stack direction="row" marginBottom={0} key={"Stack_" + x} justifyContent={"space-around"} style={{position: "sticky", top: 0, zIndex: 2, background: "white"}}>
+                {chosenGenomes.map(genomeItem => {
+                    return (
+                        <Track
+                            id={genomeItem.genome + "_genome"}
+                            normalize={normalize}
+                            isDark={isDark}
+                            renderTrack={bitmap ? "bitmap" : 'basic'}
+                            usePreloadedImages={preloaded}
+                            genome={true}
+                            width={genomeItem.width}
+                        />
+                    )
+                })
+                }
+            </Stack>
 
             )
         }
@@ -570,7 +581,7 @@ function RenderDemo({ isDark }) {
             </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
                 <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
-            <TrackListener style={{ height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh" }}>
+            <TrackListener style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile != "files/bn_methylation_100k.bed") setLoading(true)
@@ -579,12 +590,10 @@ function RenderDemo({ isDark }) {
                         setDemoCollinearity()
                     }}>Canola Methylation</Button>
                     <Button variant='outlined' onClick={() => {
-                        if (demoFile !== ["files/at_coordinate.gff"]) {
-                            setDemoFile(["files/at_coordinate.gff"])
-                            setTitleState("Aradopsis thaliana")
-                            setDemoCollinearity("files/at_vv_collinear.collinearity")
-                            setLoading(true)
-                        }
+                        if (demoFile !== ["files/at_coordinate.gff"]) setLoading(true)
+                        setDemoFile(["files/at_coordinate.gff"])
+                        setTitleState("Aradopsis thaliana")
+                        setDemoCollinearity("files/at_vv_collinear.collinearity")
                     }}>Aradopsis thaliana</Button>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile !== ["files/bn_coordinate.gff", "files/bn_mehtylation_100k.bed", "files/bn_leafsmallrna_100k.bed", "files/bn_seedsmallrna_100k.bed"]) setLoading(true)
