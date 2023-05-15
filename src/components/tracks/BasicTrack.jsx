@@ -300,7 +300,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         let rectWidth = widthScale(dataPoint.end - dataPoint.start)
                         let drawGene = new gene(dataPoint, adjustedColor, trackType)
 
-                        let tosetWidth = rectWidth < 0.4 ? 0.4 : rectWidth
+                        let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
                         drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
                         return drawGene;
                     })

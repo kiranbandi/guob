@@ -328,7 +328,7 @@ ${'' /* .genomeTrack {
         window.dataset = dataset
         window.chromosomalData = chromosomalData
 
-        console.log(dataset["at1g01010"], chromosomalData)
+        // console.log(dataset["at1g01010"], chromosomalData)
         window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
         let normalizedLength = 0;
         let color;
@@ -371,7 +371,7 @@ ${'' /* .genomeTrack {
 
         fetch(file)
         .then(response => response.json())
-        .then(json => {console.log(json)
+        .then(json => {
             let dataset = {}
             let chromosomalData = []
             let counter= 0
@@ -773,12 +773,21 @@ ${'' /* .genomeTrack {
                         }}>Triticum aestivum</Button><Button variant='outlined' onClick={() => {
                             setLoading(true);
                             setIsRepeats(true)
-                            buildRepeats("files/LerRepeatData_remapped.json")
+                            buildRepeats("files/LcuRepeatData_remapped.json")
                             clearComparisonTracks()
                             // setDemoFile("files/ta_hb_coordinate.gff")
                             setTitleState("Lens culinaris Repeats")
                             // setDemoCollinearity()
                         }}>Lens culinaris Repeats</Button>
+                        <Button variant='outlined' onClick={() => {
+                            setLoading(true);
+                            setIsRepeats(true)
+                            buildRepeats("files/LerRepeatData_remapped.json")
+                            clearComparisonTracks()
+                            // setDemoFile("files/ta_hb_coordinate.gff")
+                            setTitleState("Lens ervoides Repeats")
+                            // setDemoCollinearity()
+                        }}>Lens ervoides Repeats</Button>
                         <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
                         <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
 

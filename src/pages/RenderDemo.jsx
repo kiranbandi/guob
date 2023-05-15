@@ -398,7 +398,7 @@ function RenderDemo({ isDark }) {
                         if( x == "links"){
                             return (
                                 <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                <SVTrack key={x} id={x} index={draggableSelector.indexOf(x)} normalize={false} dragGroup={"draggables"} ></SVTrack>
+                                <OrthologLinks key={x} id={x} index={draggableSelector.indexOf(x)} normalize={false} dragGroup={"draggables"} ></OrthologLinks>
                                 </Draggable>
                             )
                         }
