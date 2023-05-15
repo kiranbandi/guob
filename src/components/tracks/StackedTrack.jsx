@@ -24,7 +24,11 @@ import { selectGenome } from "./genomeSlice.js";
 
 
 
+<<<<<<< HEAD
 const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trackType = 'default', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
+=======
+const StackedTrack = ({ array, activeChromosome,activeSubGenome, subGenomes, genome = false, color = 0, trackType = 'stacked', normalizedLength = 0, doSomething, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
+>>>>>>> da60a820e7722c58274cff78acb56fb2bac0c887
 
     const canvasRef = useRef(null)
     // TODO Not a huge fan of using this here
@@ -43,7 +47,10 @@ const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trac
     const [cap, setCap] = useState(0)
     const [hovered, setHovered] = useState()
     const [savedWidth, setSavedWidth] = useState()
+<<<<<<< HEAD
     const [subGenomes, setSubGenomes] = useState([])
+=======
+>>>>>>> da60a820e7722c58274cff78acb56fb2bac0c887
     const [loader, setLoader] = useState(false)
 //this.setState({ subGenomes, chromosomes });
 
@@ -72,6 +79,7 @@ const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trac
     // }
 
 
+<<<<<<< HEAD
     const getFile = function (filepath) {
         console.log(filepath)
         return new Promise((resolve, reject) => {
@@ -85,6 +93,21 @@ const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trac
                 })
         });
     }
+=======
+    // const getFile = function (filepath) {
+    //     console.log(filepath)
+    //     return new Promise((resolve, reject) => {
+    //         // get the file
+    //         axios.get(filepath, { headers: { 'content-encoding': 'gzip' } })
+    //             .then((response) => { resolve(response.data) })
+    //             // if there is an error  reject the promise and let user know through toast
+    //             .catch((err) => {
+    //                 alert("Failed to fetch the file", "ERROR");
+    //                 reject();
+    //             })
+    //     });
+    // }
+>>>>>>> da60a820e7722c58274cff78acb56fb2bac0c887
 
     const clearAndGetContext = function (canvas) {
         let context = canvas.getContext('2d');
@@ -111,6 +134,7 @@ const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trac
         maxHeight = parentWrapperHeight ? (parentWrapperHeight) : height,
         CHART_WIDTH = maxWidth;
 
+<<<<<<< HEAD
     console.log(maxHeight, maxWidth)
     useEffect(() => {
         // canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
@@ -253,14 +277,40 @@ const StackedTrack = ({ array, activeChromosome, genome = false, color = 0, trac
              });
              
     }, [maxHeight, maxWidth])
+=======
+    // console.log(maxHeight, maxWidth)
+    useEffect(() => {
+
+        let dataArray =  [];
+        for (let gene of array){
+
+                dataArray.push([gene["SG1"], gene["SG2"], gene["SG3"]])
+
+        }
+
+        // console.log(dataArray)
+
+        drawChart()
+             
+    }, [maxHeight, maxWidth,array])
+>>>>>>> da60a820e7722c58274cff78acb56fb2bac0c887
 
 
 
     const drawChart = () => {
+<<<<<<< HEAD
 
         let chromosomeData = window.triadBrowserStore.chromosomeData;
         let subGdata = window.triadBrowserStore.subGenomes;;
         console.log(subGdata)
+=======
+        
+
+        let chromosomeData = array;
+
+        let subGdata = subGenomes;
+
+>>>>>>> da60a820e7722c58274cff78acb56fb2bac0c887
         const chartScale = scaleLinear()
                     .domain([0, chromosomeData.length - 1])
                     .range([0, CHART_WIDTH]);

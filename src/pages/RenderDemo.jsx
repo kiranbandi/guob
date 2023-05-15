@@ -15,8 +15,11 @@ import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import OrthologLinks from '../components/tracks/OrthologLinks'
 import { moveCollabPreview } from '../features/miniview/miniviewSlice';
+import SVTrack from '../components/tracks/SVTrack'
+import { selectMiniviews } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
-import { Switch, Button, Stack, Divider, FormControlLabel } from '@mui/material'
+import IndexBased from  'components/tracks/IndexBased'
+import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import sendFileToWorkers from '../utils/sendFileToWorkers'
@@ -27,7 +30,10 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Track from 'components/tracks/Track'
 
 import { text } from "d3-fetch"
+import StackedProcessor from 'features/parsers/stackedProcessoor';
 
+ 
+ 
 
 function RenderDemo({ isDark }) {
 
@@ -48,6 +54,9 @@ function RenderDemo({ isDark }) {
     let [loading, setLoading] = useState(false)
     const [firstLoad, setFirstLoad] = useState(true)
     const [listening, setListening] = useState(false)
+    const [stackedArray, setStackedArray] = useState({})
+    const [alignmentList, setAlignmentList] = useState([])
+    const [chromosomeMap, setChromosomeMap] = useState({})
 
 
     const dispatch = useDispatch()
@@ -123,12 +132,19 @@ function RenderDemo({ isDark }) {
 
     useEffect(() => {
 
+
         if (!listening) {
             setListening(true)
             const channel = new BroadcastChannel("testing")
             channel.addEventListener('message', checking);
         }
+
         if (loading) {
+          
+        StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
+            window.stackData = {data};
+            setStackedArray({...data});
+        })
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
             dispatch(deleteAllDraggables({
@@ -343,7 +359,7 @@ function RenderDemo({ isDark }) {
         width: 98%;
         float: left;
         margin: 0px;
-        overflow: hidden;
+        // overflow: hidden;
     
         &.smaller {
           width: 95%;
@@ -596,7 +612,7 @@ function RenderDemo({ isDark }) {
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
                     }}>Aradopsis thaliana</Button>
                     <Button variant='outlined' onClick={() => {
-                        if (demoFile !== ["files/bn_coordinate.gff", "files/bn_mehtylation_100k.bed", "files/bn_leafsmallrna_100k.bed", "files/bn_seedsmallrna_100k.bed"]) setLoading(true)
+                        if (demoFile !== ["files/bn_coordinate.gff"]) setLoading(true)
                         setDemoFile(["files/bn_coordinate.gff"])
                         setTitleState("Brassica napus")
                         setDemoCollinearity()

@@ -31,6 +31,7 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
             })
         }
 
+
         // gff file parser
         else {
             temporary.forEach(d => {
