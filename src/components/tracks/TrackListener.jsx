@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor } from './basicTrackSlice'
+import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor, changeMatchingBasicTrackColor } from './basicTrackSlice'
 import { removeDraggable } from 'features/draggable/draggableSlice'
 import { useState } from 'react'
 import { ChromePicker } from 'react-color'
@@ -102,7 +102,7 @@ let styling = css(css`
             {showColorPicker ? <div className="popover">
                 <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
                 <ChromePicker disableAlpha={true} color={{ 'hex': colorPickerColor }}  onChangeComplete={(c) => {
-                    dispatch(changeBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
+                    dispatch(changeMatchingBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
                     setColorPickerColor(c.hex)
                 }} />
             </div> : null}
