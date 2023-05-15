@@ -9,7 +9,7 @@ import { css, keyframes } from "@emotion/react";
 /**
  * Component for rendering bitmap tracks once passed an image file
  */
-function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLength, normalize, height, width, orthologs, isHighDef = false }) {
+function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, normalizedLength, normalize, height, width, orthologs, isHighDef = false }) {
 
     const imageRef = useRef()
     const canvasRef = useRef(null)
@@ -29,29 +29,37 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
             }
         }
 
-        let x = currentOffset + (index * (originalWidth * zoom))
+        let x = currentOffset + (index * (originalWidth * currentZoom))
         let y = orthologs ? -index * (adjustedHeight - 18) : -index * (adjustedHeight + 2)
 
 
         const transform = `matrix(${currentZoom}, 0, 0,  ${1}, ${x}, ${y})`
-        const imageRender = image.length > 1 || id.includes("METHYL") || id.includes("all")  || id.includes("seed") || id.includes("leaf") ? "pixelated" : "auto"
+        const imageRender = image.length > 1 || id.includes("METHYL") || id.includes("all") || id.includes("seed") || id.includes("leaf") ? "pixelated" : "auto"
         // console.log(currentZoom)
         // scale: `{currentZoom}`,
         // translate: `{x} {y}`,
         // left: x,
 
         const myEffect = keyframes`
-0% {
-    background: transparent;
-}
-  100% {
-   background: ${color};
-  }
-`;
+            0% {
+                background: transparent;
+            }
+            100% {
+            background: ${color};
+            }
+            `;
+
+        let calculated_height
+        if (genome){
+            calculated_height = "40px"
+        }
+        else{
+            calculated_height = orthologs ? adjustedHeight - 25 + "px" : adjustedHeight - 5 + "px"
+        }
 
         let style = css(css`
             width: ${originalWidth + "px"};
-            height: ${orthologs || genome ? adjustedHeight - 25 + "px" : adjustedHeight - 5 + "px"};
+            height: ${calculated_height};
             transform-origin: top left;
             -webkit-user-drag: none;
             user-select: none;
@@ -102,7 +110,7 @@ function ImageTrack({ image, offset, zoom, id, genome, cap, color, normalizedLen
     return (
         <>
             <div style={{ width: '100%', paddingRight: 10 }} ref={imageRef}>
-                {id &&
+                {id && !genome &&
                     <Typography
                         variant="body1"
                         className={"title"}

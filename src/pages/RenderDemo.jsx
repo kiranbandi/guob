@@ -98,7 +98,7 @@ function RenderDemo({ isDark }) {
         }))
     }
 
-    function buildTracks(designation, numberOfTracks, suffix="", trackType="default") {
+    function buildTracks(designation, numberOfTracks, suffix = "", trackType = "default") {
 
         for (let k = 1; k < numberOfTracks + 1; k++) {
             let color = ColourScale((k - 1) % 10)
@@ -207,6 +207,7 @@ function RenderDemo({ isDark }) {
         }
         if (firstLoad) {
             setFirstLoad(false)
+            window.maximumLength = 0
             text(demoFile[0]).then(async data => {
                 return text(demoCollinearity).then(c => {
                     return sendFileToWorkers('gff', data, demoFile[0].split(".")[0].split("_")[1], c)
@@ -239,6 +240,7 @@ function RenderDemo({ isDark }) {
             // }
 
             // let end = Math.max(...point.data.map(d => d.end))
+            debugger
             window.maximumLength += point.end;
         })
 
@@ -246,26 +248,24 @@ function RenderDemo({ isDark }) {
 
 
     const buildGenomeView = () => {
-        //! This is breaking the entire page
+        if(!window.chromosomalData || window.chromosomalData.length === 0) return
         let genomeTracks = []
         let genomeNames = Object.keys(basicTrackSelector)
 
-        // let totalSize = Object.keys(basicTrackSelector).map(x => basicTrackSelector[x].end).reduce((z, sum) => sum + z, 0)
         let totalSize = window.maximumLength
 
         let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
         let x = 0
 
         while (x < genomeNames.length) {
-            let totalWidth = 0
+
             let currentGenomes = genomeNames.slice(x)
 
             let chosenGenomes = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
 
-                let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / totalSize * Math.ceil(genomeNames.length / 5)
-                totalWidth += width
-                if (totalWidth > maxWidth) break
+                let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / totalSize
+                // debugger
                 chosenGenomes.push({
                     genome: currentGenomes[_],
                     width
@@ -273,33 +273,28 @@ function RenderDemo({ isDark }) {
                 x++
 
             }
-            genomeTracks.push(<Stack direction="row" marginBottom={5} id={"gtVerticalReference"} key={"Stack_" + x} justifyContent={"space-around"}>
+            
+            // debugger
+            genomeTracks.push(
+
+            <Stack direction="row" marginBottom={0} key={"Stack_" + x} justifyContent={"space-around"} style={{position: "sticky", top: 0, zIndex: 2, background: "white"}}>
                 {chosenGenomes.map(genomeItem => {
                     return (
-                        <TrackContainer
-                            key={genomeItem.genome + "genome"}
-                            array={genomeSelector[genomeItem.genome].array}
-                            color={basicTrackSelector[genomeItem.genome].color}
+                        <Track
+                            id={genomeItem.genome + "_genome"}
+                            normalize={normalize}
+                            isDark={isDark}
+                            renderTrack={bitmap ? "bitmap" : 'basic'}
+                            usePreloadedImages={preloaded}
                             genome={true}
                             width={genomeItem.width}
-                            height={Math.min(sliderHeight, 100)}
-                            cap={basicTrackSelector[genomeItem.genome].end}
-                            normalizedLength={basicTrackSelector[genomeItem.genome].normalizedLength}
-                            trackType={basicTrackSelector[genomeItem.genome].trackType}
-                            title={genomeItem.genome}
-                            id={genomeItem.genome}
-                            zoom={1}
-                            pastZoom={basicTrackSelector[genomeItem.genome].pastZoom}
-                            offset={0}
-                            selection={basicTrackSelector[genomeItem.genome].selection}
-                            isDark={isDark}
-                            normalize={normalize}
-                            renderTrack={"bitmap"}
                         />
                     )
                 })
                 }
-            </Stack>)
+            </Stack>
+
+            )
         }
         if (Object.keys(basicTrackSelector).length === 0) return
         if (basicTrackSelector[genomeNames[0]].end) {
@@ -589,7 +584,7 @@ function RenderDemo({ isDark }) {
             </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
                 <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
-            <TrackListener>
+            <TrackListener style={{height: "100vh"}}>
                 <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile != "files/bn_methylation_100k.bed") setLoading(true)
@@ -611,15 +606,15 @@ function RenderDemo({ isDark }) {
                     }}>Brassica napus</Button>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile !== ["files/ta_hb_coordinate.gff"]) setLoading(true)
-    
+
                         setDemoFile(["files/ta_hb_coordinate.gff"])
                         setTitleState("Triticum aestivum")
                         setDemoCollinearity()
                     }}>Triticum aestivum</Button>
-                        <Button variant='outlined' onClick={() => {
+                    <Button variant='outlined' onClick={() => {
                         if (demoFile !== ["files/topas/all_gene_expression_100k.bed"]) setLoading(true)
-    
-                        setDemoFile(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed","files/topas/seed_gene_expression_100k.bed","files/topas/seed_smallRNA_100k.bed"])
+
+                        setDemoFile(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])
                         setTitleState("Topas")
                         setDemoCollinearity()
                     }}>Topas</Button>
@@ -728,17 +723,17 @@ function RenderDemo({ isDark }) {
                     trackType={basicTrackSelector[previewSelector.linkedTrack].trackType}
                     center={previewSelector.center}
                 />} */}
-                <Divider orientatio="horizontal" />
+                <Divider orientation="horizontal" />
                 {
                     loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
                         <CircularProgress size={75} />
                     </Box> :
                         <>
 
-                            <Typography variant="h3">
+                            <Typography variant="h3" id={"gtVerticalReference"}>
                                 {titleState}
                             </Typography>
-                            {/* {buildGenomeView()} */}
+                            {buildGenomeView()}
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
                             <DragContainer startingList={draggableSelector} isDark={isDark}>
                                 {draggableSelector.map((x, i) => {

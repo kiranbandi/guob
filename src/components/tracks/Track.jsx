@@ -4,13 +4,16 @@ import { useSelector } from 'react-redux'
 import {selectBasicTracks} from './basicTrackSlice'
 import {selectGenome} from './genomeSlice'
 
-function Track({ id, renderTrack, isDark, normalize, usePreloadedImages }) {
+function Track({ id, renderTrack, isDark, normalize, usePreloadedImages, genome=false, width }) {
 
     
-    const basicTrackSelector = useSelector(selectBasicTracks)[id]
     let true_id = id.includes("_splitview") ? id.split("_splitview")[0] : id
+    true_id = true_id.includes("_genome") ? true_id.split("_genome")[0] : true_id
+    const basicTrackSelector = useSelector(selectBasicTracks)[true_id]
     const splitTrackSelector = useSelector(selectBasicTracks)[true_id]
     // const genomeSelector = useSelector(selectGenome)[id]
+
+    // debugger
 
     return (
         <TrackContainer
@@ -27,8 +30,10 @@ function Track({ id, renderTrack, isDark, normalize, usePreloadedImages }) {
             trackType={basicTrackSelector.trackType}
             renderTrack={renderTrack}
             normalize={normalize}
-            cap={splitTrackSelector.end}
+            cap={basicTrackSelector.end}
             usePreloadedImages={usePreloadedImages}
+            genome={genome}
+            width={width}
         />
 
     )

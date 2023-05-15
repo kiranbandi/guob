@@ -13,7 +13,7 @@ import Select from 'react-select'
  * a lot of tracks the event handlers get out of hand
  */
 
-const TrackListener = ({ children }) => {
+const TrackListener = ({ children, style }) => {
 
     const basicTrackSelector = useSelector(selectBasicTracks)
     const dispatch = useDispatch()
@@ -98,7 +98,7 @@ let styling = css(css`
     let y = colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0
 
     return (
-        <div css={styling} onClick={handleClick} id="eventListener" >
+        <div css={styling} style={style} onClick={handleClick} id="eventListener" >
             {showColorPicker ? <div className="popover">
                 <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
                 <ChromePicker disableAlpha={true} color={{ 'hex': colorPickerColor }}  onChangeComplete={(c) => {

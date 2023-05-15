@@ -27,6 +27,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   // const array = useSelector(selectGenome)[id].array
   let array, normalizedLength
   let true_id = id.includes("_splitview") ? id.split("_splitview")[0] : id
+  true_id = true_id.includes("_genome") ? true_id.split("_genome")[0] : true_id
+
+  offset = genome ? 0 : offset
+  zoom = genome ? 1 : zoom
   // console.log(window.chromosomalData)
   if (window.chromosomalData) {
     // debugger
@@ -64,7 +68,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   let suffix = isDark ? "_track_dark" : "_track"
   let orthologSuffix = isDark ? "_orthologs_dark" : "_orthologs"
   // let location = 'files/track_images/'
-  let location = 'http://localhost:3010/static/'
+  let location = 'http://hci-sandbox.usask.ca:3010/static/'
 
   // debugger
 
@@ -174,7 +178,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
 
   function generateImage() {
-    return fetch('http://localhost:8080', {
+    return fetch('http://hci-sandbox.usask.ca:3010', {
       method: 'POST',
       headers: {
         'Accept': 'image/png',
@@ -739,7 +743,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
-    let top = trackBoundingRectangle.y + 27
+    let top = trackBoundingRectangle.y
     let verticalScroll = document.documentElement.scrollTop
 
     let bpPosition = previewSelector.center
@@ -749,10 +753,13 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     if (xScale(bpPosition) + left + offset < trackRef.current.offsetLeft + maxWidth) {
       let cursorColor = isDark ? "white" : "black"
       if (genome) {
-        cursorStyle = { pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid transparent", borderBottom: `5px solid ${cursorColor}`, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, }
+        // console.log(top)
+        let genome_position = top == 0 ? top : top + verticalScroll
+        console.log(genome_position)
+        cursorStyle = { pointerEvents: "none", zIndex: 2, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid transparent", borderBottom: `5px solid ${cursorColor}`, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: {genome_position}, height: genome ? 42 : adjustedHeight + 24, }
       }
       else {
-        cursorStyle = { pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, backgroundColor: cursorColor, opacity: 0.4 }
+        cursorStyle = { pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + 27 + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, backgroundColor: cursorColor, opacity: 0.4 }
       }
     }
   }

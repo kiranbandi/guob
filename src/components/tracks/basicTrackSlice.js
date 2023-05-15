@@ -139,6 +139,17 @@ export const basicTrackSlice = createSlice({
         changeBasicTrackColor: (state, action) => {
             state.BasicTracks[action.payload.key].color = action.payload.color
         },
+        changeMatchingBasicTrackColor: (state, action) => {
+            if (action.payload.key === undefined) return
+            let chromosomeNumber = action.payload.key.split("_")[1].replace(/^\D+/g, '')
+            Object.keys(state.BasicTracks).forEach(key => {
+                let checkingNumber = key.split("_")[1].replace(/^\D+/g, '')
+                if (checkingNumber === chromosomeNumber) {
+                    state.BasicTracks[key].color = action.payload.color
+    
+                }
+            })
+        },
         changeZoom: (state, action) => {
             state.BasicTracks[action.payload.key].zoom = action.payload.zoom
         },
@@ -231,7 +242,7 @@ export const basicTrackSlice = createSlice({
 })
 
 
-export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllOrthologTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection, updateMatchingTracks } = basicTrackSlice.actions;
+export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllOrthologTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection, updateMatchingTracks, changeMatchingBasicTrackColor } = basicTrackSlice.actions;
 
 
 export const selectBasicTracks = (state) => state.basictrack.BasicTracks
