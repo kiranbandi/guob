@@ -1,9 +1,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Stack } from '@mui/material'
-import { IconButton, Button } from "@mui/material"
-import { styled } from "@mui/material/styles"
-import { teal, deepOrange } from '@mui/material/colors';
+import { IconButton } from "@mui/material"
+import { deepOrange } from '@mui/material/colors';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import MultilineChartIcon from '@mui/icons-material/MultilineChart';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
@@ -178,8 +177,12 @@ function TrackControls(props) {
 
   
 
+    const color = props.isDark ? deepOrange[500] : deepOrange[100]
+    const highlight = props.isDark ? deepOrange[200] : deepOrange[500]
+
     return (
         <Stack marginTop={-props.gap+ "px"} marginBottom={ "0px"} alignItems={"flex-end"} style={{float: "right"}}>
+
 
             {trackType ===  "repeats"
             ?  <span style = {{
@@ -201,11 +204,11 @@ function TrackControls(props) {
                             /> </span>
 
             :    <IconButton className='trackButtons' id={"toggleTrackType_" + props.id} sx={{
-                    backgroundColor: deepOrange[100],
+                    backgroundColor: color,
                     borderRadius: 1,
                     // height: buttonHeight,
                     '&:hover': {
-                        backgroundColor: deepOrange[500]
+                        backgroundColor: highlight
                     }
                 }}
                 >
@@ -213,18 +216,18 @@ function TrackControls(props) {
                 </IconButton>
 }
                 <IconButton className='trackButtons'id={"deleteTrack_" + props.id} sx={{
-                    backgroundColor: deepOrange[100],
+                    backgroundColor: color,
                     borderRadius: 1,
                     // height: buttonHeight,
                     '&:hover': {
-                        backgroundColor: deepOrange[500]
+                        backgroundColor: highlight
                     }
                 }}
                 >
                     <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
                 </IconButton>
-               
 
+         
                 {renderTrack  === "stackedTrack"
                 ? <select id="selectOption" onChange={handleSelectChange}>
                 <option value="">-</option>
@@ -234,16 +237,15 @@ function TrackControls(props) {
                   </option>
                 ))}
               </select>
-                
-
-
+      
                     
                 :    <IconButton className='trackButtons' id={"pickColor_" + props.id} sx={{
-                    backgroundColor: deepOrange[100],
+                    backgroundColor: color,
+
                     borderRadius: 1,
                     // height: buttonHeight,
                     '&:hover': {
-                        backgroundColor: deepOrange[500]
+                        backgroundColor: highlight
                     }
                 }}>
                     <ColorLensIcon fontSize="small" className="handle_image" />

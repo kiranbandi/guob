@@ -5,7 +5,6 @@ import draggableReducer from '../features/draggable/draggableSlice';
 import basicTrackReducer from '../components/tracks/basicTrackSlice';
 import annotationReducer from 'features/annotation/annotationSlice';
 import genomeReducer from '../components/tracks/genomeSlice';
-import complicatedTrackReducer from '../components/tracks/complicatedTrackSlice'
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +14,9 @@ export const store = configureStore({
     basictrack : basicTrackReducer,
     annotation: annotationReducer,
     genome: genomeReducer,
-    complicatedtrack: complicatedTrackReducer,
   },
+  middleWare: getDefaultMiddleWare => getDefaultMiddleWare({
+    serializableCheck: false,
+    immutableCheck: false,
+  })
 });

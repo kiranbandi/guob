@@ -81,43 +81,75 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
 
 }
 
-export async function parseSubmittedGFF(data, collinearityFile = undefined) {
-
+export async function parseSubmittedGFF(fileType, data, designation, collinearityFile = undefined) {
 
     let temporary = data.split(/\n/)
     let dataset = {}
-    let trackType = 'default'
-    // gff file parser
-    temporary.forEach(d => {
-        let info = d.split('\t')
-        if (info.length > 1) {
-            let key = info[1].toLowerCase()
-            var stats = {
-                chromosome: info[0],
-                start: info[2],
-                end: info[3],
-                key: key,
-                ortholog: false,
-                siblings: [],
-                value: 0
+    let trackType;
+    // BED file processor for methylation data
+    if (fileType === "bed") {
+        trackType = 'histogram'
+
+        temporary.forEach(d => {
+            let info = d.split('\t')
+            if (info.length > 1) {
+                let key = info[0] + "-" + info[1] + "-" + info[2]
+                var stats = {
+                    chromosome: designation + "_" + info[0],
+                    start: +info[1],
+                    end: +info[2],
+                    key,
+                    ortholog: false,
+                    siblings: [],
+                    value: +info[3]
+                }
+                dataset[key] = stats
             }
-            dataset[key] = stats
-        }
-    })
+        })
+    }
+    else {
 
-
+        trackType = 'default'
+        // gff file parser
+        // debugger
+        temporary.forEach(d => {
+            let info = d.split('\t')
+            if (info.length > 1) {
+                let key = info[1].toLowerCase()
+                var stats = {
+                    chromosome: designation + "_" + info[0],
+                    start: +info[2],
+                    end: +info[3],
+                    key: key,
+                    ortholog: false,
+                    siblings: [],
+                    value: 0
+                }
+                dataset[key] = stats
+            }
+        })
+    }
+    // debugger
     if (collinearityFile) {
-
         let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
         let m = pullSubmittedGeneInfo(collinearityFile, nomenclature).then(pairs => {
 
             pairs.forEach(x => {
                 let sourceIndex = x.source.toLowerCase()
                 let targetIndex = x.target.toLowerCase()
+                // debugger
                 dataset[sourceIndex].ortholog = true
                 dataset[targetIndex].ortholog = true
-                dataset[sourceIndex].siblings.push(x.target)
-                dataset[targetIndex].siblings.push(x.source)
+                dataset[sourceIndex].siblings.push(
+                   {
+                    key:x.target,
+                    chromosome: dataset[targetIndex].chromosome
+                 }
+                    )
+                dataset[targetIndex].siblings.push({
+                    key:x.source,
+                    chromosome: dataset[sourceIndex].chromosome
+                })
 
             })
 
@@ -132,145 +164,19 @@ export async function parseSubmittedGFF(data, collinearityFile = undefined) {
 
 }
 
-// export async function parseSubmittedCollinearity(collinearityFile, dataset){
-//         debugger
-//     let nomenclature = Object.keys(dataset)[0].slice(0,2)
-//         pullGeneInfo(collinearityFile, nomenclature).then(pairs => {
-//             pairs.forEach(x => {
-//                 let sourceIndex = x.source.toLowerCase()
-//                 let targetIndex = x.target.toLowerCase()
-//                 dataset[sourceIndex].ortholog = true
-//                 dataset[targetIndex].ortholog = true
-//                 dataset[sourceIndex].siblings.push(x.target)
-//                 dataset[targetIndex].siblings.push(x.source)
-
-//             })
-
-//             // return buildModel(dataset, trackType)
-//         })
-//         // return m
-
-// }
-
-export async function parseBitSubmittedGFF(data, collinearityFile = undefined) {
-
-
-    let temporary = data.split(/\n/)
-    let dataset = {}
-    let trackType = 'default'
-    // gff file parser
-    temporary.forEach(d => {
-        let info = d.split('\t')
-        if (info.length > 1) {
-            let key = info[1].toLowerCase()
-            var stats = {
-                chromosome: info[0],
-                start: info[2],
-                end: info[3],
-                key: key,
-                ortholog: false,
-                siblings: [],
-                value: 0
-            }
-            dataset[key] = stats
-        }
-    })
-
-
-    if (collinearityFile) {
-
-        let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
-        let m = pullSubmittedGeneInfo(collinearityFile, nomenclature).then(pairs => {
-
-            pairs.forEach(x => {
-                let sourceIndex = x.source.toLowerCase()
-                let targetIndex = x.target.toLowerCase()
-                dataset[sourceIndex].ortholog = true
-                dataset[targetIndex].ortholog = true
-                dataset[sourceIndex].siblings.push(x.target)
-                dataset[targetIndex].siblings.push(x.source)
-
-            })
-
-            return buildBitmapModel(dataset, trackType)
-        })
-        return m
-    }
-    else {
-        let t = buildBitmapModel(dataset, trackType)
-        // console.log(t)
-        return t
-    }
-
-}
-
-
-
-function buildBitmapModel(dataset, trackType) {
-
-    // Building up the different chromosomes
-    let chromosomeNameList = []
-    let chromosomalData = []
-    let ignore = "Scaffold"
-    
-
-    for (let item in dataset) {
-        if (!chromosomeNameList.some((x) => x.chromosome == dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
-            var check = item
-            var temp = {
-                chromosome: dataset[item].chromosome,
-                designation: check.slice(0, check.indexOf('g'))
-            }
-            // Building a list of the chromosome names, used for later finding information on that dataset
-            chromosomeNameList.push(temp)
-        }
-    }
-
-    // Changing the default lexicographical order, since chromosome11 should come after chromosome2 
-    // additional logic so that all chromosomes from the same line should be grouped   
-    chromosomeNameList.sort((a, b) => {
-        if (a.chromosome[0].localeCompare(b.chromosome[0]) == 0) {
-            return a.chromosome.length - b.chromosome.length
-        }
-        else {
-            return a.chromosome[0].localeCompare(b.chromosome[0])
-        }
-    })
-
-    chromosomeNameList.forEach((chr, chrIndex) => {
-        var subset = Object.entries(dataset).filter(d => {
-            return d[1].chromosome == chr.chromosome
-        }).map(x => x[1])
-
-        var temp = {
-            key: chr,
-            data: subset,
-            trackType
-        }
-        chromosomalData.push(temp)
-        
-    })
-    chromosomalData.forEach(x=>{
-        // console.log("sending")
-        const channel = new BroadcastChannel('testing');
-        channel.postMessage(x);
-        channel.close()
-    })
-   
-    return { chromosomalData, dataset }
-}
-
-
 
 function buildModel(dataset, trackType) {
 
+
+
+    let channel = new BroadcastChannel("testing")
     // Building up the different chromosomes
     let chromosomeNameList = []
     let chromosomalData = []
     let ignore = "Scaffold"
 
     for (let item in dataset) {
-        if (!chromosomeNameList.some((x) => x.chromosome == dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
+        if (!chromosomeNameList.some((x) => x.chromosome === dataset[item].chromosome) && !dataset[item].chromosome.includes(ignore)) {
             var check = item
             var temp = {
                 chromosome: dataset[item].chromosome,
@@ -284,7 +190,7 @@ function buildModel(dataset, trackType) {
     // Changing the default lexicographical order, since chromosome11 should come after chromosome2 
     // additional logic so that all chromosomes from the same line should be grouped   
     chromosomeNameList.sort((a, b) => {
-        if (a.chromosome[0].localeCompare(b.chromosome[0]) == 0) {
+        if (a.chromosome[0].localeCompare(b.chromosome[0]) === 0) {
             return a.chromosome.length - b.chromosome.length
         }
         else {
@@ -294,16 +200,32 @@ function buildModel(dataset, trackType) {
 
     chromosomeNameList.forEach((chr, chrIndex) => {
         var subset = Object.entries(dataset).filter(d => {
-            return d[1].chromosome == chr.chromosome
+            return d[1].chromosome === chr.chromosome
         }).map(x => x[1])
 
+        var end = Math.max(...subset.map(d => d.end))
+
+        // const clickArray = []
+
+        // for(let n = 0; n < subset.length; n++){
+        //     for(let v = subset[n].start; v <= subset[n].end; v++){
+        //         clickArray[v] = subset[n].key
+        //     }
+        // }
+
+        // console.log(clickArray)
         var temp = {
             key: chr,
             data: subset,
-            trackType
+            // clickArray,
+            trackType,
+            end
         }
+        // debugger
         chromosomalData.push(temp)
+        channel.postMessage(temp)
     })
+    channel.close()
     return { chromosomalData, dataset }
 }
 
@@ -333,7 +255,10 @@ function process(collinearityData) {
     alignmentList.push(alignmentBuffer);
     // get the unique list of IDs of all chromosomes or scaffolds that have alignments mapped to them
     let uniqueIDList = [];
-    alignmentList.map((d) => { uniqueIDList.push(d.source, d.target) });
+    alignmentList.map((d) => {
+        uniqueIDList.push(d.source, d.target)
+        return 0
+    });
     return { "information": {}, "alignmentList": alignmentList, 'uniqueIDList': uniqueIDList.filter(onlyUnique) };
 };
 
@@ -344,7 +269,7 @@ function parseAlignmentDetails(alignmentDetails) {
         'score': Number(alignmentDetailsList[3].split('=')[1].trim()),
         'e_value': Number(alignmentDetailsList[4].split('=')[1].trim()),
         'count': Number(alignmentDetailsList[5].split('=')[1].trim()),
-        'type': alignmentDetailsList[7].trim() == 'plus' ? 'regular' : 'flipped',
+        'type': alignmentDetailsList[7].trim() === 'plus' ? 'regular' : 'flipped',
         'source': alignmentDetailsList[6].split('&')[0].trim(),
         'target': alignmentDetailsList[6].split('&')[1].trim(),
         'sourceKey': Number(alignmentDetailsList[6].split('&')[0].trim().slice(2)),
@@ -378,7 +303,7 @@ async function pullGeneInfo(collinearityFile, nomenclature) {
             selectedCollinearity.push(...temporaryCollinearity)
         })
         let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
-        let trueMatch = genePairs.filter((x) => +x.e_value == 0)
+        let trueMatch = genePairs.filter((x) => +x.e_value === 0)
         return trueMatch
     })
 }
@@ -392,7 +317,7 @@ async function pullSubmittedGeneInfo(collinearityFile, nomenclature) {
         selectedCollinearity.push(...temporaryCollinearity)
     })
     let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
-    let trueMatch = genePairs.filter((x) => +x.e_value == 0)
+    let trueMatch = genePairs.filter((x) => +x.e_value === 0)
     return trueMatch
 
 }

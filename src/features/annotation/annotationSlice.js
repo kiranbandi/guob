@@ -1,3 +1,4 @@
+
 import { createSlice } from '@reduxjs/toolkit';
 
 
@@ -20,14 +21,19 @@ export const annotationSlice = createSlice({
     reducers: {
         addAnnotation: (state, action) => {
             if (!state.annotations[action.payload.key]) {
+                let chromosomeNumber = action.payload.key.replace(/^\D+/g, '')
+                action.payload.chromosome = chromosomeNumber
                 state.annotations[action.payload.key] = [action.payload]
+               
             }
             else {
                 if (state.annotations[action.payload.key].some(x => {
-                    return x.note == action.payload.note && x.location == action.payload.location
+                    return x.note === action.payload.note && x.location === action.payload.location
                 })) {
                     return
                 }
+                let chromosomeNumber = action.payload.key.replace(/^\D+/g, '')
+                action.payload.chromosome = chromosomeNumber
                 state.annotations[action.payload.key].push(action.payload)
             }
 
@@ -43,14 +49,18 @@ export const annotationSlice = createSlice({
         },
         addSearch: (state, action) => {
             if (!state.searches[action.payload.key]) {
+                let chromosomeNumber = action.payload.key.replace(/^\D+/g, '')
+                action.payload.chromosome = chromosomeNumber
                 state.searches[action.payload.key] = [action.payload]
             }
             else {
                 if (state.searches[action.payload.key].some(x => {
-                    return x.note == action.payload.note && x.location == action.payload.location
+                    return x.note === action.payload.note && x.location === action.payload.location
                 })) {
                     return
                 }
+                let chromosomeNumber = action.payload.key.replace(/^\D+/g, '')
+                action.payload.chromosome = chromosomeNumber
                 state.searches[action.payload.key].push(action.payload)
             }
         },
@@ -63,7 +73,7 @@ export const annotationSlice = createSlice({
             }
             else {
                 if (state.ortholog[action.payload.key].some(x => {
-                    return x.note == action.payload.note && x.location == action.payload.location
+                    return x.note === action.payload.note && x.location === action.payload.location
                 })) {
                     return
                 }

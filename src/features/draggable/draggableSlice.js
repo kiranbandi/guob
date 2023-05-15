@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import _ from 'lodash';
 
 const initialState = {
     // currently a placeholder
-    draggables: ['at1', 'at2', 'at3', 'at4', 'at5', 'links'],
+    draggables: ['coordinate_at1', 'coordinate_at2', 'coordinate_at3', 'coordinate_at4', 'coordinate_at5', 'links'],
     ortholog: [],
     group: [],
+    sorted: false,
 }
 
 export const draggableSlice = createSlice({
@@ -76,12 +76,30 @@ export const draggableSlice = createSlice({
         clearDraggables: (state, action) => {
             state[action.payload.dragGroup].length = 0
 
+        },
+        sortDraggables: (state, action) => {
+
+            if(state.sorted){
+                // Sorts into groups based on track type (using similarity of name)
+                state[action.payload.dragGroup].sort((a,b) => {
+                   return a.length - b.length || a.localeCompare(b)
+                })
+            }
+            else{
+                // Sorts into groups based on chromosome number ( using the number found in name)
+                state[action.payload.dragGroup].sort((a,b) => {
+                    let numberA = a.split("_")[1].replace(/^\D+/g, '')
+                    let numberB = b.split("_")[1].replace(/^\D+/g, '')
+                    return numberA.length - numberB.length || numberA.localeCompare(numberB)
+                 })
+            }
+            state.sorted = !state.sorted
         }
 
     }
 })
 
-export const { deleteAllDraggables, clearDraggables, moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup, setDraggables } = draggableSlice.actions
+export const { sortDraggables, deleteAllDraggables, clearDraggables, moveDraggable, addDraggable, removeDraggable, switchDraggable, insertDraggable, toggleGroup, clearGroup, sortGroup, setDraggables } = draggableSlice.actions
 
 export const selectDraggables = (state) => state.draggable
 export const selectGroup = (state) => state.draggable.group

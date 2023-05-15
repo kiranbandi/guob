@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor } from './basicTrackSlice'
+import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor, changeMatchingBasicTrackColor } from './basicTrackSlice'
 import { removeDraggable } from 'features/draggable/draggableSlice'
 import { useState } from 'react'
 import { ChromePicker } from 'react-color'
@@ -13,7 +13,7 @@ import Select from 'react-select'
  * a lot of tracks the event handlers get out of hand
  */
 
-const TrackListener = ({ children }) => {
+const TrackListener = ({ children, style }) => {
 
     const basicTrackSelector = useSelector(selectBasicTracks)
     const dispatch = useDispatch()
@@ -31,7 +31,6 @@ const TrackListener = ({ children }) => {
         "label" : d
     }))
     function handleChange(e){
-        console.log(e)
         dispatch(toggleTrackType({ 'id': showTypeSelection, 'type' : e.value }))
         setshowTypeOptions(false)
     }
@@ -44,7 +43,7 @@ const TrackListener = ({ children }) => {
             }
             goal = goal.parentElement
         }
-        let buttonInfo = goal.id.split("_")
+        let buttonInfo = goal.id.split(/_(.*)/s)
         // console.log(buttonInfo)
         switch (buttonInfo[0]) {
             case "deleteTrack":
@@ -55,7 +54,7 @@ const TrackListener = ({ children }) => {
                 setshowTypeOptions(true)
                 setshowTypeSelection(buttonInfo[1])
                 let buttonsLocation = goal.getBoundingClientRect()
-                setshowTypeLocation({ x: buttonsLocation.x, y: buttonsLocation.y })
+                setshowTypeLocation({ x: buttonsLocation.x, y: buttonsLocation.y + document.documentElement.scrollTop })
                 // dispatch(toggleTrackType({ 'id': buttonInfo[1] }))
                 break
             case "pickColor":
@@ -63,7 +62,7 @@ const TrackListener = ({ children }) => {
                 setColorPickerColor(basicTrackSelector[buttonInfo[1]].color)
                 setColorPickerSelection(buttonInfo[1])
                 let buttonLocation = goal.getBoundingClientRect()
-                setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y })
+                setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y + document.documentElement.scrollTop })
                 break
             
         }
@@ -99,11 +98,11 @@ let styling = css(css`
     let y = colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0
 
     return (
-        <div css={styling} onClick={handleClick} id="eventListener" >
+        <div css={styling} style={style} onClick={handleClick} id="eventListener" >
             {showColorPicker ? <div className="popover">
                 <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
                 <ChromePicker disableAlpha={true} color={{ 'hex': colorPickerColor }}  onChangeComplete={(c) => {
-                    dispatch(changeBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
+                    dispatch(changeMatchingBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
                     setColorPickerColor(c.hex)
                 }} />
             </div> : null}
