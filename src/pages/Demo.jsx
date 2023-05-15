@@ -953,9 +953,22 @@ ${'' /* .genomeTrack {
                                 <div>
                                     <DragContainer startingList={draggableSelector} style={{ float: "left" }}>
                                         {draggableSelector.map(item => {
-                                            return (
-                                                <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                    {item !== 'links' && !item.includes('genome') && <BasicTrack
+                                            if( item == 'links' && isRepeats){
+                                                return( 
+                                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                                        <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack>
+                                                    </Draggable>)
+                                            }
+                                            else if( item == 'links'){
+                                                return(
+                                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                                        <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+                                                    </Draggable>)
+                                            }
+                                            else if( !item.includes('genome')){
+                                                return(
+                                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                                    <BasicTrack
                                                         array={genomeSelector[item].array}
                                                         color={basicTrackSelector[item].color}
                                                         // height={basicTrackSelector[item].trackType == 'default' ? 1000 : undefined}
@@ -970,46 +983,51 @@ ${'' /* .genomeTrack {
                                                         selection={basicTrackSelector[item].selection}
                                                         isDark={isDark}
                                                         normalize={normalize}
-                                                    />}
-                                                    {item === 'links' && !isRepeats && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>}
-                                                    {item === 'links' && isRepeats && <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack>
-}
-
-                                                </Draggable>
-
-                                            )
+                                                    />
+                                                    </Draggable>
+                                                )
+                                            }
                                         })}
-                                        {/* <Draggable key="Test">
-                                    Test
-                                </Draggable> */}
 
                                     </DragContainer>
                                     {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("ortholog")) &&
                                         <DragContainer startingList={orthologDraggableSelector} style={{ float: "left" }}>
                                             {orthologDraggableSelector.map(item => {
+                                                if( item === 'links' && isRepeats){
+                                                return(
+                                                <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
+                                                    <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"} ></SVTrack>
+                                                </Draggable>)
+                                            }
+                                            else if( item === 'links'){
                                                 return (
+                                                <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
+                                                     <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>
+                                                </Draggable>)
+                                            }
+                                            else if( !item.includes('genome')){
+                                                return(
                                                     <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
-                                                        {item !== 'links' && !item.includes('genome') && <BasicTrack
-                                                            array={genomeSelector[item.split("o")[0]].array}
-                                                            color={basicTrackSelector[item].color}
-                                                            normalizedLength={basicTrackSelector[item].normalizedLength}
-                                                            trackType={basicTrackSelector[item].trackType}
-                                                            title={item}
-                                                            doSomething={addNewComparison}
-                                                            id={item}
-                                                            zoom={basicTrackSelector[item].zoom}
-                                                            pastZoom={basicTrackSelector[item].pastZoom}
-                                                            offset={basicTrackSelector[item].offset}
-                                                            selection={basicTrackSelector[item].selection}
-                                                            isDark={isDark}
-                                                            normalize={normalize}
-                                                        // key={item}
-                                                        />}
-                                                    {item === 'links' && !isRepeats && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>}
-                                                    {item === 'links' && isRepeats && <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack>}                                                    </Draggable>
-
+                                                    <BasicTrack
+                                                        array={genomeSelector[item].array}
+                                                        color={basicTrackSelector[item].color}
+                                                        // height={basicTrackSelector[item].trackType == 'default' ? 1000 : undefined}
+                                                        normalizedLength={basicTrackSelector[item].normalizedLength}
+                                                        trackType={basicTrackSelector[item].trackType}
+                                                        title={item}
+                                                        doSomething={addNewComparison}
+                                                        id={item}
+                                                        zoom={basicTrackSelector[item].zoom}
+                                                        pastZoom={basicTrackSelector[item].pastZoom}
+                                                        offset={basicTrackSelector[item].offset}
+                                                        selection={basicTrackSelector[item].selection}
+                                                        isDark={isDark}
+                                                        normalize={normalize}
+                                                    />
+                                                    </Draggable>
                                                 )
-                                            })}
+                                            }
+                                        })}
 
                                         </DragContainer>}
 

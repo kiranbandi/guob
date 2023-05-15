@@ -239,21 +239,11 @@ function RenderDemo({ isDark }) {
         window.chromosomalData.push(...chromosomalData)
         window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
         let normalizedLength = 0;
-        // let color;
-        // debugger
         normalizedLength = Math.max(...window.chromosomalData.map(d => d.end))
         chromosomalData.forEach((point, i) => {
-            // debugger
+       
             point.normalizedLength = normalizedLength
-            // if (point.trackType === 'default') {
-            //     color = ColourScale(i % 10)
-            // }
-            // else {
-            //     color = ColourScale(3)
-            // }
 
-            // let end = Math.max(...point.data.map(d => d.end))
-            debugger
             window.maximumLength += point.end;
         })
 
@@ -276,9 +266,7 @@ function RenderDemo({ isDark }) {
 
             let chosenGenomes = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
-
                 let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / totalSize
-                // debugger
                 chosenGenomes.push({
                     genome: currentGenomes[_],
                     width

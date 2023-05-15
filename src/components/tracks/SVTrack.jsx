@@ -211,8 +211,6 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
     const maxScore = _.maxBy(AllSVPairs, "qualityScore").qualityScore;
 
 
-
-
     let SVPairs =  AllSVPairs
     .filter((d)=> (d.qualityScore>=minQualityScore))
 

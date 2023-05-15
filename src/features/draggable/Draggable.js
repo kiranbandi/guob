@@ -28,6 +28,7 @@ const Draggable = ({ children, id, index, grouped, groupID, className, dragGroup
     let [change, setChange] = useState()
     // let [component, setComponent] = useState()
 
+
     const component = children.type.name === "Track" ? children.props.renderTrack : children.type.name
 
     function updateTimer() {
