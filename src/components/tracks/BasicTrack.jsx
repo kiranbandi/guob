@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, focus } from "react"
 import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
+import { schemeTableau10 } from 'd3';
+
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
@@ -13,6 +15,8 @@ import TrackControls from "./TrackControls.jsx";
 import { selectGenome } from "./genomeSlice.js";
 import TrackScale from "./track_components/TrackScale.jsx";
 import TrackMarkers from "./track_components/TrackMarkers.jsx";
+import Select from 'react-select';
+
 
 //! BasicTrack is deprecated - currently this exists only as a comparison. See RenderTrack for the current iteration
 /* Information flows from the basicTrackSlice to here through props, adjusting the slice adjusts the track
@@ -24,9 +28,10 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     const previewSelector = useSelector(selectMiniviews)['newPreview']
     const collabPreviews = useSelector(selectMiniviews)
     const comparisonSelector = useSelector(selectComparison)[title]
-
+    
 
     const [endCap, setEndCap] = useState(0)
+    const [chosenRepeats, setChosenRepeats] = useState(["SIRE", "Ogre", "Tekay"])
     const [startOfTrack, setStartOfTrack] = useState(0)
     const [dragging, setDragging] = useState(false)
     const [clickLocation, setClickLocation] = useState()
@@ -41,6 +46,49 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     const trackSelector = useSelector(selectBasicTracks)
     const genomeSelector = useSelector(selectGenome)
     const order = useSelector(selectDraggables)
+    const repeatOptions = [
+        { value: 'SIRE', label: 'SIRE' , color: schemeTableau10[4]},
+        { value: 'Ogre', label: 'Ogre', color: schemeTableau10[5] },
+        { value: 'Tekay', label: 'Tekay' , color: schemeTableau10[6]}
+      ];
+
+    const colormap = {
+        "SIRE": schemeTableau10[4],
+        "Ogre": schemeTableau10[5],
+        "Tekay": schemeTableau10[6]
+    }
+    const handleRepeatSelection =( selected) => {
+
+
+        const selectedRepeacts = selected.map(obj => obj.value);
+
+        setChosenRepeats(selectedRepeacts);
+      };
+
+      const customStyles = {
+        // menu: (provided, state) => ({
+        //     ...provided,
+        //   })
+        option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+            return {
+              ...styles,
+              backgroundColor: 'white' ,
+              color: data.color,
+
+            //   zIndex: 9999
+
+            //   width: 200
+            };
+          }
+      };
+
+
+      const extraStyles = {
+        menu: (provided, state) => ({
+            ...provided,
+            zIndex: 9999
+          })
+      }
 
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
     // the rest will be used for the scale 
@@ -66,7 +114,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     // const ctx = canvasRef.current.getContext('2d')
     const raw_width = parentWrapperWidth ? Math.round(parentWrapperWidth) : width,
         maxWidth = normalize && !genome ? raw_width * cap / normalizedLength - 20 : genome ? raw_width : raw_width - 20,
-        maxHeight = trackType === 'default' ? 50 : (parentWrapperHeight)
+        maxHeight = (trackType === 'default' || trackType==='repeats')? 50 : (parentWrapperHeight)
         // maxHeight = parentWrapperHeight ? (parentWrapperHeight - 25 - 25) : height;
 
 
@@ -100,6 +148,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     // Piling on another hack, when an ortholog is selected the parentwrapper width changes,
     // the offset needs to be adjusted or we lose our location
     useEffect(() => {
+
         if (!id.includes("preview")) {
             let raw_width = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width
             let updatedWidth = raw_width - 20
@@ -117,6 +166,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     }, [parentWrapperWidth])
 
     useEffect(() => {
+
+
         if (!array) return
         setSavedWidth(maxWidth)
         normalize && !genome ? setCap(normalizedLength) : setCap(Math.max(...array.map(d => d.end)))
@@ -166,6 +217,35 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 ctx.stroke();
                 setDrawnGenes([...array]);
             }
+
+            else if (trackType == 'repeats'){
+                let someArray =[]
+                let counter = 0
+                let ChosenNum = chosenRepeats.length;
+                for (let clade of chosenRepeats){
+                    const filteredList = array.filter(obj => obj.clade === clade);
+
+                    let holding = filteredList.map(dataPoint => {
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        let adjustedColor = colormap[clade]
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let drawGene = new gene(dataPoint,adjustedColor, trackType)
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, rectWidth, maxHeight/ChosenNum);
+                        return drawGene;
+                    })
+                    someArray = someArray.concat(holding);
+                    counter++;
+
+
+                }
+                // console.log(someArray)
+                setDrawnGenes(someArray)
+
+
+           
+
+
+            }
             else {
                 let holding = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset)
@@ -206,6 +286,64 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 ctx.stroke();
             }
 
+            else if (trackType == 'repeats'){
+
+
+                let someArray =[]
+                let counter = 0
+                let ChosenNum = chosenRepeats.length;
+                for (let clade of chosenRepeats){
+                    const filteredList = array.filter(obj => obj.clade === clade);
+
+                    let holding = filteredList.map(dataPoint => {
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        let adjustedColor = colormap[clade]
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let drawGene = new gene(dataPoint, adjustedColor, trackType)
+
+                        let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
+                        return drawGene;
+                    })
+                    someArray = someArray.concat(holding);
+                    counter++;
+
+
+                }
+
+                // let counter = 0
+                // let ChosenNum = chosenRepeats.length;
+                // drawnGenes.forEach(drawGene => {
+                //     let x = ((xScale(drawGene.start)) + offset)
+                //     let rectWidth = widthScale(drawGene.end - drawGene.start)
+                    
+                //     // Drawing only genes on the track -> also logic around having the genes get cut off if they begin or end beyond the track
+                //     if (x + rectWidth < paddingLeft || x > maxWidth - paddingRight) {
+                //         return
+                //     }
+                //     if (x < paddingLeft) {
+                //         let difference = -paddingLeft + x
+                //         rectWidth += difference
+                //         x = paddingLeft
+                //     }
+                //     else if (x + rectWidth > maxWidth - paddingRight) {
+                //         rectWidth = (maxWidth - paddingRight) - x 
+                //     }
+                //     // if (hovered && drawGene.key === hovered.key) {
+                //     //     drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
+                //     // }
+                //     else {
+                //         if (drawGene.draw) {
+                //             drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, rectWidth, maxHeight/ChosenNum);
+                //         }
+
+                //     }
+                //     counter++;
+
+                // })
+
+            }
+
             else {
                 drawnGenes.forEach(drawGene => {
                     let x = ((xScale(drawGene.start)) + offset)
@@ -236,7 +374,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             }
 
         }
-    }, [trackType, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight])
+    }, [trackType, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight, chosenRepeats])
 
 
     const gt = window.gt;
@@ -272,7 +410,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         // e.preventDefault();
         // e.stopPropagation()
         if (e.target.id !== id) {
-            console.log(genome)
+            // console.log(genome)
             return
         }
         if (e.altKey == true) {
@@ -297,6 +435,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
             //  Needs to be panned so that the zoom location remains the same
             let dx = ((normalizedLocation - offset) * (factor - 1))
+            // console.log(dx)
             let offsetX = Math.max(Math.min(offset - dx, 0), -((maxWidth * zoom * factor) - maxWidth))
             if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
 
@@ -349,7 +488,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
 
     function showPreview(event) {
-        if (genome || trackType !== 'default') return
+        if (genome || trackType !== 'default'  || trackType !== 'repeats') return
         let boundingBox = event.target.getBoundingClientRect()
         let verticalScroll = document.documentElement.scrollTop
 
@@ -382,7 +521,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         }
 
         let width = widthScale(end - head)
-        let coordinateX = trackType === "default" ? Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)) : changedX - previewSelector.width / 2
+        let coordinateX = (trackType === "default" || trackType === "repeats") ? Math.max(westEnd + 80, Math.min(eastEnd - previewSelector.width - 80, changedX - previewSelector.width / 2)) : changedX - previewSelector.width / 2
         // TODO This is a lot of events, no?
         dispatch(changeMiniviewColor({
             key: 'newPreview',
@@ -642,6 +781,10 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         let orthologInfo = (hovered && hovered.siblings && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
         info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + Math.round(hovered.start) + " bp\nOrthologs: " + orthologInfo : ''
     }
+    else if (trackType=="repeats") {
+
+        info = hovered ? hovered.key + "\nStart Location: " + Math.round(hovered.start) + " bp\nEnd Location: " + Math.round(hovered.end) + "\nValue: " + hovered.value : ''
+    }
     else {
         info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + Math.round(hovered.start) + " bp\nEnd Location: " + Math.round(hovered.end) + "\nValue: " + hovered.value : ''
     }
@@ -668,7 +811,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
 
     return (
-        <div style={{ width: "100%", height: '100%', }}>
+        <div style={{ width: "100%", height: '100%', position: 'relative'}}>
             {title && !genome &&
                 <Typography
                     variant="body1"
@@ -806,6 +949,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                             if (trackType !== "line") {
 
                                 drawnGenes.forEach(x => {
+                                    // console.log(x)
                                     if (x.hovering(normalizedLocation)) {
                                         setHovered(x)
                                         found = true
@@ -833,6 +977,21 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     onWheel={handleScroll}
                     {...props} />
             </Tooltip>
+         <></>    {trackType=="repeats"  &&  genome  && <span style = {{
+
+                    // height: '90%',
+                    // display: 'flex',
+                    // 'align-items': 'center',
+                //    zIndex: 9999,
+
+                    'transform-origin': 'top right', width:300, height: 30, display: 'flow-root'}} > <Select   onChange={handleRepeatSelection}
+
+// value={chosenRepeats}
+options={repeatOptions}
+styles={customStyles}
+
+isMulti
+/> </span>}
 
             {!noScale && <TrackScale
                 endOfTrack={endCap}
@@ -841,7 +1000,9 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 paddingLeft={paddingLeft}
                 paddingRight={paddingLeft}
             />}
-            {!genome && <TrackControls id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />}
+            {!genome && <TrackControls trackType={trackType} handleRepeatSelection={handleRepeatSelection} repeatOptions={repeatOptions} id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />}
+
+      
 
         </div>
 

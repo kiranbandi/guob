@@ -17,8 +17,11 @@ import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import Miniview from '../features/miniview/Miniview';
 import OrthologLinks from '../components/tracks/OrthologLinks'
-import { selectMiniviews, moveCollabPreview } from '../features/miniview/miniviewSlice';
+import SVTrack from '../components/tracks/SVTrack'
+
+import { selectMiniviews } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
+import IndexBased from  'components/tracks/IndexBased'
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
@@ -29,7 +32,10 @@ import TextField from '@mui/material/TextField'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import { text } from "d3-fetch"
+import StackedProcessor from 'features/parsers/stackedProcessoor';
 
+ 
+ 
 
 function RenderDemo({ isDark }) {
 
@@ -50,6 +56,11 @@ function RenderDemo({ isDark }) {
     const [resolution, setResolution] = useState(false)
     let [loading, setLoading] = useState(false)
     const [firstLoad, setFirstLoad] = useState(true)
+    const [stackedArray, setStackedArray] = useState({})
+    const [alignmentList, setAlignmentList] = useState([])
+    const [chromosomeMap, setChromosomeMap] = useState({})
+
+
 
 
 
@@ -62,6 +73,31 @@ function RenderDemo({ isDark }) {
     // const fileWorker = new Worker("test.worker.js");
 
     useEffect(() => {
+
+        // GetGenomicsData("bm4").then((data)=>{
+            
+        //     // let chosen = _.fiter(data, function(d){
+        //     //     if (d.source=="1" && d.target == "3"){
+        //     //         return true
+        //     //     }
+        //     // })
+        //     // console.log(data)
+        //     setAlignmentList(data.alignmentList);
+        //     setChromosomeMap(data.chromosomeMap);
+        //     // console.log("SV:   ",  filtered_array)
+        
+        // })
+
+
+
+        StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
+            window.stackData = {data};
+            setStackedArray({...data});
+            
+
+        
+        })
+
         if (loading) {
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
@@ -319,7 +355,7 @@ function RenderDemo({ isDark }) {
         width: 98%;
         float: left;
         margin: 0px;
-        overflow: hidden;
+        // overflow: hidden;
     
         &.smaller {
           width: 95%;
