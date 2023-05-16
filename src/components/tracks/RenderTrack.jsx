@@ -25,9 +25,8 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
     // the rest will be used for the scale 
     // If no height is present default to 100 pixel tall tracks
     // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
-    let parentWrapperHeight = height ? height : document.querySelector('.actualTrack')?.getBoundingClientRect()?.height,
-        parentWrapperWidth = genome ? width : document.querySelector('.actualTrack')?.getBoundingClientRect()?.width;
-
+   let parentWrapperHeight = height ? height : document.querySelector('.draggable')?.getBoundingClientRect()?.height,
+       parentWrapperWidth = genome ? width : document.querySelector('.draggable')?.getBoundingClientRect()?.width;
 
     // const paddingRight = genome ? 10 : 30, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
     const paddingRight = genome ? 0 : 30, paddingLeft = 0
@@ -62,6 +61,9 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
 
     useEffect(() => {
         setDrawnGenes([])
+        if (!array) return
+        setCap(Math.max(...array.map(d => d.end)))
+        setStart(Math.min(...array.map(d => d.start)))
     }, [isDark, color, trackType, normalize, maxWidth, array, max])
 
     // Piling on another hack, when an ortholog is selected the parentwrapper width changes,
@@ -69,28 +71,24 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
     useEffect(() => {
         if (genome) return
         if (!id.includes("preview")) {
-            let raw_width = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width
+            let raw_width = document.querySelector('.actualTrack')?.getBoundingClientRect()?.width
             let updatedWidth = raw_width - 20
             let ratio = updatedWidth / maxWidth
             //! This is probably where the linkages are going wrong 
             if (Math.abs(ratio - 1) > 0.001) {
                 let offsetX = Math.max(Math.min(offset * ratio, 0), -((maxWidth * zoom) - maxWidth))
-
-                dispatch(updateTrack({
-                    key: id,
-                    zoom,
-                    offset: offsetX
-                }))
+                // debugger
+                // dispatch(updateTrack({
+                //     key: id,
+                //     zoom,
+                //     offset: offsetX
+                // }))
+                // debugger
             }
         }
     }, [parentWrapperWidth])
 
     useEffect(() => {
-        if (!array) return
-        normalize && !genome ? setCap(normalizedLength) : setCap(Math.max(...array.map(d => d.end)))
-
-        setStart(Math.min(...array.map(d => d.start)))
-
 
         const ctx = canvasRef.current.getContext('2d')
         ctx.clearRect(0, 0, maxWidth, maxHeight)
@@ -99,6 +97,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
         let xScale = scaleLinear().domain([0, cap]).range([paddingLeft, (maxWidth * zoom) - paddingRight])
         let widthScale = scaleLinear().domain([0, cap - start]).range([0, maxWidth * zoom])
         let minValue = 0, maxValue = max ? max : 100;
+       
 
         maxValue = Math.max(...array.map(d => d.value));
 
@@ -125,9 +124,14 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
                 lineFunction(pathArray);
                 ctx.fill();
                 ctx.stroke();
+                 console.log(maxHeight)
+                                  console.log(parentWrapperHeight)
+
+                debugger
                 setDrawnGenes([...array]);
             }
             else {
+                console.log(maxHeight)
                 let holding = array.map(dataPoint => {
                     let x = ((xScale(dataPoint.start)) + offset)
                     let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
@@ -195,7 +199,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
             }
 
         }
-    }, [trackType, color, zoom, offset, drawnGenes, selection, normalize, parentWrapperHeight])
+    }, [trackType, color, zoom, offset, drawnGenes, selection, normalize, parentWrapperHeight, cap])
 
 
 

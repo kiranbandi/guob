@@ -14,6 +14,7 @@ export class gene {
         this.siblings = geneInfo.siblings;
         this.lightness = geneInfo.lightness;
         this.trackType = trackType;
+        console.log(trackType)
         //! Adjusting the color just to find orthologs as a proof of concept
         if (this.siblings !== undefined && this.siblings.length > 0) {
             this.color = "#ff0000"

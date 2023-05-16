@@ -766,7 +766,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     if (bpMapping) {
       let keys = Object.keys(bpMapping)
-      let numberOfKeys = 1000
+      let numberOfKeys = keys.length
       let firstIndex, lastIndex
       for (let x = 0; x < numberOfKeys; x++) {
         if (bpPosition < +keys[x]) break
@@ -841,7 +841,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     }
   }
-
   return (
     <>
       <div style={cursorStyle}></div>
@@ -893,7 +892,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           {renderTrack == "stackedTrack" ?
             <StackedTrack width={maxWidth} height={adjustedHeight} activeSubGenome={activeSubGenome} array={dataArray} subGenomes={subGenomes}></StackedTrack>
             :
-            ((renderTrack === "bitmap") &&
+            ((renderTrack === "bitmap" && trackType !== "line" && trackType !== "scatter") &&
               (zoom > numberOfImages && numberOfImages > 0 ?
                 bunchOfTracks(zoom, offset)
                 :
@@ -912,7 +911,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
                   width={width}
                 />))
             ||
-            (renderTrack === "basic" &&
+            ((renderTrack === "basic" || trackType === "line" || trackType === "scatter") &&
               <RenderTrack
                 title={id}
                 key={id}

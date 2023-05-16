@@ -72,13 +72,13 @@ const TrackListener = ({ children, style }) => {
 let styling = css(css`
     .popover {
             position: absolute;
-            z-index: 2;
+            z-index: 3;
             left: ${colorPickerLocation ? colorPickerLocation.x - 200 + 'px' : 0};
             top: ${colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0};
         }
     .Typepopover {
         position: absolute;
-        z-index: 2;
+        z-index: 3;
         left: ${showTypeLocation ? showTypeLocation.x - 10+ 'px' : 0};
         top: ${showTypeLocation ? showTypeLocation.y + 'px' : 0};
     }

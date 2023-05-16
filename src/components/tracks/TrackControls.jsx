@@ -209,7 +209,8 @@ function TrackControls(props) {
                     // height: buttonHeight,
                     '&:hover': {
                         backgroundColor: highlight
-                    }
+                    },
+                    zIndex: 2
                 }}
                 >
                     <MultilineChartIcon fontSize="small" className="handle_image" />
@@ -221,7 +222,8 @@ function TrackControls(props) {
                     // height: buttonHeight,
                     '&:hover': {
                         backgroundColor: highlight
-                    }
+                    },
+                  zIndex: 2
                 }}
                 >
                     <RemoveCircleOutlineIcon fontSize="small" className="handle_image" />
@@ -246,7 +248,8 @@ function TrackControls(props) {
                     // height: buttonHeight,
                     '&:hover': {
                         backgroundColor: highlight
-                    }
+                    },
+                    zIndex: 2
                 }}>
                     <ColorLensIcon fontSize="small" className="handle_image" />
                 </IconButton>
