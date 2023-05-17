@@ -25,8 +25,12 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
     // the rest will be used for the scale 
     // If no height is present default to 100 pixel tall tracks
     // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
-   let parentWrapperHeight = height ? height : document.querySelector('.draggable')?.getBoundingClientRect()?.height,
+    let parentWrapperHeight = genome ? 40 :  document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50,
        parentWrapperWidth = genome ? width : document.querySelector('.draggable')?.getBoundingClientRect()?.width;
+
+    console.log(width)
+    console.log(id)
+    console.log(genome)
 
     // const paddingRight = genome ? 10 : 30, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
     const paddingRight = genome ? 0 : 30, paddingLeft = 0
@@ -124,8 +128,8 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
                 lineFunction(pathArray);
                 ctx.fill();
                 ctx.stroke();
-                 console.log(maxHeight)
-                                  console.log(parentWrapperHeight)
+                console.log(maxHeight)
+                console.log(parentWrapperWidth)
 
                 debugger
                 setDrawnGenes([...array]);
@@ -204,7 +208,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
 
 
     return (
-        <div style={{ width: "100%", height: '100%', }}>
+        <div className={genome ? "genome_tracks" : "tracks"}>
             {title && !genome &&
                 <Typography
                     variant="body1"
@@ -229,7 +233,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
                 ref={canvasRef}
                 height={maxHeight}
                 width={maxWidth}
-                className={genome ? "genomeTrack" : "actualTrack"}
+                className={"placeholderasdf"}
                 style={style}
                 {...props} />
         </div>

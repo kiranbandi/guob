@@ -920,6 +920,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
                 color={color}
                 isDark={isDark}
                 offset={offset}
+                genome={genome}
                 zoom={zoom}
                 pastZoom={pastZoom}
                 height={1}

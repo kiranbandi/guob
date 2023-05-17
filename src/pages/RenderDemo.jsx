@@ -141,10 +141,10 @@ function RenderDemo({ isDark }) {
 
         if (loading) {
           
-        StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
-            window.stackData = {data};
-            setStackedArray({...data});
-        })
+        // StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
+        //     window.stackData = {data};
+        //     setStackedArray({...data});
+        // })
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
             dispatch(deleteAllDraggables({
@@ -278,7 +278,7 @@ function RenderDemo({ isDark }) {
             // debugger
             genomeTracks.push(
 
-            <Stack direction="row" marginBottom={0} key={"Stack_" + x} justifyContent={"space-around"} style={{position: "sticky", top: 0, zIndex: 2, background: "white"}}>
+            <Stack direction="row" marginBottom={0} paddingTop={3} key={"Stack_" + x} justifyContent={"space-around"} style={{position: "sticky", top: 0, zIndex: 4, background: isDark ? "#121212" : "white"}}>
                 {chosenGenomes.map(genomeItem => {
                     return (
                         <Track
