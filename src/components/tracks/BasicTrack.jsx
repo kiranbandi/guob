@@ -883,7 +883,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 })
             }
                 <TrackMarkers
-                    id={id}
+                    id={id +"_trackmarkers"}
                     endOfTrack={endCap}
                     startOfTrack={startOfTrack}
                     width={maxWidth}
@@ -977,7 +977,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     onWheel={handleScroll}
                     {...props} />
             </Tooltip>
-         <></>    {trackType=="repeats"  &&  genome  && <span style = {{
+         {trackType=="repeats"  &&  genome  && <span style = {{
 
                     // height: '90%',
                     // display: 'flex',

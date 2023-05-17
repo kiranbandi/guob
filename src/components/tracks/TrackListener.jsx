@@ -43,6 +43,7 @@ const TrackListener = ({ children, style }) => {
             }
             goal = goal.parentElement
         }
+        if(!goal) return
         let buttonInfo = goal.id.split(/_(.*)/s)
         // console.log(buttonInfo)
         switch (buttonInfo[0]) {
@@ -64,7 +65,9 @@ const TrackListener = ({ children, style }) => {
                 let buttonLocation = goal.getBoundingClientRect()
                 setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y + document.documentElement.scrollTop })
                 break
-            
+            default:
+                setColorPickerVisibility(false)
+                setshowTypeOptions(false)
         }
     }
 

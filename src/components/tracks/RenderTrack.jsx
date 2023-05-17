@@ -28,10 +28,6 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
     let parentWrapperHeight = genome ? 40 :  document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50,
        parentWrapperWidth = genome ? width : document.querySelector('.draggable')?.getBoundingClientRect()?.width;
 
-    console.log(width)
-    console.log(id)
-    console.log(genome)
-
     // const paddingRight = genome ? 10 : 30, paddingLeft = 10, paddingTop = 10, paddingBottom = 10;
     const paddingRight = genome ? 0 : 30, paddingLeft = 0
     let style = {
@@ -233,7 +229,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
                 ref={canvasRef}
                 height={maxHeight}
                 width={maxWidth}
-                className={"placeholderasdf"}
+                className={"renderTrack"}
                 style={style}
                 {...props} />
         </div>
