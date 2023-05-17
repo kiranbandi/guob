@@ -229,6 +229,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   let imageExists = () => {
 
+    // This could probably have more function than it does
     if (renderOrthologs !== undefined) return
     const img = new Image()
     img.onload = () => setRenderOrthologs(true)

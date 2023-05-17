@@ -72,12 +72,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         option: (styles, { data, isDisabled, isFocused, isSelected }) => {
             return {
               ...styles,
-              backgroundColor: 'white' ,
+              backgroundColor: isDark ? "#121212" : 'white',
               color: data.color,
-
-            //   zIndex: 9999
-
-            //   width: 200
             };
           }
       };

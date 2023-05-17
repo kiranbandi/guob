@@ -29,15 +29,15 @@ function TrackControls(props) {
 
 
   const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
+  const ITEM_PADDING_TOP = 8;
+  const MenuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        width: 250,
+      },
     },
-  },
-};
+  };
 
 
 
@@ -54,22 +54,22 @@ const MenuProps = {
       setOpenDialog(false);
     }
   };
-  const customStyles = {
-    // menu: (provided, state) => ({
-    //     ...provided,
-    //   })
-    option: (styles, { data, isDisabled, isFocused, isSelected }) => {
-      return {
-        ...styles,
-        backgroundColor: 'white',
-        color: data.color,
+  // const customStyles = {
+  //   // menu: (provided, state) => ({
+  //   //     ...provided,
+  //   //   })
+  //   option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+  //     return {
+  //       ...styles,
+  //       backgroundColor: 'white',
+  //       color: data.color,
 
-        //   zIndex: 9999
+  //       //   zIndex: 9999
 
-        //   width: 200
-      };
-    }
-  };
+  //       //   width: 200
+  //     };
+  //   }
+  // };
 
   const extraStyles = {
     control: (provided, state) => ({
@@ -211,6 +211,19 @@ const MenuProps = {
   //     }
 
 
+  const customStyles = {
+    // menu: (provided, state) => ({
+    //     ...provided,
+    //   })
+    option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+        return {
+          ...styles,
+          backgroundColor: props.isDark ? "#121212" : 'white',
+          color: data.color,
+        };
+      }
+  };
+
 
   const color = props.isDark ? deepOrange[500] : deepOrange[100]
   const highlight = props.isDark ? deepOrange[200] : deepOrange[500]
@@ -298,29 +311,16 @@ const MenuProps = {
           <DialogTitle>Select Repeats</DialogTitle>
           <DialogContent>
             <Box component="form" sx={{ display: 'flex', flexWrap: 'wrap' }}>
-              <FormControl sx={{ m: 1, minWidth: 240, minHeight: 500 }} id={'why'}>
-                <InputLabel htmlFor="Repeats" id={'multiple-checkbox-label'}>Repeats</InputLabel>
-                <Select
-                  labelId={'multiple-checkbox-label'}
-                  id={'multiple-checkbox-selection'}
-                  multiple
-                  value={selectedRepeats}
-                  input={<OutlinedInput label="Repeats" />}
-                  options={repeatOptions.map(repeat => repeat.label)}
-                  renderInput={(params) => (
-                      <TextField
-                          {...params}
-                          label="repeat"
-                          InputProps={{
-                              ...params.InputProps,
-                              type: 'search',
-                          }}
-                      />
-                  )}
-                MenuProps={MenuProps}
-                >
-                  
-                </Select>
+              <FormControl sx={{ m: 1, minWidth: 240, minHeight: 300 }} id={'repeat'}>
+                <span>
+                  <Select
+                  onChange={handleRepeatSelection}
+                    options={repeatOptions}
+                    isMulti
+                    styles={customStyles}
+                    />
+
+                </span>
               </FormControl>
             </Box>
           </DialogContent>
