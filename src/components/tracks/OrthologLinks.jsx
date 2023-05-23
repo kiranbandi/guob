@@ -75,9 +75,10 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     let bottomGenome = genomeSelector[indexSelector[index + 1]]
     
     
-    const parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
+    const parentWrapperWidth = document.querySelector('.tracks')?.getBoundingClientRect()?.width;
     //! Why - 41 !?
-    const maxWidth = Math.round(parentWrapperWidth) - 41
+    // const maxWidth = Math.round(parentWrapperWidth) - 41
+    const maxWidth = Math.round(parentWrapperWidth)
     
     useEffect(() => {
 

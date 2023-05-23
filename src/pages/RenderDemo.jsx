@@ -41,7 +41,7 @@ function RenderDemo({ isDark }) {
     const draggableSelector = useSelector(selectDraggables)['draggables']
     const orthologDraggableSelector = useSelector(selectDraggables)['ortholog']
     const genomeSelector = useSelector(selectGenome)
-    let [sliderHeight, setSliderHeight] = useState(250);
+    let [sliderHeight, setSliderHeight] = useState(130);
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const groupSelector = useSelector(selectGroup)
 
@@ -347,7 +347,7 @@ function RenderDemo({ isDark }) {
         width: 98%;
         float: left;
         margin: 0px;
-        // overflow: hidden;
+        overflow: hidden;
     
         &.smaller {
           width: 95%;
@@ -704,6 +704,7 @@ function RenderDemo({ isDark }) {
                     step={1}
                     min={75}
                     max={300}
+                    value={sliderHeight}
                     valueLabelDisplay={"auto"}
                     onChange={handleSlider}
                 />
