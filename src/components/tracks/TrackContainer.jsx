@@ -305,6 +305,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   useEffect(() => {
     let scalingIncrements
+    let endOfTrack = normalize ? normalizedLength : cap
     if (renderTrack == "stackedTrack" && array.length != 0) {
       let scalingIncrements = scaleLinear().domain([0, array.length]).range([0, maxWidth])
 
@@ -319,10 +320,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       }
     }
     else {
-      scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth])
+      scalingIncrements = scaleLinear().domain([0, endOfTrack]).range([0, maxWidth])
     }
     setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
-    setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), cap))
+    setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), endOfTrack))
     if (!usePreloadedImages) {
       generateImage().then(url => {
         setChosenImages(url)
@@ -353,10 +354,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         factor = 1 / factor
       }
 
-      //! Needs to handle normalized tracks
       let ratio = normalize ? cap/normalizedLength : 1.0
       let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * originalWidth*ratio
-      // debugger
+      
       //  Needs to be panned so that the  location remains the same
       let dx = ((normalizedLocation - offset) * (factor - 1))
 
@@ -412,7 +412,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let currentImageScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
 
-    let ratio = (cap) / pixelWidth
+    let ratio = normalize ? normalizedLength /pixelWidth : (cap) / pixelWidth
     let adjustedZoom = currentZoom / ratio
 
     let bpLocation = Math.round(currentImageScale.invert(Math.abs(offset)))
@@ -927,7 +927,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           }
 
           {(!genome) && (<TrackScale
-            endOfTrack={normalize ? normalizedLength : endCap}
+            endOfTrack={endCap}
             startOfTrack={startOfTrack}
             width={originalWidth}
             paddingLeft={0}
