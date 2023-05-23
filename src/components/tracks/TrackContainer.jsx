@@ -737,7 +737,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let adjustedPos = (e.clientX) - offset
 
-    xScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
+    xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, originalWidth])
     bpPosition = getXLocation(adjustedPos)
 

@@ -129,6 +129,7 @@ function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, norma
                         }}
                     >{"Chromosome: " + id + "-bitmap"}</Typography>}
                 {!genome && orthologs && <img
+                    className={'testingTracks'}
                     src={orthologs}
                     id={id + "ortholog_imageTrack"}
                     style={orthologStyle(offset, zoom, 0)}
@@ -138,7 +139,7 @@ function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, norma
                 <div className={genome ? "genome_tracks" : "tracks"} style={{ float: "left", display: "inline", height: orthologs || genome ? adjustedHeight - 20 : adjustedHeight }}>
                     {image.map((image, index) => {
                         return (<img
-                            className='imageTrack'
+                            className={genome ? 'genome-track' : 'track'}
                             key={dynamicID + index}
                             src={image}
                             id={dynamicID + index}

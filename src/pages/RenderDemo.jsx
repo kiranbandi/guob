@@ -623,7 +623,7 @@ function RenderDemo({ isDark }) {
                 </Stack>
                 <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
-                    <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
+                    {/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
                     <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
                     <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
                     <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
@@ -725,7 +725,7 @@ function RenderDemo({ isDark }) {
                                     if (x === "links") {
                                         return (
                                             <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                <OrthologLinks key={x} id={x} index={draggableSelector.indexOf(x)} normalize={false} dragGroup={"draggables"}></OrthologLinks>
+                                                <OrthologLinks key={x} id={x} index={draggableSelector.indexOf(x)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
                                             </Draggable>
                                         )
                                     }

@@ -229,7 +229,7 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
                 ref={canvasRef}
                 height={maxHeight}
                 width={maxWidth}
-                className={"renderTrack"}
+                className={"track"}
                 style={style}
                 {...props} />
         </div>
