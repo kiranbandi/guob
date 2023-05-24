@@ -10,7 +10,7 @@ import { css } from '@emotion/react';
 import DragContainer from 'features/draggable/DragContainer';
 import Draggable from 'features/draggable/Draggable';
 import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, updateBothTracks } from 'redux/slices/basicTrackSlice';
-import { Typography, Slider, Tooltip } from '@mui/material';
+import { Typography, Slider, Tooltip, Dialog } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import OrthologLinks from '../components/tracks/OrthologLinks'
@@ -28,6 +28,13 @@ import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Track from 'components/tracks/Track'
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import { selectTrial } from 'redux/slices/trialSlice'
+
+
 
 import { text } from "d3-fetch"
 import StackedProcessor from 'features/parsers/stackedProcessoor';
@@ -257,6 +264,46 @@ function Eyetest({ isDark }) {
 
     }
 
+    const [openDialog, setOpenDialog] = useState(false)
+
+    const trialSelector = useSelector(selectTrial)['trial']
+    const handleCloseDialog = () => {
+        setOpenDialog(false)
+    }
+    useEffect(() => {
+        if(trialSelector.length > -1) setOpenDialog(true)
+    }, [trialSelector.length])
+    
+    const testDialog = () => {
+        if(trialSelector.length < 0) return (<></>)
+        
+        let target = trialSelector[0]
+        let descriptions = [
+            "Tasks Complete!",
+             "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog to the previous target.", 
+             "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previouse target.",
+            "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8 055 325. Please click on it."]
+
+        return (
+            <Dialog
+            open={openDialog}
+            onClose={handleCloseDialog}
+            >
+                <DialogTitle>
+                    {"Task Description"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText display="block">
+                        {descriptions[trialSelector.length]}
+                    </DialogContentText>
+                    <DialogActions>
+                        <Button onClick={handleCloseDialog} autofocus>Okay</Button>
+                    </DialogActions>
+                </DialogContent>
+                
+            </Dialog>
+        )
+    }
 
     const buildGenomeView = () => {
         if(!window.chromosomalData || window.chromosomalData.length === 0) return
@@ -579,6 +626,7 @@ function Eyetest({ isDark }) {
 
 
         <div css={styling}>
+            {testDialog()}
 
             {/* <Typography variant={'h5'} sx={{
                 WebkitUserSelect: 'none',
@@ -593,6 +641,9 @@ function Eyetest({ isDark }) {
             </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
                 <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
+            <Typography>
+                Target: {trialSelector[0]}
+            </Typography>
             <TrackListener isDark={isDark}  style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
                 {/* <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
