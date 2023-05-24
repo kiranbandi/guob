@@ -16,6 +16,7 @@ import { Typography, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
 import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs, } from '../../redux/slices/annotationSlice'
+import { selectTrial, incrementTrial } from 'redux/slices/trialSlice'
 import { nanoid } from '@reduxjs/toolkit'
 import { ContentPasteOffSharp, EditNotificationsOutlined } from '@mui/icons-material'
 
@@ -57,6 +58,12 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       normalizedLength = 0
     }
   }
+
+
+//! Trial Logic ###################################################################
+  const trialSelector = useSelector(selectTrial)['trial']
+  //! Trial Logic ###################################################################
+
 
   const dispatch = useDispatch()
 
@@ -331,17 +338,17 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
   }, [zoom, offset, cap, usePreloadedImages, array])
 
-  // useEffect(() => {
-  //   const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
+  useEffect(() => {
+    const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
 
 
-  //   setDataArray(subgenomeSortedData);
-  //   setNumChange(numChange + 1);
-  // }, [activeSubGenome])
+    setDataArray(subgenomeSortedData);
+    setNumChange(numChange + 1);
+  }, [activeSubGenome])
 
-  // useEffect(() => {
+  useEffect(() => {
 
-  // }, [SGThreshold])
+  }, [SGThreshold])
 
 
   function handleScroll(e) {
@@ -509,6 +516,20 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           deleteAnnotation(e.clientX - offset)
         }
         let gene = findGene(getBasePairPosition(e))
+
+        // ! Trial Logic ##############################################################################################
+      //  debugger
+        if(gene.key.toLowerCase() === trialSelector[0].toLowerCase(['trial'])){
+          dispatch(incrementTrial({}))
+          return
+        }
+
+
+
+
+
+        // ! Trial Logic ##############################################################################################
+
         //! Will need logic to align tracks
         if (gene && gene.siblings.length > 0) {
           dispatch(clearDraggables({ dragGroup: "ortholog" }))
@@ -569,7 +590,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         }
       })
     })
-    if (related.length < 1) return
+    if (related.length < 1 || !trackRef.current) return
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y + 27
