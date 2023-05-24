@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup, setDraggables, sortDraggables } from 'features/draggable/draggableSlice'
+import { selectDraggables, addDraggable, removeDraggable, deleteAllDraggables, selectGroup, setDraggables, sortDraggables } from 'features/draggable/draggableSlice'
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
@@ -35,13 +35,13 @@ import StackedProcessor from 'features/parsers/stackedProcessoor';
  
  
 
-function RenderDemo({ isDark }) {
+function Eyetest({ isDark }) {
 
     const basicTrackSelector = useSelector(selectBasicTracks)
     const draggableSelector = useSelector(selectDraggables)['draggables']
     const orthologDraggableSelector = useSelector(selectDraggables)['ortholog']
     const genomeSelector = useSelector(selectGenome)
-    let [sliderHeight, setSliderHeight] = useState(130);
+    let [sliderHeight, setSliderHeight] = useState(110);
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const groupSelector = useSelector(selectGroup)
 
@@ -54,6 +54,7 @@ function RenderDemo({ isDark }) {
     let [loading, setLoading] = useState(false)
     const [firstLoad, setFirstLoad] = useState(true)
     const [listening, setListening] = useState(false)
+    const [calculationFinished, setCalculationFinished] = useState(false)
     const [stackedArray, setStackedArray] = useState({})
     const [alignmentList, setAlignmentList] = useState([])
     const [chromosomeMap, setChromosomeMap] = useState({})
@@ -145,6 +146,7 @@ function RenderDemo({ isDark }) {
         //     window.stackData = {data};
         //     setStackedArray({...data});
         // })
+            setCalculationFinished(false)
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
             dispatch(deleteAllDraggables({
@@ -193,7 +195,7 @@ function RenderDemo({ isDark }) {
             }
 
             demoFile.forEach(file => {
-                console.log(file)
+            
                 text(file).then(data => {
                     let fileName = file.split(".")[0].split("/")
                     let nameDesignation = fileName[fileName.length - 1].split("_").join("-")
@@ -219,6 +221,7 @@ function RenderDemo({ isDark }) {
 
         }
         if (firstLoad) {
+            // dispatch(removeDraggable({ key: 'links'}))
             setFirstLoad(false)
             window.maximumLength = 0
             text(demoFile[0]).then(async data => {
@@ -233,6 +236,9 @@ function RenderDemo({ isDark }) {
     }, [demoFile])
 
 
+    useEffect(() => {
+    }, [calculationFinished])
+
     const buildDemo = (chromosomalData, dataset) => {
         window.dataset = { ...window.dataset, ...dataset }
         if (!window.chromosomalData) window.chromosomalData = []
@@ -246,6 +252,8 @@ function RenderDemo({ isDark }) {
 
             window.maximumLength += point.end;
         })
+
+        setCalculationFinished(true)
 
     }
 
@@ -572,11 +580,11 @@ function RenderDemo({ isDark }) {
 
         <div css={styling}>
 
-            <Typography variant={'h5'} sx={{
+            {/* <Typography variant={'h5'} sx={{
                 WebkitUserSelect: 'none',
             }}>
-                {"Render Demo"}
-            </Typography>
+                {"G U O B"}
+            </Typography> */}
             <Tooltip title={<Typography
                 variant="caption"
                 style={{ whiteSpace: 'pre-line' }}
@@ -585,8 +593,8 @@ function RenderDemo({ isDark }) {
             </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
                 <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
-            <TrackListener isDark={isDark} style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
-                <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+            <TrackListener isDark={isDark}  style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
+                {/* <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile != "files/bn_methylation_100k.bed") setLoading(true)
                         setDemoFile(["files/bn_methylation_100k.bed"])
@@ -620,17 +628,18 @@ function RenderDemo({ isDark }) {
                         setDemoCollinearity()
                     }}>Topas</Button>
 
-                </Stack>
-                <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                </Stack> */}
+                {/* <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
                     {/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
-                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
-                    <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
+                 
+                    {/* <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
                     <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
-                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
-                </Stack>
+                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
+                {/* </Stack> */}
                 {/* <Stack mt={2} spacing={2}> */}
                 <Stack direction='row' justifyContent={"flex-start"}>
+                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
                     <Autocomplete sx={{ width: '15%' }}
                         multiple
                         size="small"
@@ -650,8 +659,8 @@ function RenderDemo({ isDark }) {
                             />
                         )}
                     />
-                    <Button onClick={toggleSortedTracks}
-                    >Sort Tracks</Button>
+                    {/* <Button onClick={toggleSortedTracks}
+                    >Sort Tracks</Button> */}
                     {window.dataset && <Autocomplete sx={{ width: '70%' }}
                         multiple
                         size="small"
@@ -715,7 +724,7 @@ function RenderDemo({ isDark }) {
                     </Box> :
                         <>
 
-                            <Typography variant="h3" id={"gtVerticalReference"}>
+                            <Typography variant="h4" id={"gtVerticalReference"}>
                                 {titleState}
                             </Typography>
                             {buildGenomeView()}
@@ -779,4 +788,4 @@ function RenderDemo({ isDark }) {
     )
 }
 
-export default RenderDemo
+export default Eyetest

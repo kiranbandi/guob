@@ -329,7 +329,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         setChosenImages(url)
       })
     }
-  }, [zoom, offset, cap, usePreloadedImages])
+  }, [zoom, offset, cap, usePreloadedImages, array])
 
   useEffect(() => {
     const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
@@ -410,10 +410,14 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let bunch = []
 
+    let trackWidth = normalize ? maxWidth * cap/normalizedLength : maxWidth
     let currentImageScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
 
-    let ratio = normalize ? normalizedLength /pixelWidth : (cap) / pixelWidth
-    let adjustedZoom = currentZoom / ratio
+    //! Stuff to do in here
+    let ratio = (cap) / pixelWidth
+    // let normalizedZoomRatio = normalize ? cap/normalizedLength : 0
+    // let adjustedZoom = (currentZoom + normalizedZoomRatio ) / (ratio)
+    let adjustedZoom = (currentZoom) / (ratio)
 
     let bpLocation = Math.round(currentImageScale.invert(Math.abs(offset)))
 
