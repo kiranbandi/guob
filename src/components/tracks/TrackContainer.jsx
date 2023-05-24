@@ -4,18 +4,18 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import RenderTrack from './RenderTrack'
 import ImageTrack from './ImageTrack'
-import { updateTrack, selectBasicTracks, addBasicTrack, updateMatchingTracks } from './basicTrackSlice'
+import { updateTrack, selectBasicTracks, addBasicTrack, updateMatchingTracks } from '../../redux/slices/basicTrackSlice'
 import _ from 'lodash';
 import { set } from 'lodash'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
 import StackedTrack from './StackedTrack';
-import { selectGenome } from './genomeSlice'
-import { addDraggable, clearDraggables } from '../../features/draggable/draggableSlice'
+import { selectGenome } from '../../redux/slices/genomeSlice'
+import { addDraggable, clearDraggables } from '../../redux/slices/draggableSlice'
 import { Typography, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
-import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs, } from '../../features/annotation/annotationSlice'
+import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs, } from '../../redux/slices/annotationSlice'
 import { nanoid } from '@reduxjs/toolkit'
 import { ContentPasteOffSharp, EditNotificationsOutlined } from '@mui/icons-material'
 
@@ -331,17 +331,17 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
   }, [zoom, offset, cap, usePreloadedImages, array])
 
-  useEffect(() => {
-    const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
+  // useEffect(() => {
+  //   const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
 
 
-    setDataArray(subgenomeSortedData);
-    setNumChange(numChange + 1);
-  }, [activeSubGenome])
+  //   setDataArray(subgenomeSortedData);
+  //   setNumChange(numChange + 1);
+  // }, [activeSubGenome])
 
-  useEffect(() => {
+  // useEffect(() => {
 
-  }, [SGThreshold])
+  // }, [SGThreshold])
 
 
   function handleScroll(e) {

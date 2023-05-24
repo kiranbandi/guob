@@ -1,4 +1,4 @@
-import { selectDraggables } from "features/draggable/draggableSlice"
+import { selectDraggables } from "redux/slices/draggableSlice"
 import { useDispatch, useSelector } from "react-redux"
 import { scaleLinear } from "d3-scale"
 import SVLinks from 'components/layout/SVLinks';
@@ -6,14 +6,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import _, { reject } from 'lodash';
 
 import { Typography, Slider } from '@mui/material';
-import { updateBothTracks, updateTrack } from "./basicTrackSlice";
+import { updateBothTracks, updateTrack } from "../../redux/slices/basicTrackSlice";
 
 
 
 // import * as d3 from 'd3';
 
-import { selectBasicTracks } from "./basicTrackSlice"
-import { selectGenome } from "./genomeSlice";
+import { selectBasicTracks } from "../../redux/slices/basicTrackSlice"
+import { selectGenome } from "../../redux/slices/genomeSlice";
 
 var orthologs = window.orthologs;
 

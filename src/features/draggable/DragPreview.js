@@ -4,8 +4,8 @@ import { nanoid } from '@reduxjs/toolkit';
 import BasicTrack from 'components/tracks/BasicTrack';
 import OrthologLinks from 'components/tracks/OrthologLinks'
 import ImageTrack from 'components/tracks/ImageTrack'
-import { selectBasicTracks } from 'components/tracks/basicTrackSlice';
-import { selectGenome } from 'components/tracks/genomeSlice';
+import { selectBasicTracks } from 'redux/slices/basicTrackSlice';
+import { selectGenome } from 'redux/slices/genomeSlice';
 
 /**
  * Used in conjunction with "CustomDragLayer" to render components while being dragged.

@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React, { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
-import { selectBasicTracks } from './basicTrackSlice'
+import { selectBasicTracks } from '../../redux/slices/basicTrackSlice'
 import { Typography } from '@mui/material';
 import { css, keyframes } from "@emotion/react";
 

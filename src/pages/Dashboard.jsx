@@ -6,12 +6,12 @@ import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews } from '../features/miniview/miniviewSlice';
-import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { deleteAllDraggables, selectDraggables, selectGroup } from '../features/draggable/draggableSlice';
+import { moveAlternateDraggable, selectAlternateDraggables } from '../redux/slices/alternateDraggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup } from '../redux/slices/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
-import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
-import { addAlternateDraggable, removeAlternateDraggable } from '../features/draggable/alternateDraggableSlice';
+import { addDraggable, removeDraggable } from '../redux/slices/draggableSlice';
+import { addAlternateDraggable, removeAlternateDraggable } from '../redux/slices/alternateDraggableSlice';
 import { addMiniview, removeMiniview, selectComparison, removeComparison } from '../features/miniview/miniviewSlice';
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
@@ -19,7 +19,7 @@ import testing_array3 from '../data/testing_array3';
 import { Typography } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks } from 'redux/slices/basicTrackSlice';
 // import { pullInfo } from 'features/parsers/gffParser'; 
 import parseGFF from 'features/parsers/gffParser';
 import { scaleOrdinal } from 'd3-scale';

@@ -3,7 +3,7 @@ import { scaleLinear } from "d3-scale"
 import { useDispatch } from "react-redux"
 import { Typography } from '@mui/material';
 import { gene } from './gene.js'
-import { updateTrack } from "./basicTrackSlice";
+import { updateTrack } from "../../redux/slices/basicTrackSlice.js";
 import { line } from 'd3-shape';
 
 /**

@@ -24,7 +24,6 @@ export const draggableSlice = createSlice({
         },
 
         removeDraggable: (state, action) => {
-            // debugger
             Object.keys(state).forEach(z => {
                 if(state[z].length > 0){
                     state[z].forEach(x => {

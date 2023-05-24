@@ -1,13 +1,13 @@
-import { selectDraggables } from "features/draggable/draggableSlice"
+import { selectDraggables } from "redux/slices/draggableSlice"
 import { useDispatch, useSelector } from "react-redux"
 import { scaleLinear } from "d3-scale"
 import Links from 'components/layout/Links';
 import React, { useState, useEffect, useRef } from 'react';
-import { updateBothTracks, updateTrack } from "./basicTrackSlice";
+import { updateBothTracks, updateTrack } from "../../redux/slices/basicTrackSlice";
 
 
-import { selectBasicTracks } from "./basicTrackSlice"
-import { selectGenome } from "./genomeSlice";
+import { selectBasicTracks } from "../../redux/slices/basicTrackSlice"
+import { selectGenome } from "../../redux/slices/genomeSlice";
 
 
 

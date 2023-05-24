@@ -1,10 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import miniviewReducer from '../features/miniview/miniviewSlice';
-import alternateDraggableReducer from '../features/draggable/alternateDraggableSlice';
-import draggableReducer from '../features/draggable/draggableSlice';
-import basicTrackReducer from '../components/tracks/basicTrackSlice';
-import annotationReducer from 'features/annotation/annotationSlice';
-import genomeReducer from '../components/tracks/genomeSlice';
+import alternateDraggableReducer from './slices/alternateDraggableSlice';
+import draggableReducer from './slices/draggableSlice';
+import basicTrackReducer from './slices/basicTrackSlice';
+import annotationReducer from 'redux/slices/annotationSlice';
+import genomeReducer from './slices/genomeSlice';
+import trialReducer from './slices/trialSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     basictrack : basicTrackReducer,
     annotation: annotationReducer,
     genome: genomeReducer,
+    trial: trialReducer,
   },
   middleWare: getDefaultMiddleWare => getDefaultMiddleWare({
     serializableCheck: false,

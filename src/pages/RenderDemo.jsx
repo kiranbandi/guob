@@ -1,15 +1,15 @@
 /** @jsxImportSource @emotion/react */
-import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup, setDraggables, sortDraggables } from 'features/draggable/draggableSlice'
+import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup, setDraggables, sortDraggables } from 'redux/slices/draggableSlice'
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import { addGenome, deleteAllGenome, selectGenome } from 'components/tracks/genomeSlice';
+import { addGenome, deleteAllGenome, selectGenome } from 'redux/slices/genomeSlice';
 import _ from 'lodash';
 import { scaleOrdinal } from 'd3-scale';
 import { css } from '@emotion/react';
 import DragContainer from 'features/draggable/DragContainer';
 import Draggable from 'features/draggable/Draggable';
-import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, updateBothTracks } from 'components/tracks/basicTrackSlice';
+import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, updateBothTracks } from 'redux/slices/basicTrackSlice';
 import { Typography, Slider, Tooltip } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
@@ -23,7 +23,7 @@ import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer }
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import sendFileToWorkers from '../utils/sendFileToWorkers'
-import { addAnnotation, clearSearches, addSearch, removeAnnotation } from 'features/annotation/annotationSlice';
+import { addAnnotation, clearSearches, addSearch, removeAnnotation } from 'redux/slices/annotationSlice';
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';

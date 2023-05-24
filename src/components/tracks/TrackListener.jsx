@@ -1,8 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor, changeMatchingBasicTrackColor } from './basicTrackSlice'
-import { removeDraggable } from 'features/draggable/draggableSlice'
+import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor, changeMatchingBasicTrackColor } from '../../redux/slices/basicTrackSlice'
+import { removeDraggable } from 'redux/slices/draggableSlice'
 import { useState } from 'react'
 import { ChromePicker } from 'react-color'
 import { css } from '@emotion/react';

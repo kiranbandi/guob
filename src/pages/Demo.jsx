@@ -7,12 +7,12 @@ import DragContainer from '../features/draggable/DragContainer';
 import AlternateDraggable from '../features/draggable/AlternateDraggable'
 import { useSelector, useDispatch } from 'react-redux';
 import { addComparison, selectMiniviews, clearComparisons, moveCollabPreview } from '../features/miniview/miniviewSlice';
-import { moveAlternateDraggable, selectAlternateDraggables } from '../features/draggable/alternateDraggableSlice';
-import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../features/draggable/draggableSlice';
+import { moveAlternateDraggable, selectAlternateDraggables } from '../redux/slices/alternateDraggableSlice';
+import { deleteAllDraggables, selectDraggables, selectGroup, setDraggables } from '../redux/slices/draggableSlice';
 import { css } from '@emotion/react';
 import { useState } from 'react';
-import { addDraggable, removeDraggable } from '../features/draggable/draggableSlice';
-import { addAlternateDraggable, removeAlternateDraggable } from '../features/draggable/alternateDraggableSlice';
+import { addDraggable, removeDraggable } from '../redux/slices/draggableSlice';
+import { addAlternateDraggable, removeAlternateDraggable } from '../redux/slices/alternateDraggableSlice';
 import { addMiniview, removeMiniview, selectComparison, removeComparison } from '../features/miniview/miniviewSlice';
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import testing_array2 from '../data/testing_array2';
@@ -21,7 +21,7 @@ import { Typography, Slider } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import BasicTrack from 'components/tracks/BasicTrack';
 import StackedTrack from 'components/tracks/StackedTrack';
-import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks, changeBasicTrackColor } from 'components/tracks/basicTrackSlice';
+import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTracks, updateTrack, toggleTrackType, updateBothTracks, changeBasicTrackColor } from 'redux/slices/basicTrackSlice';
 import SVTrack from 'components/tracks/SVTrack'
 
 // import { pullInfo } from 'features/parsers/gffParser'; 
@@ -38,11 +38,11 @@ import parseGFF from 'features/parsers/gffParser';
 import { parseSubmittedGFF, parseSubmittedCollinearity } from 'features/parsers/gffParser';
 import _, { reject } from 'lodash';
 import OrthologLinks from 'components/tracks/OrthologLinks';
-import { addAnnotation, clearSearches, addSearch } from 'features/annotation/annotationSlice';
-import { removeAnnotation } from '../features/annotation/annotationSlice';
+import { addAnnotation, clearSearches, addSearch } from 'redux/slices/annotationSlice';
+import { removeAnnotation } from '../redux/slices/annotationSlice';
 import TrackListener from 'components/tracks/TrackListener';
 import { resolveConfig } from 'prettier';
-import { addGenome, deleteAllGenome, selectGenome } from 'components/tracks/genomeSlice';
+import { addGenome, deleteAllGenome, selectGenome } from 'redux/slices/genomeSlice';
 import StackedProcessor from 'features/parsers/stackedProcessoor'
 // import './canola.gff'
 
