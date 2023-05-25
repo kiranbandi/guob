@@ -724,7 +724,7 @@ function RenderDemo({ isDark }) {
                             <Typography variant="h3" id={"gtVerticalReference"}>
                                 {titleState}
                             </Typography>
-                            {buildGenomeView()}
+                            {genomeView && buildGenomeView()}
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
                             <DragContainer startingList={draggableSelector} isDark={isDark}>
                                 {draggableSelector.map((x, i) => {
