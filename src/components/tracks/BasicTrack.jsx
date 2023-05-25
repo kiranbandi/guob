@@ -6,13 +6,13 @@ import { schemeTableau10 } from 'd3';
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
-import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack, addBasicTrack, deleteAllOrthologTracks } from "./basicTrackSlice";
-import { addAnnotation, selectAnnotations, selectSearch, removeAnnotation, addOrtholog, clearOrthologs, selectOrthologs } from "features/annotation/annotationSlice";
+import { changeZoom, pan, selectBasicTracks, setSelection, clearSelection, updateTrack, addBasicTrack, deleteAllOrthologTracks } from "../../redux/slices/basicTrackSlice.js";
+import { addAnnotation, selectAnnotations, selectSearch, removeAnnotation, addOrtholog, clearOrthologs, selectOrthologs } from "redux/slices/annotationSlice.js";
 import { line } from 'd3-shape';
 import Window from "features/miniview/Window.js";
-import { selectDraggables, addDraggable, clearDraggables } from "features/draggable/draggableSlice.js";
+import { selectDraggables, addDraggable, clearDraggables } from "redux/slices/draggableSlice.js";
 import TrackControls from "./TrackControls.jsx";
-import { selectGenome } from "./genomeSlice.js";
+import { selectGenome } from "../../redux/slices/genomeSlice.js";
 import TrackScale from "./track_components/TrackScale.jsx";
 import TrackMarkers from "./track_components/TrackMarkers.jsx";
 import Select from 'react-select';
@@ -72,12 +72,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         option: (styles, { data, isDisabled, isFocused, isSelected }) => {
             return {
               ...styles,
-              backgroundColor: 'white' ,
+              backgroundColor: isDark ? "#121212" : 'white',
               color: data.color,
-
-            //   zIndex: 9999
-
-            //   width: 200
             };
           }
       };
@@ -883,7 +879,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 })
             }
                 <TrackMarkers
-                    id={id}
+                    id={id +"_trackmarkers"}
                     endOfTrack={endCap}
                     startOfTrack={startOfTrack}
                     width={maxWidth}
@@ -977,7 +973,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     onWheel={handleScroll}
                     {...props} />
             </Tooltip>
-         <></>    {trackType=="repeats"  &&  genome  && <span style = {{
+         {trackType=="repeats"  &&  genome  && <span style = {{
 
                     // height: '90%',
                     // display: 'flex',

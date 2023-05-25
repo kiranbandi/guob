@@ -6,7 +6,7 @@ import { store } from './redux/store';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { Dashboard, Demo, Documentation, Home, Comparison, NotFound, RenderDemo } from './pages';
+import { Dashboard, Demo, Documentation, Home, Comparison, NotFound, RenderDemo, Eyetest } from './pages';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useState } from 'react';
@@ -19,7 +19,7 @@ import $ from 'jquery';
 export default function App() {
 
 
-    const [ isDark, setIsDark ] = useState(false)
+    const [ isDark, setIsDark ] = useState(true)
 
     const darkTheme = createTheme({
         palette: {
@@ -55,7 +55,8 @@ export default function App() {
           <Route path="comparison" element={<Comparison isDark={isDark}/>} />
           <Route path="documentation" element={<Documentation />} />
           <Route path="renderdemo" element={<RenderDemo  isDark={isDark}/>} />
-          {/* <Route path="*" element={<NotFound />}/> */}
+          <Route path="eyetest" element={<Eyetest isDark={isDark}/>}/>
+          <Route path="*" element={<NotFound />}/>
         </Route>
       </Routes>
     </HashRouter>

@@ -2,7 +2,7 @@ import { useRef } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { ItemTypes } from "./ItemTypes"
 import { useDispatch } from "react-redux"
-import { moveAlternateDraggable } from "./alternateDraggableSlice"
+import { moveAlternateDraggable } from "../../redux/slices/alternateDraggableSlice"
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import { IconButton } from "@mui/material"
 import { teal } from '@mui/material/colors';

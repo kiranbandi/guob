@@ -1,8 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor, changeMatchingBasicTrackColor } from './basicTrackSlice'
-import { removeDraggable } from 'features/draggable/draggableSlice'
+import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor, changeMatchingBasicTrackColor } from '../../redux/slices/basicTrackSlice'
+import { removeDraggable } from 'redux/slices/draggableSlice'
 import { useState } from 'react'
 import { ChromePicker } from 'react-color'
 import { css } from '@emotion/react';
@@ -13,7 +13,7 @@ import Select from 'react-select'
  * a lot of tracks the event handlers get out of hand
  */
 
-const TrackListener = ({ children, style }) => {
+const TrackListener = ({ children, style, isDark=false }) => {
 
     const basicTrackSelector = useSelector(selectBasicTracks)
     const dispatch = useDispatch()
@@ -43,8 +43,10 @@ const TrackListener = ({ children, style }) => {
             }
             goal = goal.parentElement
         }
+        if(!goal) return
         let buttonInfo = goal.id.split(/_(.*)/s)
-        // console.log(buttonInfo)
+        // debugger
+        console.log(buttonInfo)
         switch (buttonInfo[0]) {
             case "deleteTrack":
                 dispatch(removeDraggable({ 'key': buttonInfo[1] }))
@@ -64,7 +66,9 @@ const TrackListener = ({ children, style }) => {
                 let buttonLocation = goal.getBoundingClientRect()
                 setColorPickerLocation({ x: buttonLocation.x, y: buttonLocation.y + document.documentElement.scrollTop })
                 break
-            
+            default:
+                setColorPickerVisibility(false)
+                setshowTypeOptions(false)
         }
     }
 
@@ -72,15 +76,22 @@ const TrackListener = ({ children, style }) => {
 let styling = css(css`
     .popover {
             position: absolute;
-            z-index: 2;
+            z-index: 5;
             left: ${colorPickerLocation ? colorPickerLocation.x - 200 + 'px' : 0};
             top: ${colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0};
+            color: red;
+            background: green;
         }
     .Typepopover {
         position: absolute;
-        z-index: 2;
+        z-index: 5;
         left: ${showTypeLocation ? showTypeLocation.x - 10+ 'px' : 0};
         top: ${showTypeLocation ? showTypeLocation.y + 'px' : 0};
+    }
+    .trackmenu {
+        background-color: ${isDark ? "black" : "white"};
+        background: ${isDark ? "black" : "white"};
+        color: ${isDark ? "white" : "black"};
     }
     }`)
 
@@ -101,14 +112,28 @@ let styling = css(css`
         <div css={styling} style={style} onClick={handleClick} id="eventListener" >
             {showColorPicker ? <div className="popover">
                 <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
-                <ChromePicker disableAlpha={true} color={{ 'hex': colorPickerColor }}  onChangeComplete={(c) => {
+                <ChromePicker className="trackmenu" disableAlpha={true} color={{ 'hex': colorPickerColor }}  onChangeComplete={(c) => {
                     dispatch(changeMatchingBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
                     setColorPickerColor(c.hex)
                 }} />
             </div> : null}
             {showTypeOptions ? <div className="Typepopover">
                 <div style={cover} onClick={(e) => { setshowTypeOptions(false) }} />
-                <Select options={options} onChange={handleChange} />
+                <Select 
+                    // className="trackmenu" 
+                    options={options} 
+                    onChange={handleChange}
+                    MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            bgcolor: 'pink',
+                            '& .MuiMenuItem-root': {
+                              padding: 2,
+                            },
+                          },
+                        },
+                      }} 
+                      />
 
             </div> : null}
             {children}

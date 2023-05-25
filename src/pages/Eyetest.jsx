@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { selectDraggables, addDraggable, deleteAllDraggables, selectGroup, setDraggables, sortDraggables } from 'redux/slices/draggableSlice'
+import { selectDraggables, addDraggable, removeDraggable, deleteAllDraggables, selectGroup, setDraggables, sortDraggables } from 'redux/slices/draggableSlice'
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
@@ -10,7 +10,7 @@ import { css } from '@emotion/react';
 import DragContainer from 'features/draggable/DragContainer';
 import Draggable from 'features/draggable/Draggable';
 import { addBasicTrack, selectBasicTracks, deleteAllBasicTracks, updateTrack, updateBothTracks } from 'redux/slices/basicTrackSlice';
-import { Typography, Slider, Tooltip } from '@mui/material';
+import { Typography, Slider, Tooltip, Dialog } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import OrthologLinks from '../components/tracks/OrthologLinks'
@@ -28,6 +28,13 @@ import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Track from 'components/tracks/Track'
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import { selectTrial } from 'redux/slices/trialSlice'
+
+
 
 import { text } from "d3-fetch"
 import StackedProcessor from 'features/parsers/stackedProcessoor';
@@ -35,13 +42,13 @@ import StackedProcessor from 'features/parsers/stackedProcessoor';
  
  
 
-function RenderDemo({ isDark }) {
+function Eyetest({ isDark }) {
 
     const basicTrackSelector = useSelector(selectBasicTracks)
     const draggableSelector = useSelector(selectDraggables)['draggables']
     const orthologDraggableSelector = useSelector(selectDraggables)['ortholog']
     const genomeSelector = useSelector(selectGenome)
-    let [sliderHeight, setSliderHeight] = useState(130);
+    let [sliderHeight, setSliderHeight] = useState(110);
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const groupSelector = useSelector(selectGroup)
 
@@ -54,6 +61,7 @@ function RenderDemo({ isDark }) {
     let [loading, setLoading] = useState(false)
     const [firstLoad, setFirstLoad] = useState(true)
     const [listening, setListening] = useState(false)
+    const [calculationFinished, setCalculationFinished] = useState(false)
     const [stackedArray, setStackedArray] = useState({})
     const [alignmentList, setAlignmentList] = useState([])
     const [chromosomeMap, setChromosomeMap] = useState({})
@@ -145,6 +153,7 @@ function RenderDemo({ isDark }) {
         //     window.stackData = {data};
         //     setStackedArray({...data});
         // })
+            setCalculationFinished(false)
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
             dispatch(deleteAllDraggables({
@@ -193,7 +202,7 @@ function RenderDemo({ isDark }) {
             }
 
             demoFile.forEach(file => {
-                console.log(file)
+            
                 text(file).then(data => {
                     let fileName = file.split(".")[0].split("/")
                     let nameDesignation = fileName[fileName.length - 1].split("_").join("-")
@@ -219,6 +228,7 @@ function RenderDemo({ isDark }) {
 
         }
         if (firstLoad) {
+            // dispatch(removeDraggable({ key: 'links'}))
             setFirstLoad(false)
             window.maximumLength = 0
             text(demoFile[0]).then(async data => {
@@ -232,6 +242,9 @@ function RenderDemo({ isDark }) {
 
     }, [demoFile])
 
+
+    useEffect(() => {
+    }, [calculationFinished])
 
     const buildDemo = (chromosomalData, dataset) => {
         window.dataset = { ...window.dataset, ...dataset }
@@ -247,8 +260,50 @@ function RenderDemo({ isDark }) {
             window.maximumLength += point.end;
         })
 
+        setCalculationFinished(true)
+
     }
 
+    const [openDialog, setOpenDialog] = useState(false)
+
+    const trialSelector = useSelector(selectTrial)['trial']
+    const handleCloseDialog = () => {
+        setOpenDialog(false)
+    }
+    useEffect(() => {
+        if(trialSelector.length > -1) setOpenDialog(true)
+    }, [trialSelector.length])
+    
+    const testDialog = () => {
+        if(trialSelector.length < 0) return (<></>)
+        
+        let target = trialSelector[0]
+        let descriptions = [
+            "Tasks Complete!",
+             "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog to the previous target.", 
+             "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previouse target.",
+            "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8 055 325. Please click on it."]
+
+        return (
+            <Dialog
+            open={openDialog}
+            onClose={handleCloseDialog}
+            >
+                <DialogTitle>
+                    {"Task Description"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText display="block">
+                        {descriptions[trialSelector.length]}
+                    </DialogContentText>
+                    <DialogActions>
+                        <Button onClick={handleCloseDialog} autofocus>Okay</Button>
+                    </DialogActions>
+                </DialogContent>
+                
+            </Dialog>
+        )
+    }
 
     const buildGenomeView = () => {
         if(!window.chromosomalData || window.chromosomalData.length === 0) return
@@ -571,12 +626,13 @@ function RenderDemo({ isDark }) {
 
 
         <div css={styling}>
+            {testDialog()}
 
-            <Typography variant={'h5'} sx={{
+            {/* <Typography variant={'h5'} sx={{
                 WebkitUserSelect: 'none',
             }}>
-                {"Render Demo"}
-            </Typography>
+                {"G U O B"}
+            </Typography> */}
             <Tooltip title={<Typography
                 variant="caption"
                 style={{ whiteSpace: 'pre-line' }}
@@ -585,8 +641,11 @@ function RenderDemo({ isDark }) {
             </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
                 <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
-            <TrackListener isDark={isDark} style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
-                <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+            <Typography>
+                Target: {trialSelector[0]}
+            </Typography>
+            <TrackListener isDark={isDark}  style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
+                {/* <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile != "files/bn_methylation_100k.bed") setLoading(true)
                         setDemoFile(["files/bn_methylation_100k.bed"])
@@ -620,17 +679,18 @@ function RenderDemo({ isDark }) {
                         setDemoCollinearity()
                     }}>Topas</Button>
 
-                </Stack>
-                <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                </Stack> */}
+                {/* <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
                     {/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
-                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
-                    <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
+                 
+                    {/* <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
                     <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
-                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
-                </Stack>
+                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
+                {/* </Stack> */}
                 {/* <Stack mt={2} spacing={2}> */}
                 <Stack direction='row' justifyContent={"flex-start"}>
+                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
                     <Autocomplete sx={{ width: '15%' }}
                         multiple
                         size="small"
@@ -650,8 +710,8 @@ function RenderDemo({ isDark }) {
                             />
                         )}
                     />
-                    <Button onClick={toggleSortedTracks}
-                    >Sort Tracks</Button>
+                    {/* <Button onClick={toggleSortedTracks}
+                    >Sort Tracks</Button> */}
                     {window.dataset && <Autocomplete sx={{ width: '70%' }}
                         multiple
                         size="small"
@@ -715,7 +775,7 @@ function RenderDemo({ isDark }) {
                     </Box> :
                         <>
 
-                            <Typography variant="h3" id={"gtVerticalReference"}>
+                            <Typography variant="h4" id={"gtVerticalReference"}>
                                 {titleState}
                             </Typography>
                             {buildGenomeView()}
@@ -779,4 +839,4 @@ function RenderDemo({ isDark }) {
     )
 }
 
-export default RenderDemo
+export default Eyetest

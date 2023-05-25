@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { selectAnnotations, selectSearch, selectOrthologs } from 'features/annotation/annotationSlice'
+import { selectAnnotations, selectSearch, selectOrthologs } from 'redux/slices/annotationSlice'
 import Window from 'features/miniview/Window'
 import { selectMiniviews, selectComparison } from 'features/miniview/miniviewSlice'
 import { scaleLinear } from 'd3-scale'

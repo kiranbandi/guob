@@ -1,13 +1,13 @@
-import { selectDraggables } from "features/draggable/draggableSlice"
+import { selectDraggables } from "redux/slices/draggableSlice"
 import { useDispatch, useSelector } from "react-redux"
 import { scaleLinear } from "d3-scale"
 import Links from 'components/layout/Links';
 import React, { useState, useEffect, useRef } from 'react';
-import { updateBothTracks, updateTrack } from "./basicTrackSlice";
+import { updateBothTracks, updateTrack } from "../../redux/slices/basicTrackSlice";
 
 
-import { selectBasicTracks } from "./basicTrackSlice"
-import { selectGenome } from "./genomeSlice";
+import { selectBasicTracks } from "../../redux/slices/basicTrackSlice"
+import { selectGenome } from "../../redux/slices/genomeSlice";
 
 
 
@@ -19,14 +19,12 @@ function searchTrack(geneSearched, trackDataset) {
 function findOrthologs(c1, c2) {
     let orthologPairs = [];
 
-    let topOrthologs = c1.array.filter(gene => gene.ortholog && gene.siblings.some(x=> x.slice(0,3).toLowerCase() === c2.key))
-    let bottomOrthologs = c2.array.filter(gene => gene.ortholog && gene.siblings.some(x => x.slice(0, 3).toLowerCase() === c1.key))
+    let topOrthologs = c1.data.filter(gene => gene.ortholog && gene.siblings.some(x=> x.chromosome === c2.key.chromosome))
+    let bottomOrthologs = c2.data.filter(gene => gene.ortholog && gene.siblings.some(x => x.chromosome === c1.key.chromosome))
 
     for (let gene of topOrthologs) {
-        if(bottomOrthologs.some(t => t.siblings.includes(gene.key.toUpperCase()))){
-
-
-            let match = gene.siblings.filter(x => x.slice(0, 3).toLowerCase() === c2.key)
+        if(bottomOrthologs.some(t => t.siblings.map(x => x.key).includes(gene.key.toUpperCase()))){
+            let match = gene.siblings.filter(x => x.chromosome === c2.key.chromosome).map(x => x.key)
             if(match.length < 2){
                 orthologPairs.push({source: gene.key, target:match.toString()})
             }
@@ -71,16 +69,25 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     // These should have all the information from the tracks, including zoom level + offset
     let topTrack = trackSelector[indexSelector[index - 1]]
     let bottomTrack = trackSelector[indexSelector[index + 1]]
-    let ƒ = genomeSelector[indexSelector[index - 1]]
-    let bottomGenome = genomeSelector[indexSelector[index + 1]]
+    // let topGenome = genomeSelector[indexSelector[index - 1]]
+    // let bottomGenome = genomeSelector[indexSelector[index + 1]]
+    let topGenome, bottomGenome
+
+    if (window.chromosomalData) {
+        if(bottomTrack && bottomTrack.key){
+            bottomGenome = window.chromosomalData.find(x => x.key.designation == bottomTrack.key)
+        }
+        if(topTrack && topTrack.key){
+            topGenome = window.chromosomalData.find(x => x.key.designation == topTrack.key)
+
+        }
+      }
     
     
-    const parentWrapperWidth = document.querySelector('.draggableItem')?.getBoundingClientRect()?.width;
-    //! Why - 41 !?
-    const maxWidth = Math.round(parentWrapperWidth) - 41
+    const parentWrapperWidth = document.querySelector('.scale')?.getBoundingClientRect()?.width;
+    const maxWidth = Math.round(parentWrapperWidth)
     
     useEffect(() => {
-
         linkRef.current.addEventListener('wheel', preventScroll, { passive: false });
         // if alt key is pressed then stop the event 
         function preventScroll(e) {
@@ -166,11 +173,11 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
         let boundingBox = e.target.getBoundingClientRect()
 
-        let topGene = searchTrack(genes[0], ƒ.array)
-        let bottomGene = searchTrack(genes[1], bottomGenome.array)
+        let topGene = searchTrack(genes[0], topGenome.data)
+        let bottomGene = searchTrack(genes[1], bottomGenome.data)
 
-        let topRatio = topGene.start / aboveCap
-        let bottomRatio = bottomGene.start / belowCap
+        let topRatio = normalize ? topGene.start /topGenome.normalizedLength  : topGene.start / aboveCap
+        let bottomRatio = normalize ? bottomGene.start / bottomGenome.normalizedLength: bottomGene.start / belowCap
 
         // If near the bottom, snap to the bottom, if near the top, snap to top
         let topOffset = topTrack.offset
@@ -204,44 +211,43 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
         if (window.gt){ updateTimer(topTrack.key, topOffset / maxWidth, topTrack.zoom, bottomTrack.key, bottomOffset / maxWidth, bottomTrack.zoom)}
     }
     //######################################################################################
-    
-    let aboveLength = ƒ ? ƒ.array.length : 0
-    let aboveCap = aboveLength > 0 ? Math.max(...ƒ.array.map(d => d.end)) : 0
-    let belowLength = bottomGenome ? bottomGenome.array.length : 0
-    let belowCap = belowLength > 0 ? Math.max(...bottomGenome.array.map(d => d.end)) : 0
-
-    let topKey = topTrack ? topTrack.key : undefined
-    let bottomKey = bottomTrack ? bottomTrack.key : undefined
-
-    if(!topKey || !bottomKey){
+    if(!topGenome || !bottomGenome){
         return (
             <div id={id} ref={linkRef}></div>
         )
     }
+    let aboveLength = topGenome ? topGenome.data.length : 0
+    let aboveCap = aboveLength > 0 ? Math.max(...topGenome.data.map(d => d.end)) : 0
+    let belowLength = bottomGenome ? bottomGenome.data.length : 0
+    let belowCap = belowLength > 0 ? Math.max(...bottomGenome.data.map(d => d.end)) : 0
+    let topKey = topTrack ? topTrack.key : undefined
+    let bottomKey = bottomTrack ? bottomTrack.key : undefined
 
-    let orthologPairs = findOrthologs(ƒ, bottomGenome);
+   
+
+    let orthologPairs = findOrthologs(topGenome, bottomGenome);
     //{type: "polygon", source: {x: 0,x1: 0,y1:0, y:0}, target: {x:100,x1: 200, y1: 100, y:100}}
 
     let arrayLinks = [];
     let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height
 
-
     const paddingRight = 10, paddingLeft = 10
-    let topRatio = normalize ? aboveCap / topTrack.normalizedLength : 1.0
-    let bottomRatio = normalize ? belowCap / bottomTrack.normalizedLength : 1.0
+    let topRatio = normalize ? aboveCap / topGenome.normalizedLength : 1.0
+    let bottomRatio = normalize ? belowCap / bottomGenome.normalizedLength : 1.0
+    let xScale1 = topKey ? scaleLinear().domain([0, aboveCap]).range([0, ((maxWidth) * topRatio * topTrack.zoom)]) : false
+    let xScale2 = bottomKey ? scaleLinear().domain([0, belowCap]).range([0, ((maxWidth) * bottomRatio * bottomTrack.zoom)]) : false
 
-    let xScale1 = topKey ? scaleLinear().domain([0, aboveCap]).range([paddingLeft, ((maxWidth) * topRatio * topTrack.zoom) - paddingRight]) : false
-    let xScale2 = bottomKey ? scaleLinear().domain([0, belowCap]).range([paddingLeft, ((maxWidth) * bottomRatio * bottomTrack.zoom) - paddingRight]) : false
+    // let xScale1 = topKey ? scaleLinear().domain([0, aboveCap]).range([paddingLeft, ((maxWidth) * topRatio * topTrack.zoom)]) : false
+    // let xScale2 = bottomKey ? scaleLinear().domain([0, belowCap]).range([paddingLeft, ((maxWidth) * bottomRatio * bottomTrack.zoom)]) : false
 
     let widthScale1 = topKey ? scaleLinear().domain([0, aboveCap]).range([0, ((maxWidth) * topTrack.zoom)]) : false
     let widthScale2 = bottomKey? scaleLinear().domain([0, belowCap]).range([0, ((maxWidth) * bottomTrack.zoom)]) : false
 
     if(xScale1 && xScale2 && widthScale1 && widthScale2) for (var pair of orthologPairs) {
+        
 
-        // let geneAbove = findGene(pair.source);
-        let geneAbove = searchTrack(pair.source, ƒ.array)
-        // let geneBelow = findGene(pair.target);
-        let geneBelow = searchTrack(pair.target, bottomGenome.array)
+        let geneAbove = searchTrack(pair.source, topGenome.data)
+        let geneBelow = searchTrack(pair.target, bottomGenome.data)
 
 
         let topX1 = xScale1(geneAbove.start) + topTrack.offset
@@ -263,7 +269,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     return (
         <>
             <div id={id} ref={linkRef} onWheel={handleScroll} onMouseDown={handleClick} onMouseUp={handleClick} onMouseMove={handlePan} >
-                <Links arrayCoordinates={arrayLinks} type="svg" width={(parentWrapperWidth)} gradient={gradient} locate={locate} />
+                <Links arrayCoordinates={arrayLinks} type="svg" width={(parentWrapperWidth + 50)} gradient={gradient} locate={locate} />
             </div>
         </>
     )

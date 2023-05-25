@@ -1,8 +1,8 @@
 import React from 'react'
 import TrackContainer from './TrackContainer'
 import { useSelector } from 'react-redux'
-import {selectBasicTracks} from './basicTrackSlice'
-import {selectGenome} from './genomeSlice'
+import {selectBasicTracks} from '../../redux/slices/basicTrackSlice'
+import {selectGenome} from '../../redux/slices/genomeSlice'
 
 function Track({ id, renderTrack, isDark, normalize, usePreloadedImages, genome=false, width }) {
 

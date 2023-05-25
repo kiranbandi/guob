@@ -4,18 +4,19 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import RenderTrack from './RenderTrack'
 import ImageTrack from './ImageTrack'
-import { updateTrack, selectBasicTracks, addBasicTrack, updateMatchingTracks } from './basicTrackSlice'
+import { updateTrack, selectBasicTracks, addBasicTrack, updateMatchingTracks } from '../../redux/slices/basicTrackSlice'
 import _ from 'lodash';
 import { set } from 'lodash'
 import { changePreviewVisibility, selectMiniviews, movePreview } from '../../features/miniview/miniviewSlice';
 import { scaleLinear } from 'd3-scale'
 import StackedTrack from './StackedTrack';
-import { selectGenome } from './genomeSlice'
-import { addDraggable, clearDraggables } from '../../features/draggable/draggableSlice'
+import { selectGenome } from '../../redux/slices/genomeSlice'
+import { addDraggable, clearDraggables } from '../../redux/slices/draggableSlice'
 import { Typography, Tooltip } from '@mui/material';
 import TrackControls from './TrackControls'
 import TrackScale from './track_components/TrackScale'
-import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs, } from '../../features/annotation/annotationSlice'
+import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs, } from '../../redux/slices/annotationSlice'
+import { selectTrial, incrementTrial } from 'redux/slices/trialSlice'
 import { nanoid } from '@reduxjs/toolkit'
 import { ContentPasteOffSharp, EditNotificationsOutlined } from '@mui/icons-material'
 
@@ -57,6 +58,12 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       normalizedLength = 0
     }
   }
+
+
+//! Trial Logic ###################################################################
+  const trialSelector = useSelector(selectTrial)['trial']
+  //! Trial Logic ###################################################################
+
 
   const dispatch = useDispatch()
 
@@ -156,6 +163,8 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   let maxWidth = originalWidth * zoom
   let adjustedHeight = genome ? 50 : (document.querySelector('.draggable')?.getBoundingClientRect()?.height - 75)
 
+
+
   const previewSelector = useSelector(selectMiniviews)['newPreview']
   const [hoverStyle, setHoverStyle] = useState({ display: "none" })
   const [info, setInfo] = useState("")
@@ -229,6 +238,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   let imageExists = () => {
 
+    // This could probably have more function than it does
     if (renderOrthologs !== undefined) return
     const img = new Image()
     img.onload = () => setRenderOrthologs(true)
@@ -302,6 +312,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   useEffect(() => {
     let scalingIncrements
+    let endOfTrack = normalize ? normalizedLength : cap
     if (renderTrack == "stackedTrack" && array.length != 0) {
       let scalingIncrements = scaleLinear().domain([0, array.length]).range([0, maxWidth])
 
@@ -316,16 +327,16 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       }
     }
     else {
-      scalingIncrements = scaleLinear().domain([0, cap]).range([0, maxWidth])
+      scalingIncrements = scaleLinear().domain([0, endOfTrack]).range([0, maxWidth])
     }
     setStartOfTrack(Math.max(0, scalingIncrements.invert(0 - offset)))
-    setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), cap))
+    setEndCap(Math.min(scalingIncrements.invert(originalWidth - offset), endOfTrack))
     if (!usePreloadedImages) {
       generateImage().then(url => {
         setChosenImages(url)
       })
     }
-  }, [zoom, offset, cap, usePreloadedImages])
+  }, [zoom, offset, cap, usePreloadedImages, array])
 
   useEffect(() => {
     const subgenomeSortedData = _.sortBy(dataArray, (d) => d[activeSubGenome]);
@@ -350,19 +361,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         factor = 1 / factor
       }
 
-      // // Finding important markers of the track, since it's often in a container
-      // let trackBoundingRectangle = e.target.getBoundingClientRect()
-      // let padding = parseFloat(getComputedStyle(e.target).paddingLeft)
-
-      // Finding the location of the mouse on the track, the rendered track is adjusted with css,
-      // so the mouse location needs to be normalized to the canvas
-      // if (renderTrack=="stackedTrack"){
-
-
-      // }
-
-      let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * originalWidth
-
+      let ratio = normalize ? cap/normalizedLength : 1.0
+      let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * originalWidth*ratio
+      
       //  Needs to be panned so that the  location remains the same
       let dx = ((normalizedLocation - offset) * (factor - 1))
 
@@ -416,10 +417,14 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let bunch = []
 
+    let trackWidth = normalize ? maxWidth * cap/normalizedLength : maxWidth
     let currentImageScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
 
+    //! Stuff to do in here
     let ratio = (cap) / pixelWidth
-    let adjustedZoom = currentZoom / ratio
+    // let normalizedZoomRatio = normalize ? cap/normalizedLength : 0
+    // let adjustedZoom = (currentZoom + normalizedZoomRatio ) / (ratio)
+    let adjustedZoom = (currentZoom) / (ratio)
 
     let bpLocation = Math.round(currentImageScale.invert(Math.abs(offset)))
 
@@ -490,7 +495,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   function getXLocation(x) {
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
-    let xScale = normalize ? scaleLinear().domain([0, cap]).range([0, maxWidth * cap / normalizedLength]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
+    let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     return xScale.invert(x - left)
   }
 
@@ -511,6 +516,20 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           deleteAnnotation(e.clientX - offset)
         }
         let gene = findGene(getBasePairPosition(e))
+
+        // ! Trial Logic ##############################################################################################
+      //  debugger
+        if(gene.key.toLowerCase() === trialSelector[0].toLowerCase(['trial'])){
+          dispatch(incrementTrial({}))
+          return
+        }
+
+
+
+
+
+        // ! Trial Logic ##############################################################################################
+
         //! Will need logic to align tracks
         if (gene && gene.siblings.length > 0) {
           dispatch(clearDraggables({ dragGroup: "ortholog" }))
@@ -571,7 +590,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         }
       })
     })
-    if (related.length < 1) return
+    if (related.length < 1 || !trackRef.current) return
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y + 27
@@ -736,7 +755,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let adjustedPos = (e.clientX) - offset
 
-    xScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
+    xScale = normalize && !genome ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, originalWidth])
     bpPosition = getXLocation(adjustedPos)
 
@@ -766,20 +785,20 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     if (bpMapping) {
       let keys = Object.keys(bpMapping)
-      let numberOfKeys = 1000
+      let numberOfKeys = keys.length
       let firstIndex, lastIndex
       for (let x = 0; x < numberOfKeys; x++) {
         if (bpPosition < +keys[x]) break
         firstIndex = bpMapping[keys[x]].firstIndex
         lastIndex = bpMapping[keys[x]].lastIndex
       }
-      // debugger
       for (let i = +firstIndex; i < +lastIndex; i++) {
         if (bpPosition > array[i].start && bpPosition < array[i].end) {
           let width = widthScale(array[i].end - array[i].start)
           if (renderTrack === "bitmap") {
             setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
             setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
+            return
           }
           else if (renderTrack === "basic") {
             setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
@@ -792,12 +811,13 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
               height: renderOrthologs ? adjustedHeight : adjustedHeight + 25,
               backgroundColor: "red"
             })
+            return
           }
-          return
         }
       }
 
     }
+    setInfo("")
     setHoverStyle({ display: "none", pointerEvents: "none" })
   }
 
@@ -827,7 +847,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
 
 
-    let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
+    let xScale = normalize && !genome ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     let current_location = xScale(bpPosition) + trackRef.current.offsetLeft + offset
     if (current_location < trackRef.current.offsetLeft + trackWidth && current_location > trackRef.current.offsetLeft) {
       let cursorColor = isDark ? "white" : "black"
@@ -841,7 +861,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     }
   }
-
   return (
     <>
       <div style={cursorStyle}></div>
@@ -879,7 +898,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           className={"parent"}
 
           id={genome ? id + "_genome_view" : id}
-          // style={{pointerEvents: "none"}}
+          style={!genome ? {width: '100%', height: '100%'} : {width}}
           ref={trackRef}
           onWheel={handleScroll}
           onMouseMove={handleMouseMove}
@@ -893,7 +912,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           {renderTrack == "stackedTrack" ?
             <StackedTrack width={maxWidth} height={adjustedHeight} activeSubGenome={activeSubGenome} array={dataArray} subGenomes={subGenomes}></StackedTrack>
             :
-            ((renderTrack === "bitmap") &&
+            ((renderTrack === "bitmap" && trackType !== "line" && trackType !== "scatter") &&
               (zoom > numberOfImages && numberOfImages > 0 ?
                 bunchOfTracks(zoom, offset)
                 :
@@ -912,7 +931,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
                   width={width}
                 />))
             ||
-            (renderTrack === "basic" &&
+            ((renderTrack === "basic" || trackType === "line" || trackType === "scatter") &&
               <RenderTrack
                 title={id}
                 key={id}
@@ -921,6 +940,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
                 color={color}
                 isDark={isDark}
                 offset={offset}
+                genome={genome}
                 zoom={zoom}
                 pastZoom={pastZoom}
                 height={1}
@@ -932,7 +952,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           }
 
           {(!genome) && (<TrackScale
-            endOfTrack={normalize ? normalizedLength : endCap}
+            endOfTrack={endCap}
             startOfTrack={startOfTrack}
             width={originalWidth}
             paddingLeft={0}

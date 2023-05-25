@@ -24,10 +24,14 @@ export const draggableSlice = createSlice({
         },
 
         removeDraggable: (state, action) => {
-            Object.keys(state).forEach(x => {
-                let index = state[x].indexOf(action.payload.key)
-                if(index > -1){
-                    state[x].splice(index, 1)
+            Object.keys(state).forEach(z => {
+                if(state[z].length > 0){
+                    state[z].forEach(x => {
+                        let index = state[z].indexOf(action.payload.key)
+                        if(index > -1){
+                            state[z].splice(index, 1)
+                        }
+                    })
                 }
             })
         },
