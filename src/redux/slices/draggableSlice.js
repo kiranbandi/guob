@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     // currently a placeholder
-    draggables: ['coordinate_at1', 'coordinate_at2', 'coordinate_at3', 'coordinate_at4', 'coordinate_at5', 'links'],
+    draggables: ['coordinate_at1', 'coordinate_at2', 'coordinate_at3', 'links', 'coordinate_at4', 'coordinate_at5', ],
     ortholog: [],
     group: [],
     sorted: false,

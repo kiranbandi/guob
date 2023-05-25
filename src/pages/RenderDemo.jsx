@@ -45,7 +45,7 @@ function RenderDemo({ isDark }) {
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const groupSelector = useSelector(selectGroup)
 
-    const [titleState, setTitleState] = useState("Arabidopsis Thaliana")
+    const [titleState, setTitleState] = useState("Arabidopsis thaliana")
     const [demoFile, setDemoFile] = useState(["files/at_coordinate.gff"])
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [normalize, setNormalize] = useState(false)

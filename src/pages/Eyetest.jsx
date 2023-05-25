@@ -52,7 +52,7 @@ function Eyetest({ isDark }) {
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const groupSelector = useSelector(selectGroup)
 
-    const [titleState, setTitleState] = useState("Arabidopsis Thaliana")
+    const [titleState, setTitleState] = useState("Arabidopsis thaliana")
     const [demoFile, setDemoFile] = useState(["files/at_coordinate.gff"])
     const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
     const [normalize, setNormalize] = useState(false)
@@ -282,7 +282,7 @@ function Eyetest({ isDark }) {
             "Tasks Complete!",
              "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog to the previous target.", 
              "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previouse target.",
-            "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8 055 325. Please click on it."]
+            "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8,055,325. Please click on it."]
 
         return (
             <Dialog
@@ -641,9 +641,6 @@ function Eyetest({ isDark }) {
             </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
                 <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
-            <Typography>
-                Target: {trialSelector[0]}
-            </Typography>
             <TrackListener isDark={isDark}  style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
                 {/* <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
@@ -776,7 +773,7 @@ function Eyetest({ isDark }) {
                         <>
 
                             <Typography variant="h4" id={"gtVerticalReference"}>
-                                {titleState}
+                                {titleState} - Target: {trialSelector[0]}
                             </Typography>
                             {buildGenomeView()}
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
