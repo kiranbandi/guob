@@ -54,6 +54,7 @@ function RenderDemo({ isDark }) {
     let [loading, setLoading] = useState(false)
     const [firstLoad, setFirstLoad] = useState(true)
     const [listening, setListening] = useState(false)
+    const [genomeView, setGenomeView] = useState(true)
     const [stackedArray, setStackedArray] = useState({})
     const [alignmentList, setAlignmentList] = useState([])
     const [chromosomeMap, setChromosomeMap] = useState({})
@@ -479,6 +480,10 @@ function RenderDemo({ isDark }) {
         setBitmap(e.target.checked)
     }
 
+    function changeGenomeView(e) {
+        setGenomeView(e.target.checked)
+    }
+
     function changeMargins(e) {
 
         let gt = window.gt;
@@ -627,6 +632,7 @@ function RenderDemo({ isDark }) {
                     <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
                     <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
                     <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
+                    <FormControlLabel control={<Switch onChange={changeGenomeView} checked={genomeView} />} label={"Enable overview"} />
                     <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
                 </Stack>
                 {/* <Stack mt={2} spacing={2}> */}
