@@ -206,9 +206,11 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   };
 
 
+  //TODO Unsafe url hacky fix for now
   function generateImage() {
     return fetch('http://hci-sandbox.usask.ca:3010', {
       method: 'POST',
+      referrerPolicy: 'unsafe-url',
       headers: {
         'Accept': 'image/png',
         'Content-Type': 'application/json',
@@ -523,10 +525,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           dispatch(incrementTrial({}))
           return
         }
-
-
-
-
 
         // ! Trial Logic ##############################################################################################
 
