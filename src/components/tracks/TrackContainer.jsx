@@ -91,7 +91,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   let suffix = isDark ? "_track_dark" : "_track"
   let orthologSuffix = isDark ? "_orthologs_dark" : "_orthologs"
-  let location = 'http://hci-sandbox.usask.ca:3010/static/'
+  let location = 'http://hci-sandbox.usask.ca/image-server/'
 
   //! Split into a function, and make better
   let split_id = id.split("_")
