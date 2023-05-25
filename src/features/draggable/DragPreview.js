@@ -42,8 +42,8 @@ export const DragPreview = memo(function DragPreview({ item, groupID, width, hei
   else if (component === "bitmap") {
 
     let suffix = isDark ? "_track_dark" : "_track"
-    let location = 'http://hci-sandbox.usask.ca/image-server'
-
+    let location = 'https://hci-sandbox.usask.ca/image-server/'
+ 
     let directoryName, fileName, designation, image
     let split_id = item.split("_")
     if (split_id[1].includes("at")) {
