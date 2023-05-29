@@ -16,6 +16,7 @@ export default function(typeOfFile, bedFile, designation, collinearityFile=undef
 
         // } 
         instance.process(typeOfFile, bedFile, designation, collinearityFile).catch(() => {
+            debugger
             console.log("Error in parsing file")
             // console.log("Error in parsing " + bedFile)
             reject()
