@@ -68,8 +68,9 @@ export default function Demo({ isDark }) {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [isRepeats, setIsRepeats] = useState(false)
 
-    const [demoFile, setDemoFile] = useState("files/at_coordinate.gff")
-    const [demoCollinearity, setDemoCollinearity] = useState("files/at_vv_collinear.collinearity")
+    const [demoFile, setDemoFile] = useState(["files/LcuRepeatData_remapped.json", "files/LerRepeatData_remapped.json"])
+    const [gffFile, setgffFile] = useState(["files/lclepsmtclean.gff"])
+    const [demoCollinearity, setDemoCollinearity] = useState("files/all-lens-s75000.collinearity")
     const [titleState, setTitleState] = useState("Aradopsis thaliana")
     const [normalize, setNormalize] = useState(false)
 
@@ -319,136 +320,107 @@ ${'' /* .genomeTrack {
 }`)
 
     const buildDemo = (chromosomalData, dataset) => {
+        // dispatch(deleteAllGenome({}))
+        // dispatch(deleteAllBasicTracks({}))
+        // dispatch(deleteAllDraggables({
+        //     dragGroup: "draggables"
+        // }))
+        // debugger
+
+        window.gffdataset = dataset
+        window.gffchromosomalData = chromosomalData
+
+        // console.log(dataset["at1g01010"], chromosomalData)
+        window.gffchromosomes = chromosomalData.map((_ => _.key.chromosome))  
+    }
+
+
+    const buildRepeats=(file)=>{
+        
         dispatch(deleteAllGenome({}))
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({
             dragGroup: "draggables"
         }))
-        // debugger
-
-        window.dataset = dataset
-        window.chromosomalData = chromosomalData
-
-        // console.log(dataset["at1g01010"], chromosomalData)
-        window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
-        let normalizedLength = 0;
-        let color;
-        let ColourScale = scaleOrdinal().domain([0, 9])
-            .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
-        normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-        window.maximumLength = 0
-        chromosomalData.forEach((point, i) => {
-            if (point.trackType === 'default') {
-                color = ColourScale(i % 10)
-            }
-            else {
-                color = ColourScale(3)
-            }
-
-            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
-            let end = Math.max(...point.data.map(d => d.end))
-            dispatch(addBasicTrack({
-                key: "genome" + point.key.chromosome,
-                trackType: point.trackType,
-                normalizedLength,
-                end,
-                color,
-                zoom: 1.0,
-                pastZoom: 1.0,
-                offset: 0,
-            }))
-            window.maximumLength += end;
-        })
-        dispatch(addDraggable({
-            key: 'links',
-            dragGroup: "draggables"
-        }))
-
-        setLoading(false)
-    }
-
-
-    const buildRepeats=(file)=>{
-
-        fetch(file)
-        .then(response => response.json())
-        .then(json => {
-            let dataset = {}
-            let chromosomalData = []
-            let counter= 0
-            for (let key in json) {
-                let currentData = {}
-                
-                currentData.key={"chromosome": key, "designation": key};
-                currentData.data = json[key];
-                currentData.trackType= "repeats"
-                chromosomalData.push(currentData)
-
-                for (let entry of json[key]) {
-                    dataset[counter]  = entry
-                    dataset[counter]["siblings"]=[]
-                    dataset[counter]["value"]= 0
-                    dataset[counter]["ortholog"]=false
-                    dataset[counter]["key"]=counter
-                    counter+=1
+        for (let f of demoFile){ 
+            
+            fetch(f)
+            .then(response => response.json())
+            .then(json => {
+                let dataset = {}
+                let chromosomalData = []
+                let counter= 0
+                for (let key in json) {
+                    let currentData = {}
+                    
+                    currentData.key={"chromosome": key, "designation": key};
+                    currentData.data = json[key];
+                    currentData.trackType= "repeats"
+                    chromosomalData.push(currentData)
+    
+                    for (let entry of json[key]) {
+                        dataset[counter]  = entry
+                        dataset[counter]["siblings"]=[]
+                        dataset[counter]["value"]= 0
+                        dataset[counter]["ortholog"]=false
+                        dataset[counter]["key"]=counter
+                        counter+=1
+                      }
+    
+                      
                   }
-
-                  
-              }
-            // console.log(dataset[0])
-            // console.log(chromosomalData)
-
-            dispatch(deleteAllGenome({}))
-            dispatch(deleteAllBasicTracks({}))
-            dispatch(deleteAllDraggables({
-                dragGroup: "draggables"
-            }))
-            // // // debugger
+                // console.log(dataset[0])
+                // console.log(chromosomalData)
     
-            window.dataset = dataset
-            window.chromosomalData = chromosomalData
-
-            window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
-
-            let normalizedLength = 0;
-            let color;
-            let ColourScale = scaleOrdinal().domain([0, 9])
-                .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
-            normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-            window.maximumLength = 0
-            chromosomalData.forEach((point, i) => {
-                if (point.trackType === 'repeats') {
-                    color = ColourScale(i % 10)
-                }
-                else {
-                    color = ColourScale(3)
-                }
+               
+                // // // debugger
+        
+                window.dataset = dataset
+                window.chromosomalData = chromosomalData
     
-                addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
-                let end = Math.max(...point.data.map(d => d.end))
-                dispatch(addBasicTrack({
-                    key: "genome" + point.key.chromosome,
-                    trackType: point.trackType,
-                    normalizedLength,
-                    end,
-                    color,
-                    zoom: 1.0,
-                    pastZoom: 1.0,
-                    offset: 0,
-                }))
-                window.maximumLength += end;
+                window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
+    
+                let normalizedLength = 0;
+                let color;
+                let ColourScale = scaleOrdinal().domain([0, 9])
+                    .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
+                normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+                window.maximumLength = 0
+                chromosomalData.forEach((point, i) => {
+                    if (point.trackType === 'repeats') {
+                        color = ColourScale(i % 10)
+                    }
+                    else {
+                        color = ColourScale(3)
+                    }
+        
+                    addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
+                    let end = Math.max(...point.data.map(d => d.end))
+                    dispatch(addBasicTrack({
+                        key: "genome" + point.key.chromosome,
+                        trackType: point.trackType,
+                        normalizedLength,
+                        end,
+                        color,
+                        zoom: 1.0,
+                        pastZoom: 1.0,
+                        offset: 0,
+                    }))
+                    window.maximumLength += end;
+                })
+                
+    
+                setLoading(false)
+    
+            
             })
+            .catch(error => console.error("error"));}
             dispatch(addDraggable({
                 key: 'links',
                 dragGroup: "draggables"
             }))
 
-
-            setLoading(false)
-
-        
-        })
-        .catch(error => console.error("error"));
+       
     }
 
     let [loading, setLoading] = useState(true)
@@ -457,8 +429,13 @@ ${'' /* .genomeTrack {
     useEffect(() => {
 
         if (demoFile) {
-            parseGFF(demoFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
+            parseGFF(gffFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
                 buildDemo(chromosomalData, dataset)
+                setIsRepeats(true)
+                buildRepeats("files/LcuRepeatData_remapped.json")
+                clearComparisonTracks()
+                // setDemoFile("files/ta_hb_coordinate.gff")
+                setTitleState("Lens culinaris Repeats")
             })
         }
 
@@ -744,34 +721,7 @@ ${'' /* .genomeTrack {
                 <div css={styling}>
 
                     <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                        <Button variant='outlined' onClick={() => {
-                            setLoading(true)
-                            clearComparisonTracks()
-                            setDemoFile("files/bn_methylation_100k.bed")
-                            setTitleState("Canola Methylation")
-                            setDemoCollinearity()
-                        }}>Canola Methylation</Button>
-                        <Button variant='outlined' onClick={() => {
-                            setLoading(true)
-                            clearComparisonTracks()
-                            setDemoFile("files/at_coordinate.gff")
-                            setTitleState("Aradopsis thaliana")
-                            setDemoCollinearity("files/at_vv_collinear.collinearity")
-                        }}>Aradopsis thaliana</Button>
-                        <Button variant='outlined' onClick={() => {
-                            setLoading(true)
-                            clearComparisonTracks()
-                            setDemoFile("files/bn_coordinate.gff")
-                            setTitleState("Brassica napus")
-                            setDemoCollinearity()
-                        }}>Brassica napus</Button>
-                        <Button variant='outlined' onClick={() => {
-                            setLoading(true)
-                            clearComparisonTracks()
-                            setDemoFile("files/ta_hb_coordinate.gff")
-                            setTitleState("Triticum aestivum")
-                            setDemoCollinearity()
-                        }}>Triticum aestivum</Button><Button variant='outlined' onClick={() => {
+                       <Button variant='outlined' onClick={() => {
                             setLoading(true);
                             setIsRepeats(true)
                             buildRepeats("files/LcuRepeatData_remapped.json")
@@ -783,6 +733,7 @@ ${'' /* .genomeTrack {
                         <Button variant='outlined' onClick={() => {
                             setLoading(true);
                             setIsRepeats(true)
+                            
                             buildRepeats("files/LerRepeatData_remapped.json")
                             clearComparisonTracks()
                             // setDemoFile("files/ta_hb_coordinate.gff")
@@ -956,7 +907,9 @@ ${'' /* .genomeTrack {
                                             if( item == 'links' && isRepeats){
                                                 return( 
                                                     <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                        <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack>
+                                                        <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+
+                                                        {/* <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack> */}
                                                     </Draggable>)
                                             }
                                             else if( item == 'links'){
@@ -996,7 +949,9 @@ ${'' /* .genomeTrack {
                                                 if( item === 'links' && isRepeats){
                                                 return(
                                                 <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
-                                                    <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"} ></SVTrack>
+                                                        <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+
+                                                    {/* <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"} ></SVTrack> */}
                                                 </Draggable>)
                                             }
                                             else if( item === 'links'){

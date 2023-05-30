@@ -54,10 +54,12 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
 
         if (collinearityFile) {
 
-            let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
+        let nomenclature = ["lc", "le"]
 
             let m = pullGeneInfo(collinearityFile, nomenclature).then(pairs => {
+                console.log(pairs)
                 pairs.forEach(x => {
+                    console.log(x)
                     let sourceIndex = x.source.toLowerCase()
                     let targetIndex = x.target.toLowerCase()
                     dataset[sourceIndex].ortholog = true
@@ -131,7 +133,7 @@ export async function parseSubmittedGFF(fileType, data, designation, collinearit
     }
     // debugger
     if (collinearityFile) {
-        let nomenclature = [temporary[0].split('\t')[0].slice(0, 2)]
+        let nomenclature = ["lc", "le"]
         let m = pullSubmittedGeneInfo(collinearityFile, nomenclature).then(pairs => {
 
             pairs.forEach(x => {
@@ -236,6 +238,7 @@ function process(collinearityData) {
     var FileLines = collinearityData.split('\n'),
         alignmentList = [],
         alignmentBuffer = {};
+    console.log(FileLines)
     // remove the first 11 lines and then process the file line by line
     FileLines.slice(11).forEach(function (line, index) {
         if (line.indexOf('Alignment') > -1) {
@@ -265,6 +268,8 @@ function process(collinearityData) {
 
 function parseAlignmentDetails(alignmentDetails) {
     let alignmentDetailsList = alignmentDetails.split(' ');
+
+
     return {
         'score': Number(alignmentDetailsList[3].split('=')[1].trim()),
         'e_value': Number(alignmentDetailsList[4].split('=')[1].trim()),
@@ -293,16 +298,20 @@ function onlyUnique(value, index, self) {
 
 // Pulls collinearity info and makes links
 async function pullGeneInfo(collinearityFile, nomenclature) {
-
+    
     return text(collinearityFile).then(function (data) {
         let rawCollinearity = process(data);
-
+        console.log(nomenclature)
+        console.log(rawCollinearity
+            )
         let selectedCollinearity = []
         nomenclature.forEach(n => {
-            let temporaryCollinearity = rawCollinearity.alignmentList.filter((d) => d.source.indexOf(n) > -1 && d.target.indexOf(n) > -1)
+            let temporaryCollinearity = rawCollinearity.alignmentList.filter((d) => d.source.indexOf(n) > -1 || d.target.indexOf(n) > -1)
             selectedCollinearity.push(...temporaryCollinearity)
         })
         let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
+        console.log(selectedCollinearity)
+
         let trueMatch = genePairs.filter((x) => +x.e_value === 0)
         return trueMatch
     })

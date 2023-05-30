@@ -14,14 +14,14 @@ import { selectGenome } from "../../redux/slices/genomeSlice";
 function searchTrack(geneSearched, trackDataset) {
     return trackDataset.find((d) => d.key.toLowerCase() === geneSearched.toLowerCase())
 }
-
+console.log(window.gffchromosomalData)
 
 function findOrthologs(c1, c2) {
     let orthologPairs = [];
-
+    console.log(c2.key.chromosome)
     let topOrthologs = c1.data.filter(gene => gene.ortholog && gene.siblings.some(x=> x.chromosome === c2.key.chromosome))
     let bottomOrthologs = c2.data.filter(gene => gene.ortholog && gene.siblings.some(x => x.chromosome === c1.key.chromosome))
-
+    console.log(topOrthologs, bottomOrthologs)
     for (let gene of topOrthologs) {
         if(bottomOrthologs.some(t => t.siblings.map(x => x.key).includes(gene.key.toUpperCase()))){
             let match = gene.siblings.filter(x => x.chromosome === c2.key.chromosome).map(x => x.key)
@@ -33,6 +33,7 @@ function findOrthologs(c1, c2) {
             }
         }
     }
+    console.log(orthologPairs)
     return orthologPairs;
 }
 
@@ -69,16 +70,19 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     // These should have all the information from the tracks, including zoom level + offset
     let topTrack = trackSelector[indexSelector[index - 1]]
     let bottomTrack = trackSelector[indexSelector[index + 1]]
+
+    // console.log(window.gffchromosomalData)
     // let topGenome = genomeSelector[indexSelector[index - 1]]
     // let bottomGenome = genomeSelector[indexSelector[index + 1]]
     let topGenome, bottomGenome
 
-    if (window.chromosomalData) {
+    if (window.gffchromosomalData) {
         if(bottomTrack && bottomTrack.key){
-            bottomGenome = window.chromosomalData.find(x => x.key.designation == bottomTrack.key)
+            bottomGenome = window.gffchromosomalData.find(x => x.key.chromosome == bottomTrack.key)
+
         }
         if(topTrack && topTrack.key){
-            topGenome = window.chromosomalData.find(x => x.key.designation == topTrack.key)
+            topGenome = window.gffchromosomalData.find(x => x.key.chromosome == topTrack.key)
 
         }
       }
@@ -212,6 +216,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     }
     //######################################################################################
     if(!topGenome || !bottomGenome){
+        console.log("Found no orthologs")
         return (
             <div id={id} ref={linkRef}></div>
         )
@@ -226,6 +231,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
    
 
     let orthologPairs = findOrthologs(topGenome, bottomGenome);
+    // console.log(topGenome)
     //{type: "polygon", source: {x: 0,x1: 0,y1:0, y:0}, target: {x:100,x1: 200, y1: 100, y:100}}
 
     let arrayLinks = [];
@@ -262,8 +268,8 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
     let topColor = topTrack ? topTrack.color : undefined
     let bottomColor = bottomTrack ? bottomTrack.color : undefined
 
-    let gradient = [topColor, bottomColor]
-
+    let gradient = [topColor, bottomColor];
+    // console.log("WEEEEEE", gradient)
 
 
     return (

@@ -8,7 +8,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import { teal } from '@mui/material/colors';
 
-const pages = ['documentation', 'demo', 'renderdemo'];
+const pages = ['documentation', 'demo'];
 
 
 function Navbar({toggleTheme, isDark, ...props}) {

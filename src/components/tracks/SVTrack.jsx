@@ -24,7 +24,7 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
     let alignmentList = window.alignmentList;
     let chromosomeMap = window.chromosomeMap;
 
-    // console.log(alignmentList,chromosomeMap)
+    console.log("AAH DEKH" , alignmentList,chromosomeMap)
 
     const [minQualityScore, setQualityScore] = useState(0)
     let [waiting, setWaiting] = useState()
@@ -193,9 +193,9 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
     let belowCap = belowLength > 0 ? Math.max(...bottomGenome.array.map(d => d.end)) : 0
 
     //////////*******change with top track when have data for top track and bottom....
-    let topKey = topTrack ? topTrack.key.slice(-1) : undefined
+    let topKey = topTrack ? topTrack.key : undefined
     let bottomKey = bottomTrack ? bottomTrack.key.slice(-1): undefined
-    
+    console.log(topKey, bottomKey)
     // let topKey = "1";     
     // let bottomKey =  "2"
     if(!topKey || !bottomKey){
@@ -207,6 +207,12 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
     let AllSVPairs =  alignmentList
     .filter((d)=> (d.source==topKey && d.target == bottomKey ))
 
+    if (AllSVPairs.length == 0){
+        return (
+            <div id={id} ref={linkRef}></div>
+        )
+    }
+
     const minScore = _.minBy(AllSVPairs, "qualityScore").qualityScore;
     const maxScore = _.maxBy(AllSVPairs, "qualityScore").qualityScore;
 
@@ -214,6 +220,7 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
     let SVPairs =  AllSVPairs
     .filter((d)=> (d.qualityScore>=minQualityScore))
 
+  
 
     // console.log(SVPairs)
     //{type: "polygon", source: {x: 0,x1: 0,y1:0, y:0}, target: {x:100,x1: 200, y1: 100, y:100}}

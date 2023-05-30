@@ -1,0 +1,20 @@
+############### Parameters ###############
+# MATCH_SCORE: 1000
+# MATCH_SIZE: 20
+# GAP_PENALTY: -1
+# OVERLAP_WINDOW: 5
+# E_VALUE: 1e-05
+# MAX GAPS: 25
+############### Statistics ###############
+# Number of collinear genes: 189127, Percentage: 61.80
+# Number of all genes: 306044
+##########################################
+## Alignment 0: score=1410088.0 e_value=0 N=1412 lc1&le1 plus
+  0-  0:	Lcu.2RBY.1g000010	Ler.1DRT.1g045920	      0
+  0-  1:	Lcu.2RBY.1g043880	Ler.1DRT.1g046040	      0
+  0-  2:	Lcu.2RBY.1g043900	Ler.1DRT.1g046100	 4e-125
+  0-  3:	Lcu.2RBY.1g043970	Ler.1DRT.1g046150	      0
+  0-  4:	Lcu.2RBY.1g043990	Ler.1DRT.1g046170	      0
+  0-  5:	Lcu.2RBY.1g044090	Ler.1DRT.1g046230	 2e-124
+  0-  6:	Lcu.2RBY.1g044170	Ler.1DRT.1g046280	  6e-91
+  0-  7:	Lcu.2RBY.1g044180	Ler.1DRT.1g046290	      0
