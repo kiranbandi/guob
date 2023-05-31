@@ -228,14 +228,14 @@ function TrackControls(props) {
   const color = props.isDark ? deepOrange[500] : deepOrange[100]
   const highlight = props.isDark ? deepOrange[200] : deepOrange[500]
   if (trackType == "repeats") {
-    console.log(repeatOptions.map((repeat) => {
-      return (<MenuItem
-        key={repeat.label}
-        value={repeat.label}
-      >
-        {repeat.label}
-      </MenuItem>)
-    }))
+    // console.log(repeatOptions.map((repeat) => {
+    //   return (<MenuItem
+    //     key={repeat.label}
+    //     value={repeat.label}
+    //   >
+    //     {repeat.label}
+    //   </MenuItem>)
+    // }))
   }
 
 

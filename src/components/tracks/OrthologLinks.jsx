@@ -12,18 +12,19 @@ import { selectGenome } from "../../redux/slices/genomeSlice";
 
 
 function searchTrack(geneSearched, trackDataset) {
+    // console.log(geneSearched, "\n", trackDataset)
     return trackDataset.find((d) => d.key.toLowerCase() === geneSearched.toLowerCase())
 }
-console.log(window.gffchromosomalData)
+
 
 function findOrthologs(c1, c2) {
     let orthologPairs = [];
-    console.log(c2.key.chromosome)
+
     let topOrthologs = c1.data.filter(gene => gene.ortholog && gene.siblings.some(x=> x.chromosome === c2.key.chromosome))
     let bottomOrthologs = c2.data.filter(gene => gene.ortholog && gene.siblings.some(x => x.chromosome === c1.key.chromosome))
-    console.log(topOrthologs, bottomOrthologs)
+
     for (let gene of topOrthologs) {
-        if(bottomOrthologs.some(t => t.siblings.map(x => x.key).includes(gene.key.toUpperCase()))){
+        if(bottomOrthologs.some(t => t.siblings.map(x => x.chromosome).includes(gene.chromosome))){
             let match = gene.siblings.filter(x => x.chromosome === c2.key.chromosome).map(x => x.key)
             if(match.length < 2){
                 orthologPairs.push({source: gene.key, target:match.toString()})
@@ -33,7 +34,7 @@ function findOrthologs(c1, c2) {
             }
         }
     }
-    console.log(orthologPairs)
+
     return orthologPairs;
 }
 
@@ -248,7 +249,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
     let widthScale1 = topKey ? scaleLinear().domain([0, aboveCap]).range([0, ((maxWidth) * topTrack.zoom)]) : false
     let widthScale2 = bottomKey? scaleLinear().domain([0, belowCap]).range([0, ((maxWidth) * bottomTrack.zoom)]) : false
-
+    console.log(maxWidth)
     if(xScale1 && xScale2 && widthScale1 && widthScale2) for (var pair of orthologPairs) {
         
 
@@ -259,8 +260,15 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
         let topX1 = xScale1(geneAbove.start) + topTrack.offset
         let topX2 = topX1 + widthScale1(geneAbove.end - geneAbove.start)
 
+        if (topX2-topX1 < 0.2){
+            topX2 = topX1+0.2
+        }
         let bottomX1 = xScale2(geneBelow.start) + bottomTrack.offset
         let bottomX2 = bottomX1 +  widthScale2(geneBelow.end - geneBelow.start)
+        if (bottomX2-bottomX1 < 0.2){
+            bottomX2 = bottomX1+0.2
+        }
+
         arrayLinks.push({ type: "polygon", color: "purple", above: geneAbove.key, below: geneBelow.key, source: { x: topX1, x1: topX2, y: 0 }, target: { x: bottomX1, x1: bottomX2, y: parentWrapperHeight } })
 
     }

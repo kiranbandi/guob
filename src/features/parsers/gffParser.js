@@ -57,16 +57,26 @@ async function parseGFF(demoFile, collinearityFile = undefined) {
         let nomenclature = ["lc", "le"]
 
             let m = pullGeneInfo(collinearityFile, nomenclature).then(pairs => {
-                console.log(pairs)
+
                 pairs.forEach(x => {
-                    console.log(x)
                     let sourceIndex = x.source.toLowerCase()
                     let targetIndex = x.target.toLowerCase()
+                    // debugger
+                    if (dataset[sourceIndex] && dataset[targetIndex])
+                    {
                     dataset[sourceIndex].ortholog = true
                     dataset[targetIndex].ortholog = true
-                    dataset[sourceIndex].siblings.push(x.target)
-                    dataset[targetIndex].siblings.push(x.source)
-
+                    dataset[sourceIndex].siblings.push(
+                       {
+                        key:x.target,
+                        chromosome: dataset[targetIndex].chromosome
+                     }
+                        )
+                    dataset[targetIndex].siblings.push({
+                        key:x.source,
+                        chromosome: dataset[sourceIndex].chromosome
+                    })}
+    
                 })
 
                 return buildModel(dataset, trackType)
@@ -140,7 +150,9 @@ export async function parseSubmittedGFF(fileType, data, designation, collinearit
                 let sourceIndex = x.source.toLowerCase()
                 let targetIndex = x.target.toLowerCase()
                 // debugger
-                dataset[sourceIndex].ortholog = true
+             if (dataset[sourceIndex] && dataset[targetIndex])
+
+            {    dataset[sourceIndex].ortholog = true
                 dataset[targetIndex].ortholog = true
                 dataset[sourceIndex].siblings.push(
                    {
@@ -152,7 +164,7 @@ export async function parseSubmittedGFF(fileType, data, designation, collinearit
                     key:x.source,
                     chromosome: dataset[sourceIndex].chromosome
                 })
-
+}
             })
 
             return buildModel(dataset, trackType)
@@ -238,7 +250,7 @@ function process(collinearityData) {
     var FileLines = collinearityData.split('\n'),
         alignmentList = [],
         alignmentBuffer = {};
-    console.log(FileLines)
+
     // remove the first 11 lines and then process the file line by line
     FileLines.slice(11).forEach(function (line, index) {
         if (line.indexOf('Alignment') > -1) {
@@ -301,16 +313,14 @@ async function pullGeneInfo(collinearityFile, nomenclature) {
     
     return text(collinearityFile).then(function (data) {
         let rawCollinearity = process(data);
-        console.log(nomenclature)
-        console.log(rawCollinearity
-            )
+
         let selectedCollinearity = []
         nomenclature.forEach(n => {
             let temporaryCollinearity = rawCollinearity.alignmentList.filter((d) => d.source.indexOf(n) > -1 || d.target.indexOf(n) > -1)
             selectedCollinearity.push(...temporaryCollinearity)
         })
         let genePairs = selectedCollinearity.reduce((c, e) => { return [...c, ...e.links] }, [])
-        console.log(selectedCollinearity)
+
 
         let trueMatch = genePairs.filter((x) => +x.e_value === 0)
         return trueMatch

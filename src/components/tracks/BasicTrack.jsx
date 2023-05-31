@@ -115,6 +115,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
 
     useEffect(() => {
+        console.log(window.methylationData)
+        console.log(window.additionalData)
         canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
         // if alt key is pressed then stop the event 
         function preventScroll(e) {
@@ -125,6 +127,10 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             }
         }
     }, [])
+
+
+ 
+
 
     const [annotationY, setAnnotationY] = useState()
     useEffect(() => {
@@ -217,7 +223,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             else if (trackType == 'repeats'){
                 let someArray =[]
                 let counter = 0
-                let ChosenNum = chosenRepeats.length;
+                let ChosenNum = chosenRepeats.length+window.additionalData.length;
                 for (let clade of chosenRepeats){
                     const filteredList = array.filter(obj => obj.clade === clade);
 
@@ -231,13 +237,27 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     })
                     someArray = someArray.concat(holding);
                     counter++;
+                }
+                // console.log(someArray)
+                // setDrawnGenes(someArray)
+                let methColorScale = scaleLinear().domain([0, 100]).range(["black", "red"])
+                if (window.additionalData.indexOf("methylation") > -1){
 
-
+                    //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
+                    console.log(window.methylationData)
+                    let holding = window.methylationData[title].map(dataPoint => {
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        let adjustedColor = methColorScale(dataPoint.density)
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let drawGene = new gene(dataPoint,adjustedColor, trackType)
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, rectWidth, maxHeight/ChosenNum);
+                        return drawGene;
+                    })
+                    someArray = someArray.concat(holding);
+                    counter++;
                 }
                 // console.log(someArray)
                 setDrawnGenes(someArray)
-
-
            
 
 
@@ -287,7 +307,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
                 let someArray =[]
                 let counter = 0
-                let ChosenNum = chosenRepeats.length;
+                let ChosenNum = chosenRepeats.length + window.additionalData.length;
                 for (let clade of chosenRepeats){
                     const filteredList = array.filter(obj => obj.clade === clade);
 
@@ -304,7 +324,21 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     someArray = someArray.concat(holding);
                     counter++;
 
+                }let methColorScale = scaleLinear().domain([0, 100]).range(["black", "red"])
+                if (window.additionalData.indexOf("methylation") > -1){
 
+                    //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
+
+                    let holding = window.methylationData[title].map(dataPoint => {
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        let adjustedColor = methColorScale(dataPoint.density)
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let drawGene = new gene(dataPoint,adjustedColor, trackType)
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, rectWidth, maxHeight/ChosenNum);
+                        return drawGene;
+                    })
+                    someArray = someArray.concat(holding);
+                    counter++;
                 }
 
                 // let counter = 0
@@ -775,7 +809,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     //! TODO Changing length of text changes the location of ticks
     if (trackType === "default") {
         let orthologInfo = (hovered && hovered.siblings && hovered.siblings.length > 0) ? hovered.siblings : "No orthologs."
-        info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + Math.round(hovered.start) + " bp\nOrthologs: " + orthologInfo : ''
+        // info = hovered ? hovered.key.toUpperCase() + "\nStart Location: " + Math.round(hovered.start) + " bp\nOrthologs: " + orthologInfo : ''
     }
     else if (trackType=="repeats") {
 
@@ -866,7 +900,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                                 coordinateX={x}
                                 coordinateY={canvasRef.current.offsetTop}
                                 height={canvasRef.current.offsetHeight}
-                                width={width} // boxwidth
+                                width={genome ? 100 : width} // boxwidth
                                 preview={true}
                                 text={Math.max(Math.round(beginning), 0)}
                                 grouped={grouped}
@@ -882,7 +916,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     id={id +"_trackmarkers"}
                     endOfTrack={endCap}
                     startOfTrack={startOfTrack}
-                    width={maxWidth}
+                    width={genome ? 100 : maxWidth}
                     coordinateY={annotationY}
                     height={maxHeight}
                     locationScale={locationScale}
@@ -925,7 +959,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     id={id}
                     ref={canvasRef}
                     height={maxHeight}
-                    width={maxWidth}
+                    width={genome ? 100 :  maxWidth}
                     className={genome ? "genomeTrack" : "actualTrack"}
                     style={style}
                     onContextMenu={doSomething}
@@ -980,7 +1014,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     // 'align-items': 'center',
                 //    zIndex: 9999,
 
-                    'transform-origin': 'top right', width:300, height: 30, display: 'flow-root'}} > <Select   onChange={handleRepeatSelection}
+                    'transform-origin': 'top right', width:100, height: 30, display: 'flow-root'}} > <Select   onChange={handleRepeatSelection}
 
 // value={chosenRepeats}
 options={repeatOptions}
@@ -989,7 +1023,7 @@ styles={customStyles}
 isMulti
 /> </span>}
 
-            {!noScale && <TrackScale
+            {!noScale && !genome  && <TrackScale
                 endOfTrack={endCap}
                 startOfTrack={startOfTrack}
                 width={maxWidth}

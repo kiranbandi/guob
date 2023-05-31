@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import Miniview from '../features/miniview/Miniview';
 import testing_array from '../data/testing_array';
+import Select from 'react-select';
 
 import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
@@ -62,12 +63,22 @@ export default function Demo({ isDark }) {
     const basicTrackSelector = useSelector(selectBasicTracks)
     const genomeSelector = useSelector(selectGenome)
 
+    const speciesOptions = [
+        { value: 'files/LcuRepeatData_remapped.json', label: 'LENS CULINARIS' },
+        { value: 'files/LerRepeatData_remapped.json', label: 'LENS ERVOIDES'},
+      ];
 
+    const additionalDataOptions = [
+    { value: 'methylation', label: 'METHYLATION' },
+
+    ];
+
+    const [chosenAdditionalData, setChosenAdditionalData] = useState([]);
     const [testId, setTestId] = useState(5)
     const [startY, setStartY] = useState(900)
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [isRepeats, setIsRepeats] = useState(false)
-
+    const [methylationFiles, setMethylationfiles] = useState(["files/methylDensityLC.json","files/methylDensityLE.json" ])
     const [demoFile, setDemoFile] = useState(["files/LcuRepeatData_remapped.json", "files/LerRepeatData_remapped.json"])
     const [gffFile, setgffFile] = useState(["files/lclepsmtclean.gff"])
     const [demoCollinearity, setDemoCollinearity] = useState("files/all-lens-s75000.collinearity")
@@ -181,7 +192,20 @@ export default function Demo({ isDark }) {
         setStartY(startY => startY - 50)
 
     }
+    const handleAdditionalDataSelection = (selected) => {
+        const selectedData = selected.map(obj => obj.value);
+        setChosenAdditionalData(selectedData)
+        // buildRepeats()
+        // setLoading(true) 
+    }
+    const handleSpeciesSelection  =( selected) => {
 
+
+        const selectedFiles = selected.map(obj => obj.value);
+        setLoading(true)
+        setDemoFile(selectedFiles);
+
+      };
     // TODO - navigation?
     function addNewComparison(event) {
         if (event.type === 'contextmenu') {
@@ -334,7 +358,26 @@ ${'' /* .genomeTrack {
         window.gffchromosomes = chromosomalData.map((_ => _.key.chromosome))  
     }
 
+    const buildMethylationData=()=>{
 
+        let methylationData = {}
+        for (let f of methylationFiles){
+
+            fetch(f)
+            .then(response => response.json())
+            .then(json =>{ 
+
+                for (let key in json){
+                    // console.log(key)
+                    methylationData[key] = json[key]
+                }
+                
+            })
+        }
+        window.methylationData = methylationData
+
+
+    }
     const buildRepeats=(file)=>{
         
         dispatch(deleteAllGenome({}))
@@ -347,10 +390,17 @@ ${'' /* .genomeTrack {
             fetch(f)
             .then(response => response.json())
             .then(json => {
+
+                // json.sort((a,b) => a.key.localeCompare(b.key))
                 let dataset = {}
                 let chromosomalData = []
                 let counter= 0
-                for (let key in json) {
+                const keys = Object.keys(json);
+                console.log(keys)
+                keys.sort();
+
+                for (let key of keys) {
+
                     let currentData = {}
                     
                     currentData.key={"chromosome": key, "designation": key};
@@ -433,6 +483,7 @@ ${'' /* .genomeTrack {
                 buildDemo(chromosomalData, dataset)
                 setIsRepeats(true)
                 buildRepeats("files/LcuRepeatData_remapped.json")
+                buildMethylationData()
                 clearComparisonTracks()
                 // setDemoFile("files/ta_hb_coordinate.gff")
                 setTitleState("Lens culinaris Repeats")
@@ -440,6 +491,12 @@ ${'' /* .genomeTrack {
         }
 
     }, [demoFile])
+
+    useEffect(() => {
+
+       window.additionalData = chosenAdditionalData
+       buildRepeats()
+    }, [chosenAdditionalData])
 
 
 
@@ -635,7 +692,7 @@ ${'' /* .genomeTrack {
             let chosenGenomes = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
                 // currentGenomes.forEach(genome => {
-                let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
+                let width = 400 * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
                 totalWidth += width
                 if (totalWidth > maxWidth) break
                 chosenGenomes.push({
@@ -687,7 +744,7 @@ ${'' /* .genomeTrack {
                 open={drawerOpen}
                 onClose={toggleDrawer}>
                 <Typography variant="h2" m={5}>
-                    Upload Files
+                    {/* Upload Files */}
                 </Typography>
                 <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
                     <Stack>
@@ -740,6 +797,28 @@ ${'' /* .genomeTrack {
                             setTitleState("Lens ervoides Repeats")
                             // setDemoCollinearity()
                         }}>Lens ervoides Repeats</Button>
+                           <FormControl sx={{ m: 1, minWidth: 240, minHeight: 300 }} id={'speciesrepeat'}>
+                <span>
+                  <Select
+                  onChange={handleSpeciesSelection}
+                    options={speciesOptions}
+                    isMulti
+                    // styles={customStyles}
+                    />
+
+                </span>
+              </FormControl>
+              <FormControl sx={{ m: 1, minWidth: 240, minHeight: 300 }} id={'additionaldata'}>
+                <span>
+                  <Select
+                  onChange={handleAdditionalDataSelection}
+                    options={additionalDataOptions}
+                    isMulti
+                    // styles={customStyles}
+                    />
+
+                </span>
+              </FormControl>
                         <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
                         <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
 
@@ -824,7 +903,7 @@ ${'' /* .genomeTrack {
                         />
 
                         <Button variant="outline" onClick={toggleDrawer} >
-                            Upload files
+                            {/* Upload files */}
                         </Button>
                     </Stack>
 
