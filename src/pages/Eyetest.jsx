@@ -18,7 +18,7 @@ import { moveCollabPreview } from '../features/miniview/miniviewSlice';
 import SVTrack from '../components/tracks/SVTrack'
 import { selectMiniviews } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
-import IndexBased from  'components/tracks/IndexBased'
+import IndexBased from 'components/tracks/IndexBased'
 import { Switch, Button, Stack, Divider, FormControl, FormControlLabel, Drawer } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
@@ -39,8 +39,8 @@ import { selectTrial } from 'redux/slices/trialSlice'
 import { text } from "d3-fetch"
 import StackedProcessor from 'features/parsers/stackedProcessoor';
 
- 
- 
+
+
 
 function Eyetest({ isDark }) {
 
@@ -148,11 +148,11 @@ function Eyetest({ isDark }) {
         }
 
         if (loading) {
-          
-        // StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
-        //     window.stackData = {data};
-        //     setStackedArray({...data});
-        // })
+
+            // StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
+            //     window.stackData = {data};
+            //     setStackedArray({...data});
+            // })
             setCalculationFinished(false)
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
@@ -202,7 +202,7 @@ function Eyetest({ isDark }) {
             }
 
             demoFile.forEach(file => {
-            
+
                 text(file).then(data => {
                     let fileName = file.split(".")[0].split("/")
                     let nameDesignation = fileName[fileName.length - 1].split("_").join("-")
@@ -255,7 +255,7 @@ function Eyetest({ isDark }) {
         let normalizedLength = 0;
         normalizedLength = Math.max(...window.chromosomalData.map(d => d.end))
         chromosomalData.forEach((point, i) => {
-       
+
             point.normalizedLength = normalizedLength
 
             window.maximumLength += point.end;
@@ -269,20 +269,30 @@ function Eyetest({ isDark }) {
 
     const trialSelector = useSelector(selectTrial)['trial']
     const handleCloseDialog = () => {
+        window.timing.push({ "close_dialog": Date.now() })
+        if (trialSelector.length === 0) {
+            window.timing.push({ "complete": Date.now() })
+
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.timing));
+            let dlAnchorElem = document.createElement("a");
+            dlAnchorElem.download = "timing.json"
+            dlAnchorElem.href = dataStr;
+            dlAnchorElem.click();
+        }
         setOpenDialog(false)
     }
     useEffect(() => {
-        if(trialSelector.length > -1) setOpenDialog(true)
+        if (trialSelector.length > -1) setOpenDialog(true)
     }, [trialSelector.length])
-    
+
     const testDialog = () => {
-        if(trialSelector.length < 0) return (<></>)
-        
+        if (trialSelector.length < 0) return (<></>)
+
         let target = trialSelector[0]
         let descriptions = [
             "Tasks Complete!",
-             "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog to the previous target.", 
-             "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previouse target.",
+            "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog (a duplicated versoion of the gene) to the previous target.",
+            "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previouse target.",
             "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8,055,325. Please click on it."]
 
         return (
@@ -302,13 +312,13 @@ function Eyetest({ isDark }) {
                         <Button onClick={handleCloseDialog} autofocus>Okay</Button>
                     </DialogActions>
                 </DialogContent>
-                
+
             </Dialog>
         )
     }
 
     const buildGenomeView = () => {
-        if(!window.chromosomalData || window.chromosomalData.length === 0) return
+        if (!window.chromosomalData || window.chromosomalData.length === 0) return
         let genomeTracks = []
         let genomeNames = Object.keys(basicTrackSelector)
 
@@ -331,26 +341,26 @@ function Eyetest({ isDark }) {
                 x++
 
             }
-            
+
             // debugger
             genomeTracks.push(
 
-            <Stack direction="row" marginBottom={0} paddingTop={3} key={"Stack_" + x} justifyContent={"space-around"} style={{position: "sticky", top: 0, zIndex: 4, background: isDark ? "#121212" : "white"}}>
-                {chosenGenomes.map(genomeItem => {
-                    return (
-                        <Track
-                            id={genomeItem.genome + "_genome"}
-                            normalize={normalize}
-                            isDark={isDark}
-                            renderTrack={bitmap ? "bitmap" : 'basic'}
-                            usePreloadedImages={preloaded}
-                            genome={true}
-                            width={genomeItem.width}
-                        />
-                    )
-                })
-                }
-            </Stack>
+                <Stack direction="row" marginBottom={0} paddingTop={3} key={"Stack_" + x} justifyContent={"space-around"} style={{ position: "sticky", top: 0, zIndex: 4, background: isDark ? "#121212" : "white" }}>
+                    {chosenGenomes.map(genomeItem => {
+                        return (
+                            <Track
+                                id={genomeItem.genome + "_genome"}
+                                normalize={normalize}
+                                isDark={isDark}
+                                renderTrack={bitmap ? "bitmap" : 'basic'}
+                                usePreloadedImages={preloaded}
+                                genome={true}
+                                width={genomeItem.width}
+                            />
+                        )
+                    })
+                    }
+                </Stack>
 
             )
         }
@@ -643,7 +653,7 @@ function Eyetest({ isDark }) {
             </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
                 <HelpOutlineIcon size="large"></HelpOutlineIcon>
             </Tooltip>
-            <TrackListener isDark={isDark}  style={{height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh"}}>
+            <TrackListener isDark={isDark} style={{ height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh" }}>
                 {/* <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile != "files/bn_methylation_100k.bed") setLoading(true)
@@ -682,14 +692,14 @@ function Eyetest({ isDark }) {
                 {/* <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
                     {/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
-                 
-                    {/* <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
+
+                {/* <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
                     <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
                     <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
                 {/* </Stack> */}
                 {/* <Stack mt={2} spacing={2}> */}
                 <Stack direction='row' justifyContent={"flex-start"}>
-                <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
                     <Autocomplete sx={{ width: '15%' }}
                         multiple
                         size="small"
@@ -715,6 +725,7 @@ function Eyetest({ isDark }) {
                         multiple
                         size="small"
                         onChange={(event, newValue) => {
+                            console.log(newValue)
                             setSearchTerms(newValue)
                         }}
                         id="Gene Search"
@@ -732,7 +743,10 @@ function Eyetest({ isDark }) {
                     />}
                     <Button onClick={() => {
                         let gt = window.gt;
+                        //! Trial Logic ###################################
 
+                        window.timing.push({ "search_clicked": Date.now() })
+                        //! Trial Logic ###################################
                         dispatch(clearSearches())
                         if (gt) {
                             gt.updateState({ Action: "clearSearch" })

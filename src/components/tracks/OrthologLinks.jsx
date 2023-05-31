@@ -117,6 +117,11 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
             let bottomOffset = Math.max(Math.min(bottomTrack.offset - dx, 0), -((maxWidth * bottomTrack.zoom * factor) - maxWidth))
             if (Math.max(bottomTrack.zoom * factor, 1.0) === 1.0) bottomOffset = 0
 
+                      //! Trial Logic ##################################################################
+    window.timing.push({"zoom_two_tracks": Date.now()})
+
+    //! Trial Logic #################################################################
+
             dispatch(updateBothTracks({
                 topKey: indexSelector[index - 1],
                 bottomKey: indexSelector[index + 1],
@@ -152,6 +157,10 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
             let bottomOffset = Math.max(Math.min(bottomTrack.offset + e.movementX, 0), -((maxWidth * bottomTrack.zoom) - maxWidth))
   
+                                  //! Trial Logic ##################################################################
+    window.timing.push({"pan_two_tracks": Date.now()})
+
+    //! Trial Logic #################################################################
 
             dispatch(updateBothTracks({
                 topKey: indexSelector[index - 1],
@@ -203,6 +212,11 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
             trackName = indexSelector[index + 1]
             bottomOffset = offset
         }
+
+                              //! Trial Logic ##################################################################
+    window.timing.push({"snap_links": Date.now()})
+
+    //! Trial Logic #################################################################
         dispatch(updateTrack({
             key: trackName,
             offset: offset,
