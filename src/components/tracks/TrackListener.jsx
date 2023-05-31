@@ -13,33 +13,38 @@ import Select from 'react-select'
  * a lot of tracks the event handlers get out of hand
  */
 
-const TrackListener = ({ children, style, isDark=false }) => {
+const TrackListener = ({ children, style, isDark = false }) => {
 
     const basicTrackSelector = useSelector(selectBasicTracks)
     const dispatch = useDispatch()
 
     const [showTypeOptions, setshowTypeOptions] = useState(false)
-    const [showTypeLocation, setshowTypeLocation] = useState({x: 0, y: 0})
+    const [showTypeLocation, setshowTypeLocation] = useState({ x: 0, y: 0 })
     const [showTypeSelection, setshowTypeSelection] = useState()
     const [showColorPicker, setColorPickerVisibility] = useState(false)
     const [colorPickerColor, setColorPickerColor] = useState()
     const [colorPickerSelection, setColorPickerSelection] = useState()
-    const [colorPickerLocation, setColorPickerLocation] = useState({x: 0, y: 0})
+    const [colorPickerLocation, setColorPickerLocation] = useState({ x: 0, y: 0 })
     const trackTypes = ['heatmap', 'histogram', 'scatter', 'line']
-    let options = trackTypes.map( d => ({
-        "value" : d,
-        "label" : d
+    let options = trackTypes.map(d => ({
+        "value": d,
+        "label": d
     }))
-    function handleChange(e){
-        dispatch(toggleTrackType({ 'id': showTypeSelection, 'type' : e.value }))
+    function handleChange(e) {
+        dispatch(toggleTrackType({ 'id': showTypeSelection, 'type': e.value }))
         setshowTypeOptions(false)
     }
 
     //! For eye tracking demo
     useEffect(() => {
-        window.timing = [{"start": Date.now()}]
-    },[])
+        window.timing = [{ "start": Date.now() }]
+    }, [])
 
+    function logKey(e) {
+        //! Trial Logic ##################################
+        window.timing.push({"key_pressed" : [e.code, Date.now()]})
+        //! Trial Logic #################################
+    }
     function handleClick(e) {
         let goal = e.target
         while (goal) {
@@ -49,10 +54,9 @@ const TrackListener = ({ children, style, isDark=false }) => {
             }
             goal = goal.parentElement
         }
-        if(!goal) return
+        if (!goal) return
         let buttonInfo = goal.id.split(/_(.*)/s)
         // debugger
-        console.log(buttonInfo)
         switch (buttonInfo[0]) {
             case "deleteTrack":
                 dispatch(removeDraggable({ 'key': buttonInfo[1] }))
@@ -79,7 +83,7 @@ const TrackListener = ({ children, style, isDark=false }) => {
     }
 
 
-let styling = css(css`
+    let styling = css(css`
     .popover {
             position: absolute;
             z-index: 5;
@@ -91,7 +95,7 @@ let styling = css(css`
     .Typepopover {
         position: absolute;
         z-index: 5;
-        left: ${showTypeLocation ? showTypeLocation.x - 10+ 'px' : 0};
+        left: ${showTypeLocation ? showTypeLocation.x - 10 + 'px' : 0};
         top: ${showTypeLocation ? showTypeLocation.y + 'px' : 0};
     }
     .trackmenu {
@@ -115,31 +119,31 @@ let styling = css(css`
     let y = colorPickerLocation ? colorPickerLocation.y - 200 + 'px' : 0
 
     return (
-        <div css={styling} style={style} onClick={handleClick} id="eventListener" >
+        <div css={styling} style={style} onClick={handleClick} id="eventListener" onKeyPress={logKey}>
             {showColorPicker ? <div className="popover">
                 <div style={cover} onClick={(e) => { setColorPickerVisibility(false) }} />
-                <ChromePicker className="trackmenu" disableAlpha={true} color={{ 'hex': colorPickerColor }}  onChangeComplete={(c) => {
+                <ChromePicker className="trackmenu" disableAlpha={true} color={{ 'hex': colorPickerColor }} onChangeComplete={(c) => {
                     dispatch(changeMatchingBasicTrackColor({ 'key': colorPickerSelection, 'color': c.hex }))
                     setColorPickerColor(c.hex)
                 }} />
             </div> : null}
             {showTypeOptions ? <div className="Typepopover">
                 <div style={cover} onClick={(e) => { setshowTypeOptions(false) }} />
-                <Select 
+                <Select
                     // className="trackmenu" 
-                    options={options} 
+                    options={options}
                     onChange={handleChange}
                     MenuProps={{
                         PaperProps: {
-                          sx: {
-                            bgcolor: 'pink',
-                            '& .MuiMenuItem-root': {
-                              padding: 2,
+                            sx: {
+                                bgcolor: 'pink',
+                                '& .MuiMenuItem-root': {
+                                    padding: 2,
+                                },
                             },
-                          },
                         },
-                      }} 
-                      />
+                    }}
+                />
 
             </div> : null}
             {children}

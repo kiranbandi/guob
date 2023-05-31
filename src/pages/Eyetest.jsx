@@ -270,6 +270,7 @@ function Eyetest({ isDark }) {
     const handleCloseDialog = () => {
         window.timing.push({"close_dialog": Date.now()})
         if(trialSelector.length === 0){
+            window.timing.push({"complete" : Date.now()})
             console.log("download here")
         }
         setOpenDialog(false)
@@ -284,7 +285,7 @@ function Eyetest({ isDark }) {
         let target = trialSelector[0]
         let descriptions = [
             "Tasks Complete!",
-             "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog to the previous target.", 
+             "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog (a duplicated versoion of the gene) to the previous target.", 
              "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previouse target.",
             "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8,055,325. Please click on it."]
 
@@ -717,6 +718,7 @@ function Eyetest({ isDark }) {
                         multiple
                         size="small"
                         onChange={(event, newValue) => {
+                            console.log(newValue)
                             setSearchTerms(newValue)
                         }}
                         id="Gene Search"
@@ -734,7 +736,10 @@ function Eyetest({ isDark }) {
                     />}
                     <Button onClick={() => {
                         let gt = window.gt;
+                        //! Trial Logic ###################################
 
+                        window.timing.push({"search_clicked": Date.now()})
+                        //! Trial Logic ###################################
                         dispatch(clearSearches())
                         if (gt) {
                             gt.updateState({ Action: "clearSearch" })
