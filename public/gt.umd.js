@@ -3322,7 +3322,8 @@ function Socket (uri, opts) {
   } else if (opts.host) {
     opts.hostname = parseuri(opts.host).host;
   }
-
+  console.log(uri)
+  console.log(opts)
   this.secure = null != opts.secure ? opts.secure
     : (typeof location !== 'undefined' && 'https:' === location.protocol);
 
@@ -3340,7 +3341,8 @@ function Socket (uri, opts) {
   this.query = opts.query || {};
   if ('string' === typeof this.query) this.query = parseqs.decode(this.query);
   this.upgrade = false !== opts.upgrade;
-  this.path = (opts.path || '/engine.io').replace(/\/$/, '') + '/';
+  this.path = (uri.path + opts.path || '/engine.io').replace(/\/$/, '') + '/';
+  console.log(this.path)
   this.forceJSONP = !!opts.forceJSONP;
   this.jsonp = false !== opts.jsonp;
   this.forceBase64 = !!opts.forceBase64;
@@ -4780,6 +4782,7 @@ Request.prototype.create = function () {
     }
 
     debug('xhr data %s', this.data);
+    console.log(this.data)
     xhr.send(this.data);
   } catch (e) {
     // Need to defer since .create() is called directly fhrom the constructor

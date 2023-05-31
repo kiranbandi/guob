@@ -68,7 +68,9 @@ export const basicTrackSlice = createSlice({
     initialState,
 
     reducers: {
-
+        initializeBasicTracks: (state, action) => {
+            state.BasicTracks = Object.assign({}, state.BasicTracks, action.payload)
+        },
         addBasicTrack: (state, action) => {
             if (!state.BasicTracks[action.payload.key]) {
                 state.BasicTracks[action.payload.key] = action.payload
@@ -242,7 +244,7 @@ export const basicTrackSlice = createSlice({
 })
 
 
-export const { addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllOrthologTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection, updateMatchingTracks, changeMatchingBasicTrackColor } = basicTrackSlice.actions;
+export const { initializeBasicTracks, addComplicatedTrack, updateTrack, toggleTrackType, updateBothTracks, deleteAllOrthologTracks, deleteAllBasicTracks, addBasicTrack, removeBasicTrack, moveBasicTrack, updateData, changeBasicTrackColor, changeZoom, pan, setSelection, clearSelection, updateMatchingTracks, changeMatchingBasicTrackColor } = basicTrackSlice.actions;
 
 
 export const selectBasicTracks = (state) => state.basictrack.BasicTracks

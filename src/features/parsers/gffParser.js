@@ -152,7 +152,6 @@ export async function parseSubmittedGFF(fileType, data, designation, collinearit
                 })
 
             })
-
             return buildModel(dataset, trackType)
         })
         return m
