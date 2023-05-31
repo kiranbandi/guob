@@ -274,11 +274,13 @@ function Eyetest({ isDark }) {
             window.timing.push({ "complete": Date.now() })
 
             let dataStr = JSON.stringify(window.timing);
-            fetch('http://hci-sandbox.usask.ca:3009', {
+            fetch('https://hci-sandbox.usask.ca/logging', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    "mode": "no-cors"
                 },
+                mode: "no-cors",
                 body: dataStr
             })
 
