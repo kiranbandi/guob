@@ -231,6 +231,7 @@ function Eyetest({ isDark }) {
             // dispatch(removeDraggable({ key: 'links'}))
             setFirstLoad(false)
             window.maximumLength = 0
+            
             text(demoFile[0]).then(async data => {
                 return text(demoCollinearity).then(c => {
                     return sendFileToWorkers('gff', data, demoFile[0].split(".")[0].split("_")[1], c)
@@ -296,8 +297,9 @@ function Eyetest({ isDark }) {
 
         return (
             <Dialog
-                open={openDialog}
-                onClose={handleCloseDialog}
+            open={openDialog}
+            onClose={handleCloseDialog}
+            sx={{background: "#121212"}}
             >
                 <DialogTitle>
                     {"Task Description"}
@@ -466,7 +468,7 @@ function Eyetest({ isDark }) {
         width: 100%;
     }
     .tracks::before{
-        background: "red";
+        background: red;
         content: "";
     }
     .trackButtons {
@@ -487,7 +489,7 @@ function Eyetest({ isDark }) {
         width: ${orthologDraggableSelector.length > 0 ? "50%" : "100%"};
     }
     `)
-
+// <div class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0" role="presentation" tabindex="-1" style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;">flex
 
     const handleSlider = (event, newValue) => {
         if (typeof newValue === 'number') {
