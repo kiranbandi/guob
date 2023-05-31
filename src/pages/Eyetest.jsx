@@ -231,7 +231,7 @@ function Eyetest({ isDark }) {
             // dispatch(removeDraggable({ key: 'links'}))
             setFirstLoad(false)
             window.maximumLength = 0
-            
+
             text(demoFile[0]).then(async data => {
                 return text(demoCollinearity).then(c => {
                     return sendFileToWorkers('gff', data, demoFile[0].split(".")[0].split("_")[1], c)
@@ -273,11 +273,16 @@ function Eyetest({ isDark }) {
         if (trialSelector.length === 0) {
             window.timing.push({ "complete": Date.now() })
 
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.timing));
-            let dlAnchorElem = document.createElement("a");
-            dlAnchorElem.download = "timing.json"
-            dlAnchorElem.href = dataStr;
-            dlAnchorElem.click();
+            let dataStr = JSON.stringify(window.timing);
+            fetch('http://hci-sandbox.usask.ca:3009', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: dataStr
+            })
+
+
         }
         setOpenDialog(false)
     }
@@ -291,15 +296,15 @@ function Eyetest({ isDark }) {
         let target = trialSelector[0]
         let descriptions = [
             "Tasks Complete!",
-            "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog (a duplicated versoion of the gene) to the previous target.",
-            "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previouse target.",
+            "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog (a duplicated version of the gene) to the previous target.",
+            "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previous target.",
             "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8,055,325. Please click on it."]
 
         return (
             <Dialog
-            open={openDialog}
-            onClose={handleCloseDialog}
-            sx={{background: "#121212"}}
+                open={openDialog}
+                onClose={handleCloseDialog}
+                sx={{ background: "#121212" }}
             >
                 <DialogTitle>
                     {"Task Description"}
@@ -489,7 +494,7 @@ function Eyetest({ isDark }) {
         width: ${orthologDraggableSelector.length > 0 ? "50%" : "100%"};
     }
     `)
-// <div class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0" role="presentation" tabindex="-1" style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;">flex
+    // <div class="MuiDialog-container MuiDialog-scrollPaper css-ekeie0" role="presentation" tabindex="-1" style="opacity: 1; transition: opacity 225ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;">flex
 
     const handleSlider = (event, newValue) => {
         if (typeof newValue === 'number') {
