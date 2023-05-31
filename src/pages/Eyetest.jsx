@@ -268,6 +268,10 @@ function Eyetest({ isDark }) {
 
     const trialSelector = useSelector(selectTrial)['trial']
     const handleCloseDialog = () => {
+        window.timing.push({"close_dialog": Date.now()})
+        if(trialSelector.length === 0){
+            console.log("download here")
+        }
         setOpenDialog(false)
     }
     useEffect(() => {

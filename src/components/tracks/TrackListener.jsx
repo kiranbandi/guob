@@ -3,7 +3,7 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectBasicTracks, removeBasicTrack, toggleTrackType, changeBasicTrackColor, changeMatchingBasicTrackColor } from '../../redux/slices/basicTrackSlice'
 import { removeDraggable } from 'redux/slices/draggableSlice'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChromePicker } from 'react-color'
 import { css } from '@emotion/react';
 import Select from 'react-select'
@@ -34,6 +34,12 @@ const TrackListener = ({ children, style, isDark=false }) => {
         dispatch(toggleTrackType({ 'id': showTypeSelection, 'type' : e.value }))
         setshowTypeOptions(false)
     }
+
+    //! For eye tracking demo
+    useEffect(() => {
+        window.timing = [{"start": Date.now()}]
+    },[])
+
     function handleClick(e) {
         let goal = e.target
         while (goal) {

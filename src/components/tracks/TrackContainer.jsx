@@ -60,7 +60,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }
 
 
-//! Trial Logic ###################################################################
+  //! Trial Logic ###################################################################
   const trialSelector = useSelector(selectTrial)['trial']
   //! Trial Logic ###################################################################
 
@@ -114,8 +114,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }
   else if (split_id[1].includes("hb")) {
     directoryName = `ta_hb_coordinate`
-    // debugger
-    // directoryName = `${split_id[0].replace("-", "_")}`
     fileName = split_id[0] + split_id[2].split("coordinate")[1]
   }
   else if (split_id[0].includes("all") || split_id[0].includes("leaf") || split_id[0].includes("seed")) {
@@ -362,9 +360,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         factor = 1 / factor
       }
 
-      let ratio = normalize ? cap/normalizedLength : 1.0
-      let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * originalWidth*ratio
-      
+      let ratio = normalize ? cap / normalizedLength : 1.0
+      let normalizedLocation = ((e.clientX - e.target.offsetLeft) / e.target.offsetWidth) * originalWidth * ratio
+
       //  Needs to be panned so that the  location remains the same
       let dx = ((normalizedLocation - offset) * (factor - 1))
 
@@ -382,6 +380,11 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       }
 
       if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
+
+      //! Trial Logic ##################################################################
+      window.timing.push({ "zoom_single_track": Date.now() })
+
+      //! Trial Logic #################################################################
 
       dispatch(updateMatchingTracks({
         key: id,
@@ -403,6 +406,11 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let offsetX = Math.max(Math.min(offset + dx, 0), -(maxWidth - originalWidth))
 
+    //! Trial Logic ##################################################################
+    window.timing.push({ "pan_single_track": Date.now() })
+
+    //! Trial Logic #################################################################
+
     dispatch(updateMatchingTracks({
       key: id,
       offset: offsetX,
@@ -418,7 +426,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
     let bunch = []
 
-    let trackWidth = normalize ? maxWidth * cap/normalizedLength : maxWidth
+    let trackWidth = normalize ? maxWidth * cap / normalizedLength : maxWidth
     let currentImageScale = scaleLinear().domain([0, cap]).range([0, maxWidth])
 
     //! Stuff to do in here
@@ -519,9 +527,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         let gene = findGene(getBasePairPosition(e))
 
         // ! Trial Logic ##############################################################################################
-      //  debugger
-        if(gene.key.toLowerCase() === trialSelector[0].toLowerCase(['trial'])){
+        //  debugger
+        if (gene.key.toLowerCase() === trialSelector[0].toLowerCase(['trial'])) {
           dispatch(incrementTrial({}))
+          window.timing.push({ "found_target": Date.now() })
           return
         }
 
@@ -876,14 +885,14 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           {info}
         </Typography> : ''}
         arrow
-        placement='top'
+        placement='bottom'
         PopperProps={{
           popperRef,
           anchorEl: {
             getBoundingClientRect: () => {
               return new DOMRect(
                 positionRef.current.x,
-                trackRef.current.getBoundingClientRect().y + 50,
+                trackRef.current.getBoundingClientRect().y + trackRef.current.getBoundingClientRect().height - 30,
                 0,
                 0,
               );
@@ -895,7 +904,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           className={"parent"}
 
           id={genome ? id + "_genome_view" : id}
-          style={!genome ? {width: '100%', height: '100%'} : {width}}
+          style={!genome ? { width: '100%', height: '100%' } : { width }}
           ref={trackRef}
           onWheel={handleScroll}
           onMouseMove={handleMouseMove}
