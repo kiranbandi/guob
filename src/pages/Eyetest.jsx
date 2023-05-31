@@ -278,9 +278,7 @@ function Eyetest({ isDark }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    "mode": "no-cors"
                 },
-                mode: "no-cors",
                 body: dataStr
             })
 
