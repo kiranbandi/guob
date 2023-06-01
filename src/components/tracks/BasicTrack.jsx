@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, focus } from "react"
 import { scaleLinear } from "d3-scale"
 import { useDispatch, useSelector } from "react-redux"
 import { schemeTableau10 } from 'd3';
-
+import _, { reject } from 'lodash';
 import { Typography, Stack, Tooltip } from '@mui/material';
 import { gene } from './gene.js'
 import { panComparison, zoomComparison, moveMiniview, selectMiniviews, updateData, changeMiniviewColor, changeMiniviewVisibility, movePreview, changePreviewVisibility, updatePreview, selectComparison } from 'features/miniview/miniviewSlice.js'
@@ -115,8 +115,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
 
     useEffect(() => {
-        console.log(window.methylationData)
-        console.log(window.additionalData)
+
         canvasRef.current.addEventListener('wheel', preventScroll, { passive: false });
         // if alt key is pressed then stop the event 
         function preventScroll(e) {
@@ -240,12 +239,19 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 }
                 // console.log(someArray)
                 // setDrawnGenes(someArray)
-                let methColorScale = scaleLinear().domain([0, 100]).range(["black", "red"])
+
                 if (window.additionalData.indexOf("methylation") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
-                    console.log(window.methylationData)
-                    let holding = window.methylationData[title].map(dataPoint => {
+                  
+                    let chrom = genome? title.split("genome")[1] : title ; 
+                    let min_val = _.minBy(window.methylationData[chrom], 'density').density; 
+                    let max_val = _.maxBy(window.methylationData[chrom], 'density').density; 
+
+                    let methColorScale = scaleLinear().domain([min_val, max_val]).range(["black", "red"])
+
+
+                    let holding = window.methylationData[chrom].map(dataPoint => {
                         let x = ((xScale(dataPoint.start)) + offset)
                         let adjustedColor = methColorScale(dataPoint.density)
                         let rectWidth = widthScale(dataPoint.end - dataPoint.start)
@@ -324,12 +330,22 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     someArray = someArray.concat(holding);
                     counter++;
 
-                }let methColorScale = scaleLinear().domain([0, 100]).range(["black", "red"])
+                }
                 if (window.additionalData.indexOf("methylation") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
+                   
 
-                    let holding = window.methylationData[title].map(dataPoint => {
+
+                    let chrom = genome? title.split("genome")[1] : title ;
+                    
+                    
+                    let min_val = _.minBy(window.methylationData[chrom], 'density').density; 
+                    let max_val = _.maxBy(window.methylationData[chrom], 'density').density; 
+
+
+                    let methColorScale = scaleLinear().domain([min_val, max_val]).range(["black", "red"])
+                    let holding = window.methylationData[chrom].map(dataPoint => {
                         let x = ((xScale(dataPoint.start)) + offset)
                         let adjustedColor = methColorScale(dataPoint.density)
                         let rectWidth = widthScale(dataPoint.end - dataPoint.start)

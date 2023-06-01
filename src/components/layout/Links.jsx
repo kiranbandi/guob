@@ -111,7 +111,7 @@ const Links = ({ arrayCoordinates, curvature = 0.5, type = "canvas", width=900, 
 
 
 
-    // console.log(arrayCoordinates)
+
 
     useEffect(() => {
 

@@ -249,10 +249,11 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
     let widthScale1 = topKey ? scaleLinear().domain([0, aboveCap]).range([0, ((maxWidth) * topTrack.zoom)]) : false
     let widthScale2 = bottomKey? scaleLinear().domain([0, belowCap]).range([0, ((maxWidth) * bottomTrack.zoom)]) : false
-    console.log(maxWidth)
+    // console.log(maxWidth)
     if(xScale1 && xScale2 && widthScale1 && widthScale2) for (var pair of orthologPairs) {
         
-
+        // console.log(pair)
+        // console.log(parentWrapperHeight)
         let geneAbove = searchTrack(pair.source, topGenome.data)
         let geneBelow = searchTrack(pair.target, bottomGenome.data)
 
