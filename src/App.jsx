@@ -45,7 +45,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Container toggleTheme={() => setIsDark(!isDark)} isDark={isDark}/>}>
-          <Route index element={<Home />} />
+          <Route index element={<Demo isDark={isDark}/>} />
           {/* uncessary syntatic sugar since react-router v6 doesnt support optional path params */}
           <Route path="dashboard">
             <Route index element={<Dashboard isDark={isDark}/>} />
@@ -54,8 +54,8 @@ export default function App() {
           <Route path="demo" element={<Demo isDark={isDark}/>} />
           <Route path="comparison" element={<Comparison isDark={isDark}/>} />
           <Route path="documentation" element={<Documentation />} />
-          <Route path="renderdemo" element={<RenderDemo  isDark={isDark}/>} />
-          <Route path="eyetest" element={<Eyetest isDark={isDark}/>}/>
+          {/* <Route path="renderdemo" element={<RenderDemo  isDark={isDark}/>} /> */}
+          {/* <Route path="eyetest" element={<Eyetest isDark={isDark}/>}/> */}
           <Route path="*" element={<NotFound />}/>
         </Route>
       </Routes>

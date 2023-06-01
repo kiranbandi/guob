@@ -40,7 +40,6 @@ function findOrthologs(c1, c2) {
 
 const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
-
     let [waiting, setWaiting] = useState()
 
     function updateTimer(topKey, topRatio, topZoom, bottomKey, bottomRatio, bottomZoom) {
@@ -237,6 +236,7 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
     let arrayLinks = [];
     let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height
+    console.log(parentWrapperHeight)
 
     const paddingRight = 10, paddingLeft = 10
     let topRatio = normalize ? aboveCap / topGenome.normalizedLength : 1.0
@@ -261,13 +261,13 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
         let topX1 = xScale1(geneAbove.start) + topTrack.offset
         let topX2 = topX1 + widthScale1(geneAbove.end - geneAbove.start)
 
-        if (topX2-topX1 < 0.2){
-            topX2 = topX1+0.2
+        if (topX2-topX1 < 0.5){
+            topX2 = topX1+0.5
         }
         let bottomX1 = xScale2(geneBelow.start) + bottomTrack.offset
         let bottomX2 = bottomX1 +  widthScale2(geneBelow.end - geneBelow.start)
-        if (bottomX2-bottomX1 < 0.2){
-            bottomX2 = bottomX1+0.2
+        if (bottomX2-bottomX1 < 0.5){
+            bottomX2 = bottomX1+0.5
         }
 
         arrayLinks.push({ type: "polygon", color: "purple", above: geneAbove.key, below: geneBelow.key, source: { x: topX1, x1: topX2, y: 0 }, target: { x: bottomX1, x1: bottomX2, y: parentWrapperHeight } })

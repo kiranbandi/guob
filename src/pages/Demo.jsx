@@ -378,13 +378,56 @@ ${'' /* .genomeTrack {
 
 
     }
-    const buildRepeats=(file)=>{
-        
+    const makeTracks = () =>{
+        console.log("WEEEEEEE")
         dispatch(deleteAllGenome({}))
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({
             dragGroup: "draggables"
         }))
+        window.chromosomes = window.chromosomalData.map((_ => _.key.chromosome))
+
+        let chromosomalData = window.chromosomalData;
+        let dataset = window.dataset;
+        let normalizedLength = 0;
+        let color;
+        let ColourScale = scaleOrdinal().domain([0, 9])
+            .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
+        normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
+        window.maximumLength = 0
+        chromosomalData.forEach((point, i) => {
+            if (point.trackType === 'repeats') {
+                color = ColourScale(i % 10)
+            }
+            else {
+                color = ColourScale(3)
+            }
+
+            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
+            let end = Math.max(...point.data.map(d => d.end))
+            dispatch(addBasicTrack({
+                key: "genome" + point.key.chromosome,
+                trackType: point.trackType,
+                normalizedLength,
+                end,
+                color,
+                zoom: 1.0,
+                pastZoom: 1.0,
+                offset: 0,
+            }))
+            window.maximumLength += end;
+        })
+
+        dispatch(addDraggable({
+            key: 'links',
+            dragGroup: "draggables"
+        }))
+    }
+
+    const buildRepeats=(file)=>{
+        
+        window.dataset = {}
+        window.chromosomalData = []
         for (let f of demoFile){ 
             
             fetch(f)
@@ -392,8 +435,7 @@ ${'' /* .genomeTrack {
             .then(json => {
 
                 // json.sort((a,b) => a.key.localeCompare(b.key))
-                let dataset = {}
-                let chromosomalData = []
+               
                 let counter= 0
                 const keys = Object.keys(json);
                 console.log(keys)
@@ -406,14 +448,14 @@ ${'' /* .genomeTrack {
                     currentData.key={"chromosome": key, "designation": key};
                     currentData.data = json[key];
                     currentData.trackType= "repeats"
-                    chromosomalData.push(currentData)
+                    window.chromosomalData.push(currentData)
     
                     for (let entry of json[key]) {
-                        dataset[counter]  = entry
-                        dataset[counter]["siblings"]=[]
-                        dataset[counter]["value"]= 0
-                        dataset[counter]["ortholog"]=false
-                        dataset[counter]["key"]=counter
+                        window.dataset[counter]  = entry
+                        window.dataset[counter]["siblings"]=[]
+                        window.dataset[counter]["value"]= 0
+                        window.dataset[counter]["ortholog"]=false
+                        window.dataset[counter]["key"]=counter
                         counter+=1
                       }
     
@@ -425,50 +467,22 @@ ${'' /* .genomeTrack {
                
                 // // // debugger
         
-                window.dataset = dataset
-                window.chromosomalData = chromosomalData
+                // window.dataset = dataset
+                // window.chromosomalData = chromosomalData
     
-                window.chromosomes = chromosomalData.map((_ => _.key.chromosome))
-    
-                let normalizedLength = 0;
-                let color;
-                let ColourScale = scaleOrdinal().domain([0, 9])
-                    .range(["#4e79a7", "#f28e2c", "#e15759", "#76b7b2", "#59a14f", "#edc949", "#af7aa1", "#ff9da7", "#9c755f", "#bab0ab"])
-                normalizedLength = +_.maxBy(_.map(dataset), d => +d.end).end;
-                window.maximumLength = 0
-                chromosomalData.forEach((point, i) => {
-                    if (point.trackType === 'repeats') {
-                        color = ColourScale(i % 10)
-                    }
-                    else {
-                        color = ColourScale(3)
-                    }
-        
-                    addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
-                    let end = Math.max(...point.data.map(d => d.end))
-                    dispatch(addBasicTrack({
-                        key: "genome" + point.key.chromosome,
-                        trackType: point.trackType,
-                        normalizedLength,
-                        end,
-                        color,
-                        zoom: 1.0,
-                        pastZoom: 1.0,
-                        offset: 0,
-                    }))
-                    window.maximumLength += end;
-                })
+              
                 
     
                 setLoading(false)
-    
+                makeTracks();
+
             
             })
             .catch(error => console.error("error"));}
-            dispatch(addDraggable({
-                key: 'links',
-                dragGroup: "draggables"
-            }))
+
+    
+
+       
 
        
     }
@@ -495,7 +509,9 @@ ${'' /* .genomeTrack {
     useEffect(() => {
 
        window.additionalData = chosenAdditionalData
-       buildRepeats()
+       if (window.chromosomalData && window.dataset){
+        makeTracks();
+       }
     }, [chosenAdditionalData])
 
 
@@ -986,7 +1002,7 @@ ${'' /* .genomeTrack {
                                             if( item == 'links' && isRepeats){
                                                 return( 
                                                     <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                        <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+                                                        <OrthologLinks key={item} height={sliderHeight} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
 
                                                         {/* <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack> */}
                                                     </Draggable>)
@@ -1028,7 +1044,7 @@ ${'' /* .genomeTrack {
                                                 if( item === 'links' && isRepeats){
                                                 return(
                                                 <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
-                                                        <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+                                                        <OrthologLinks key={item} height={sliderHeight}  id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
 
                                                     {/* <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"} ></SVTrack> */}
                                                 </Draggable>)
