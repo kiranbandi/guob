@@ -262,6 +262,34 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     someArray = someArray.concat(holding);
                     counter++;
                 }
+
+                if (window.additionalData.indexOf("geneDensity") > -1){
+
+                    //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
+                  
+                    let chrom = genome? title.split("genome")[1] : title ; 
+                    // let min_val = _.minBy(window.methylationData[chrom], 'density').density; 
+                    // let max_val = _.maxBy(window.methylationData[chrom], 'density').density; 
+
+                    let chromosomeData = window.gffchromosomalData.find(x => x.key.chromosome == chrom)
+                    let currentData = chromosomeData.data;
+                    // let methColorScale = scaleLinear().domain([min_val, max_val]).range(["black", "red"])
+
+
+                    let holding = currentData.map(dataPoint => {
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        // let adjustedColor = methColorScale(dataPoint.density)
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
+                        let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
+
+                        let drawGene = new gene(dataPoint,adjustedColor, trackType)
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
+                        return drawGene;
+                    })
+                    someArray = someArray.concat(holding);
+                    counter++;
+                }
                 // console.log(someArray)
                 setDrawnGenes(someArray)
            
@@ -351,6 +379,33 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         let rectWidth = widthScale(dataPoint.end - dataPoint.start)
                         let drawGene = new gene(dataPoint,adjustedColor, trackType)
                         drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, rectWidth, maxHeight/ChosenNum);
+                        return drawGene;
+                    })
+                    someArray = someArray.concat(holding);
+                    counter++;
+                }
+
+                if (window.additionalData.indexOf("geneDensity") > -1){
+
+                    //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
+                  
+                    let chrom = genome? title.split("genome")[1] : title ; 
+
+
+                    let chromosomeData = window.gffchromosomalData.find(x => x.key.chromosome == chrom)
+                    let currentData = chromosomeData.data;
+                    // let methColorScale = scaleLinear().domain([min_val, max_val]).range(["black", "red"])
+
+
+                    let holding = currentData.map(dataPoint => {
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        // let adjustedColor = methColorScale(dataPoint.density)
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
+                        let adjustedColor = dynamicColorScale ? dynamicColorScale(dataPoint.value) : color
+
+                        let drawGene = new gene(dataPoint,adjustedColor, trackType)
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
                         return drawGene;
                     })
                     someArray = someArray.concat(holding);

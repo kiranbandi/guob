@@ -71,6 +71,8 @@ export default function Demo({ isDark }) {
     const additionalDataOptions = [
     { value: 'methylation', label: 'METHYLATION' },
 
+    { value: 'geneDensity', label: 'GENE DENSITY' },
+
     ];
 
     const [chosenAdditionalData, setChosenAdditionalData] = useState([]);
@@ -379,7 +381,10 @@ ${'' /* .genomeTrack {
 
     }
     const makeTracks = () =>{
-        console.log("WEEEEEEE")
+
+        setSliderHeight(sliderHeight+1)
+        setSliderHeight(sliderHeight-1)
+        
         dispatch(deleteAllGenome({}))
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({
@@ -438,7 +443,7 @@ ${'' /* .genomeTrack {
                
                 let counter= 0
                 const keys = Object.keys(json);
-                console.log(keys)
+                // console.log(keys)
                 keys.sort();
 
                 for (let key of keys) {
@@ -508,7 +513,9 @@ ${'' /* .genomeTrack {
 
     useEffect(() => {
 
-       window.additionalData = chosenAdditionalData
+        window.additionalData = chosenAdditionalData;
+
+
        if (window.chromosomalData && window.dataset){
         makeTracks();
        }
@@ -794,7 +801,7 @@ ${'' /* .genomeTrack {
                 <div css={styling}>
 
                     <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                       <Button variant='outlined' onClick={() => {
+                       {/* <Button variant='outlined' onClick={() => {
                             setLoading(true);
                             setIsRepeats(true)
                             buildRepeats("files/LcuRepeatData_remapped.json")
@@ -812,7 +819,7 @@ ${'' /* .genomeTrack {
                             // setDemoFile("files/ta_hb_coordinate.gff")
                             setTitleState("Lens ervoides Repeats")
                             // setDemoCollinearity()
-                        }}>Lens ervoides Repeats</Button>
+                        }}>Lens ervoides Repeats</Button> */}
                            <FormControl sx={{ m: 1, minWidth: 240, minHeight: 300 }} id={'speciesrepeat'}>
                 <span>
                   <Select
@@ -842,6 +849,7 @@ ${'' /* .genomeTrack {
 
                     </Stack>
                     <Stack mt={2} spacing={2}>
+                    {/* <Stack mt={2} spacing={2}>
                         <Stack direction='row' justifyContent={"flex-start"}>
                             <Autocomplete sx={{ width: '15%' }}
                                 multiple
@@ -906,9 +914,9 @@ ${'' /* .genomeTrack {
 
                             }>
                                 Update Search
-                            </Button>
+                            </Button> */}
 
-                        </Stack>
+                        {/* </Stack> */}
 
                         <Slider className="widthSlider"
                             step={1}
