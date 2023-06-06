@@ -296,9 +296,9 @@ function Eyetest({ isDark }) {
         let target = trialSelector[0]
         let descriptions = [
             "Tasks Complete!",
-            "The next target is the gene AT4G14760, found on the AT4 chromosome. It is an ortholog (a duplicated version of the gene) to the previous target.",
-            "The next target is the gene AT3G22790, found on the AT3 chromosome. It has the same base pair position as the previous target.",
-            "Your target is the gene AT1G22760, found on the AT1 chromosome at base pair position 8,055,325. Please click on it."]
+            "The next target is the gene AT4G13345, found on the AT4 chromosome. It is an ortholog (a duplicated version of the gene) to the previous target.",
+            "The next target is the gene AT3G24460, found on the AT3 chromosome. It has the same base pair position as the previous target.",
+            "Your target is the gene AT1G25350, found on the AT1 chromosome at base pair position  8,889,110. Please click on it."]
 
         return (
             <Dialog
