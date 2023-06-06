@@ -793,7 +793,7 @@ function Eyetest({ isDark }) {
                         <>
 
                             <Typography variant="h4" id={"gtVerticalReference"}>
-                                {titleState} - Target: {trialSelector[0]}, Chromosome: coordinate_{trialSelector[0].slice(0,3).toLowerCase()}
+                                {titleState} - Target: {trialSelector[0]}, Chromosome: coordinate_{trialSelector.length > 0 ? trialSelector[0].slice(0,3).toLowerCase() : "x"}
                             </Typography>
                             {buildGenomeView()}
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
