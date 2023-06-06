@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-    trial: ['AT1G22760','AT3G22790','AT4G14760'],
+    trial: ['AT1G25350','AT3G24460','AT4G13345'],
 }
 
 export const trialSlice = createSlice({

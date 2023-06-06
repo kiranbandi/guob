@@ -637,8 +637,7 @@ function Eyetest({ isDark }) {
     }
 
 
-    const longtext = "Alt + scroll to zoom\nClick and drag to pan\nShift + click to add annotation\n Ctrl + click to remove annotation"
-
+    const longtext = "Alt + scroll to zoom\nClick and drag to pan\nShift + click to add annotation\n Ctrl + click to remove annotation\n Search box to the right"
     return (
 
 
@@ -650,14 +649,6 @@ function Eyetest({ isDark }) {
             }}>
                 {"G U O B"}
             </Typography> */}
-            <Tooltip title={<Typography
-                variant="caption"
-                style={{ whiteSpace: 'pre-line' }}
-            >
-                {longtext}
-            </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
-                <HelpOutlineIcon size="large"></HelpOutlineIcon>
-            </Tooltip>
             <TrackListener isDark={isDark} style={{ height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh" }}>
                 {/* <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
                     <Button variant='outlined' onClick={() => {
@@ -680,7 +671,7 @@ function Eyetest({ isDark }) {
                     }}>Brassica napus</Button>
                     <Button variant='outlined' onClick={() => {
                         if (demoFile !== ["files/ta_hb_coordinate.gff"]) setLoading(true)
-
+                        
                         setDemoFile(["files/ta_hb_coordinate.gff"])
                         setTitleState("Triticum aestivum")
                         setDemoCollinearity()
@@ -696,16 +687,24 @@ function Eyetest({ isDark }) {
                 </Stack> */}
                 {/* <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
-                    {/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
+{/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
 
                 {/* <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
                     <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
-                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
+                <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
                 {/* </Stack> */}
                 {/* <Stack mt={2} spacing={2}> */}
                 <Stack direction='row' justifyContent={"flex-start"}>
+                <Tooltip title={<Typography
+                    variant="caption"
+                    style={{ whiteSpace: 'pre-line', fontSize: "1rem" }}
+                >
+                    {longtext}
+                </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
+                    <HelpOutlineIcon sx={{fontSize: "3em", marginRight: "1em", color: "red"}}></HelpOutlineIcon>
+                </Tooltip>
                     <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
-                    <Autocomplete sx={{ width: '15%' }}
+                    <Autocomplete sx={{ width: '15%', marginTop: "1em" }}
                         multiple
                         size="small"
                         onChange={(event, newValue) => {
@@ -726,7 +725,7 @@ function Eyetest({ isDark }) {
                     />
                     {/* <Button onClick={toggleSortedTracks}
                     >Sort Tracks</Button> */}
-                    {window.dataset && <Autocomplete sx={{ width: '70%' }}
+                    {window.dataset && <Autocomplete sx={{ width: '70%', marginTop: "1em" }}
                         multiple
                         size="small"
                         onChange={(event, newValue) => {
@@ -794,7 +793,7 @@ function Eyetest({ isDark }) {
                         <>
 
                             <Typography variant="h4" id={"gtVerticalReference"}>
-                                {titleState} - Target: {trialSelector[0]}
+                                {titleState} - Target: {trialSelector[0]}, Chromosome: coordinate_{trialSelector[0].slice(0,3).toLowerCase()}
                             </Typography>
                             {buildGenomeView()}
                             <CustomDragLayer groupID={groupSelector} isDark={isDark} />
