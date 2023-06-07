@@ -971,7 +971,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                                 coordinateX={x}
                                 coordinateY={canvasRef.current.offsetTop}
                                 height={canvasRef.current.offsetHeight}
-                                width={genome ? 100 : width} // boxwidth
+                                width={genome ? 200 : width} // boxwidth
                                 preview={true}
                                 text={Math.max(Math.round(beginning), 0)}
                                 grouped={grouped}
@@ -987,7 +987,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     id={id +"_trackmarkers"}
                     endOfTrack={endCap}
                     startOfTrack={startOfTrack}
-                    width={genome ? 100 : maxWidth}
+                    width={genome ? 200 : maxWidth}
                     coordinateY={annotationY}
                     height={maxHeight}
                     locationScale={locationScale}
@@ -1030,7 +1030,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     id={id}
                     ref={canvasRef}
                     height={maxHeight}
-                    width={genome ? 100 :  maxWidth}
+                    width={genome ? 200 :  maxWidth}
                     className={genome ? "genomeTrack" : "actualTrack"}
                     style={style}
                     onContextMenu={doSomething}
@@ -1085,7 +1085,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     // 'align-items': 'center',
                 //    zIndex: 9999,
 
-                    'transform-origin': 'top right', width:100, height: 30, display: 'flow-root'}} > <Select   onChange={handleRepeatSelection}
+                    'transform-origin': 'top right', width:200, height: 30, display: 'flow-root'}} > <Select   onChange={handleRepeatSelection}
 
 // value={chosenRepeats}
 options={repeatOptions}

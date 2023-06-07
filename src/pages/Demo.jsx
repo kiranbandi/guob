@@ -69,13 +69,28 @@ export default function Demo({ isDark }) {
       ];
 
     const additionalDataOptions = [
-    { value: 'methylation', label: 'METHYLATION' },
+    { value: 'methylation', label: 'METHYLATION', color: "red" },
 
-    { value: 'geneDensity', label: 'GENE DENSITY' },
+    { value: 'geneDensity', label: 'GENE DENSITY', color: "orange" },
 
     ];
 
+    const customStyles = {
+        // menu: (provided, state) => ({
+        //     ...provided,
+        //   })
+        option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+            return {
+              ...styles,
+            //   backgroundColor: props.isDark ? "#121212" : 'white',
+              color: data.color,
+            };
+          }
+      };
+
     const [chosenAdditionalData, setChosenAdditionalData] = useState([]);
+    const [showSV, setShowSV] = useState(false);
+
     const [testId, setTestId] = useState(5)
     const [startY, setStartY] = useState(900)
     const [drawerOpen, setDrawerOpen] = useState(false)
@@ -554,6 +569,11 @@ ${'' /* .genomeTrack {
         } setNormalize(e.target.checked)
     }
 
+    function changeSV(e) {
+
+
+         setShowSV(e.target.checked)
+    }
     if (window.gt) {
         window.gt.on('state_updated_reliable', (userID, payload) => {
 
@@ -715,7 +735,7 @@ ${'' /* .genomeTrack {
             let chosenGenomes = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
                 // currentGenomes.forEach(genome => {
-                let width = 400 * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
+                let width = 1600 * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
                 totalWidth += width
                 if (totalWidth > maxWidth) break
                 chosenGenomes.push({
@@ -763,40 +783,7 @@ ${'' /* .genomeTrack {
 
     return (
         <>
-            <Drawer
-                open={drawerOpen}
-                onClose={toggleDrawer}>
-                <Typography variant="h2" m={5}>
-                    {/* Upload Files */}
-                </Typography>
-                <Stack spacing={5} alignItems={'center'} justifyContent={'center'} divider={<Divider orientation="horizontal" flexItem />}>
-                    <Stack>
-                        <Button variant="outlined" component="label" onClick={() => setShowGff(false)}>
-                            Upload GFF File
-                            <input hidden type="file" id="gff_file" onChange={() => setShowGff(true)} />
-                        </Button>
-                        {showGff && document.getElementById("gff_file").files.length > 0 && <Typography>{document.getElementById("gff_file").files[0].name}</Typography>}
-                    </Stack>
-                    {/* <Button variant="outlined" component="label" >
-                            Upload BED File
-                            <input hidden type="file" id="bed_file" />
-                        </Button> */}
-                    <Stack>
-                        <Button variant="outlined" component="label" onClick={() => setShowCollinearity(false)}>
-                            Upload Collinearity File
-                            <input hidden type="file" id="collinearity_file" onChange={() => setShowCollinearity(true)} />
-                        </Button>
-                        {showCollinearity && document.getElementById("collinearity_file").files.length > 0 && <Typography>{document.getElementById("collinearity_file").files[0].name}</Typography>}
-                    </Stack>
-                    {loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
-                        <CircularProgress size={75} />
-                    </Box> :
-                        <Button onClick={updateFiles}>
-                            Update Tracks
-                        </Button>
-                    }
-                </Stack>
-            </Drawer>
+
             <TrackListener>
                 <div css={styling}>
 
@@ -820,7 +807,7 @@ ${'' /* .genomeTrack {
                             setTitleState("Lens ervoides Repeats")
                             // setDemoCollinearity()
                         }}>Lens ervoides Repeats</Button> */}
-                           <FormControl sx={{ m: 1, minWidth: 240, minHeight: 300 }} id={'speciesrepeat'}>
+                           <FormControl sx={{ m: 1, minWidth: 240, minHeight: 100 }} id={'speciesrepeat'}>
                 <span>
                   <Select
                   onChange={handleSpeciesSelection}
@@ -831,12 +818,14 @@ ${'' /* .genomeTrack {
 
                 </span>
               </FormControl>
-              <FormControl sx={{ m: 1, minWidth: 240, minHeight: 300 }} id={'additionaldata'}>
+              <FormControl sx={{ m: 1, minWidth: 240, minHeight: 100 }} id={'additionaldata'}>
                 <span>
                   <Select
                   onChange={handleAdditionalDataSelection}
                     options={additionalDataOptions}
                     isMulti
+                    styles={customStyles}
+
                     // styles={customStyles}
                     />
 
@@ -844,8 +833,9 @@ ${'' /* .genomeTrack {
               </FormControl>
                         <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
                         <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+                        <FormControlLabel control={<Switch onChange={changeSV} checked={showSV} />} label={"Show SVs"} />
 
-                        <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
+                        {/* <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} /> */}
 
                     </Stack>
                     <Stack mt={2} spacing={2}>
@@ -1010,9 +1000,10 @@ ${'' /* .genomeTrack {
                                             if( item == 'links' && isRepeats){
                                                 return( 
                                                     <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                        <OrthologLinks key={item} height={sliderHeight} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+                                                        {showSV? <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack>
 
-                                                        {/* <SVTrack key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"} ></SVTrack> */}
+                                                        : <OrthologLinks key={item} height={sliderHeight} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+}
                                                     </Draggable>)
                                             }
                                             else if( item == 'links'){
