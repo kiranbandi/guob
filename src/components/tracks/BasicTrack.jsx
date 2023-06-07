@@ -75,7 +75,12 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
               backgroundColor: isDark ? "#121212" : 'white',
               color: data.color,
             };
-          }
+          },
+          multiValue: (styles, { data, isDisabled, isFocused, isSelected }) => ({
+
+            backgroundColor: data.color,
+            color: 'white',
+          }),
       };
 
 
@@ -88,7 +93,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
     // If a parent wrapper exists get its dimensions and use 75% of that for the canvas height
     // the rest will be used for the scale 
-    // If no height is present default to 100 pixel tall tracks
+    // If no height is present default to  pixel tall tracks
     // TODO the scale height needs to a static value and not 25% so the following calculation should be updated
     let parentWrapperHeight = height ? height : document.querySelector('.actualTrack')?.getBoundingClientRect()?.height,
         parentWrapperWidth = genome ? width : document.querySelector('.actualTrack')?.getBoundingClientRect()?.width;

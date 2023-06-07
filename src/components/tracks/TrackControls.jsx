@@ -221,7 +221,13 @@ function TrackControls(props) {
           backgroundColor: props.isDark ? "#121212" : 'white',
           color: data.color,
         };
-      }
+      },
+      multiValue: (styles, { data, isDisabled, isFocused, isSelected }) => ({
+
+        backgroundColor: data.color,
+        color: 'white',
+      }),
+    
   };
 
 

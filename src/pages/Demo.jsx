@@ -67,6 +67,7 @@ export default function Demo({ isDark }) {
         { value: 'files/LcuRepeatData_remapped.json', label: 'LENS CULINARIS' },
         { value: 'files/LerRepeatData_remapped.json', label: 'LENS ERVOIDES'},
       ];
+   
 
     const additionalDataOptions = [
     { value: 'methylation', label: 'METHYLATION', color: "red" },
@@ -85,9 +86,18 @@ export default function Demo({ isDark }) {
             //   backgroundColor: props.isDark ? "#121212" : 'white',
               color: data.color,
             };
-          }
-      };
+          },
+          multiValue: (styles, { data, isDisabled, isFocused, isSelected }) => ({
 
+            backgroundColor: data.color,
+            color: 'white',
+          }),
+        
+      };
+      const [selectedSpecies, setSelectedSpecies] = useState([
+        { value: 'files/LcuRepeatData_remapped.json', label: 'LENS CULINARIS' },
+        { value: 'files/LerRepeatData_remapped.json', label: 'LENS ERVOIDES'},
+        ]);
     const [chosenAdditionalData, setChosenAdditionalData] = useState([]);
     const [showSV, setShowSV] = useState(false);
 
@@ -219,6 +229,8 @@ export default function Demo({ isDark }) {
 
 
         const selectedFiles = selected.map(obj => obj.value);
+        // let chosenSpecies = speciesOptions.filter(x => selectedFiles.indexOf(x.value)>-1);
+        setSelectedSpecies(selected);
         setLoading(true)
         setDemoFile(selectedFiles);
 
@@ -396,9 +408,8 @@ ${'' /* .genomeTrack {
 
     }
     const makeTracks = () =>{
-
-        setSliderHeight(sliderHeight+1)
-        setSliderHeight(sliderHeight-1)
+        
+       
         
         dispatch(deleteAllGenome({}))
         dispatch(deleteAllBasicTracks({}))
@@ -442,6 +453,9 @@ ${'' /* .genomeTrack {
             key: 'links',
             dragGroup: "draggables"
         }))
+
+        setSliderHeight(sliderHeight+1);
+        setSliderHeight(sliderHeight-1);
     }
 
     const buildRepeats=(file)=>{
@@ -511,7 +525,7 @@ ${'' /* .genomeTrack {
     let [submittedData, setSubmittedData] = useState(false)
 
     useEffect(() => {
-
+        
         if (demoFile) {
             parseGFF(gffFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
                 buildDemo(chromosomalData, dataset)
@@ -527,11 +541,12 @@ ${'' /* .genomeTrack {
     }, [demoFile])
 
     useEffect(() => {
-
+        let tempCount = window.additionalData? window.additionalData.length: 0
         window.additionalData = chosenAdditionalData;
 
 
        if (window.chromosomalData && window.dataset){
+        while (tempCount == window.additionalData){}
         makeTracks();
        }
     }, [chosenAdditionalData])
@@ -811,6 +826,7 @@ ${'' /* .genomeTrack {
                 <span>
                   <Select
                   onChange={handleSpeciesSelection}
+                  value={selectedSpecies}
                     options={speciesOptions}
                     isMulti
                     // styles={customStyles}
