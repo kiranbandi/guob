@@ -294,6 +294,38 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     })
                     someArray = someArray.concat(holding);
                     counter++;
+                    
+                }
+                if (window.additionalData.indexOf("contig") > -1){
+
+                    //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
+                  
+                    let chrom = genome? title.split("genome")[1] : title ; 
+                    // let min_val = _.minBy(window.methylationData[chrom], 'density').density; 
+                    // let max_val = _.maxBy(window.methylationData[chrom], 'density').density; 
+
+                    let chromosomeData = window.contigData[chrom]
+
+                    // let methColorScale = scaleLinear().domain([min_val, max_val]).range(["black", "red"])
+                    let holding = []
+
+                    for (let key in chromosomeData){
+                        let dataPoint = chromosomeData[key]
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        // let adjustedColor = methColorScale(dataPoint.density)
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
+                        let clade = mode(dataPoint.clades)
+                        let adjustedColor = colormap[clade]
+
+                        let drawGene = new gene(dataPoint,adjustedColor, trackType)
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
+                        holding.push(drawGene);
+
+                }
+                    someArray = someArray.concat(holding);
+                    counter++;
+                    
                 }
                 // console.log(someArray)
                 setDrawnGenes(someArray)
@@ -416,6 +448,37 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     someArray = someArray.concat(holding);
                     counter++;
                 }
+                if (window.additionalData.indexOf("contig") > -1){
+
+                    //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
+                  
+                    let chrom = genome? title.split("genome")[1] : title ; 
+                    // let min_val = _.minBy(window.methylationData[chrom], 'density').density; 
+                    // let max_val = _.maxBy(window.methylationData[chrom], 'density').density; 
+
+                    let chromosomeData = window.contigData[chrom]
+
+                    // let methColorScale = scaleLinear().domain([min_val, max_val]).range(["black", "red"])
+
+                    let holding = []
+                    for (let key in chromosomeData){
+                        let dataPoint = chromosomeData[key]
+                        let x = ((xScale(dataPoint.start)) + offset)
+                        // let adjustedColor = methColorScale(dataPoint.density)
+                        let rectWidth = widthScale(dataPoint.end - dataPoint.start)
+                        let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
+                        let clade = mode(dataPoint.clades)
+                        let adjustedColor = colormap[clade]
+
+                        let drawGene = new gene(dataPoint,adjustedColor, trackType)
+                        drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
+                        holding.push(drawGene);
+
+                }
+                    someArray = someArray.concat(holding);
+                    counter++;
+                    
+                }
 
                 // let counter = 0
                 // let ChosenNum = chosenRepeats.length;
@@ -488,6 +551,13 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
     let [waiting, setWaiting] = useState()
     let [posWaiting, setPosWaiting] = useState()
+
+    function mode(arr){
+        return arr.sort((a,b) =>
+              arr.filter(v => v===a).length
+            - arr.filter(v => v===b).length
+        ).pop();
+    }
 
     function updateTimer(id, ratio, zoom) {
         clearTimeout(posWaiting)

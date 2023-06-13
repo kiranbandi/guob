@@ -26,6 +26,7 @@ import { selectBasicTracks, addBasicTrack, removeBasicTrack, deleteAllBasicTrack
 import SVTrack from 'components/tracks/SVTrack'
 
 // import { pullInfo } from 'features/parsers/gffParser'; 
+
 import { text } from "d3-request";
 import $ from 'jquery';
 import { scaleOrdinal } from 'd3-scale';
@@ -74,6 +75,8 @@ export default function Demo({ isDark }) {
 
     { value: 'geneDensity', label: 'GENE DENSITY', color: "orange" },
 
+    { value: 'contig', label: 'CONTIG DATA', color: "green" },
+
     ];
 
     const customStyles = {
@@ -106,6 +109,8 @@ export default function Demo({ isDark }) {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [isRepeats, setIsRepeats] = useState(false)
     const [methylationFiles, setMethylationfiles] = useState(["files/methylDensityLC.json","files/methylDensityLE.json" ])
+    const [contigFiles, setContigFiles] = useState(["files/lcu_contigData.gff3","files/ler_contigData.gff3" ])
+
     const [demoFile, setDemoFile] = useState(["files/LcuRepeatData_remapped.json", "files/LerRepeatData_remapped.json"])
     const [gffFile, setgffFile] = useState(["files/lclepsmtclean.gff"])
     const [demoCollinearity, setDemoCollinearity] = useState("files/all-lens-s75000.collinearity")
@@ -121,6 +126,7 @@ export default function Demo({ isDark }) {
 
     // 85 px
     function addNewDraggable(key, trackType, data, normalizedLength, color, dragGroup) {
+        // console.log(window.additionalData)
         addNewBasicTrack(key, trackType, data, normalizedLength, color)
 
         dispatch(addDraggable({
@@ -221,7 +227,9 @@ export default function Demo({ isDark }) {
     }
     const handleAdditionalDataSelection = (selected) => {
         const selectedData = selected.map(obj => obj.value);
-        setChosenAdditionalData(selectedData)
+        setChosenAdditionalData(selectedData);
+        window.additionalData = selectedData;
+
         // buildRepeats()
         // setLoading(true) 
     }
@@ -410,7 +418,7 @@ ${'' /* .genomeTrack {
     const makeTracks = () =>{
         
        
-        
+        console.log(window.additionalData)
         dispatch(deleteAllGenome({}))
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({
@@ -434,7 +442,6 @@ ${'' /* .genomeTrack {
                 color = ColourScale(3)
             }
 
-            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
             let end = Math.max(...point.data.map(d => d.end))
             dispatch(addBasicTrack({
                 key: "genome" + point.key.chromosome,
@@ -447,6 +454,8 @@ ${'' /* .genomeTrack {
                 offset: 0,
             }))
             window.maximumLength += end;
+            addNewDraggable(point.key.chromosome, point.trackType, point.data, normalizedLength, color, "draggables")
+
         })
 
         dispatch(addDraggable({
@@ -457,7 +466,61 @@ ${'' /* .genomeTrack {
         setSliderHeight(sliderHeight+1);
         setSliderHeight(sliderHeight-1);
     }
+    const buildContigData = () =>{
 
+        let contigData = {}
+        for (let f of contigFiles){ 
+            let reader = new FileReader()
+            fetch(f)
+            .then((res) => res.text())
+            .then((text) => {
+
+                let temp = text.split(/\n/)
+                temp.forEach(d => {
+                    let info = d.split('\t')
+                    let chrom = info [0]
+                    let contig = info[3]
+                    let start = info[1]
+                    let end = info[2]
+                    if (window.gffchromosomes.indexOf(chrom)>-1){
+                        let clade = info[11].split("clade=")[1].split(";")[0]
+
+                        let contigChromData = contigData[chrom];
+                        if (contigChromData){
+                            let innerContigData = contigChromData[contig]
+                            if (innerContigData){
+                                if (parseInt(start)<parseInt(innerContigData.start)){
+                                    
+                                    innerContigData.start = start;
+                                }
+                                if (parseInt(end)>parseInt(innerContigData.end)){
+
+
+                                    innerContigData.end = end;
+                                }
+                                innerContigData.clades.push(clade)
+                                contigChromData[contig] = innerContigData;
+                            }
+                            else{
+                                contigChromData[contig] = {start: start, end: end, clades : [clade]}; 
+                            }
+                        }
+                        else{
+                            contigData[chrom]  = {};
+                            contigData[chrom][contig] =  {start: start, end: end, clades : [clade]}
+                        }
+                        
+                    }
+                })
+              // do something with "text"
+             })
+        }
+
+        window.contigData = contigData;
+        // console.log(window.contigData)
+        
+    }
+    
     const buildRepeats=(file)=>{
         
         window.dataset = {}
@@ -521,17 +584,21 @@ ${'' /* .genomeTrack {
        
     }
 
+    
+
     let [loading, setLoading] = useState(true)
     let [submittedData, setSubmittedData] = useState(false)
 
     useEffect(() => {
         
+        window.additionalData = [];
         if (demoFile) {
             parseGFF(gffFile, demoCollinearity).then(({ chromosomalData, dataset }) => {
                 buildDemo(chromosomalData, dataset)
                 setIsRepeats(true)
                 buildRepeats("files/LcuRepeatData_remapped.json")
                 buildMethylationData()
+                buildContigData()
                 clearComparisonTracks()
                 // setDemoFile("files/ta_hb_coordinate.gff")
                 setTitleState("Lens culinaris Repeats")
@@ -541,12 +608,11 @@ ${'' /* .genomeTrack {
     }, [demoFile])
 
     useEffect(() => {
-        let tempCount = window.additionalData? window.additionalData.length: 0
-        window.additionalData = chosenAdditionalData;
+        let tempCount = window.additionalData.length
 
 
        if (window.chromosomalData && window.dataset){
-        while (tempCount == window.additionalData){}
+
         makeTracks();
        }
     }, [chosenAdditionalData])
