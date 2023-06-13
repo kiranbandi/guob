@@ -809,24 +809,32 @@ ${'' /* .genomeTrack {
         let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
         let x = 0
 
-        while (x < genomeNames.length) {
+        while (x < demoFile.length) {
+            x++;
             let totalWidth = 0
-            let currentGenomes = genomeNames.slice(x)
+            let numChrom =  genomeNames.length/demoFile.length;
+            console.log((x-1)*numChrom, numChrom*x)
+
+            let currentGenomes = genomeNames.slice((x-1)*numChrom, numChrom*x);
+            console.log("currentGenomes", currentGenomes);
+
             // while(totalWidth < maxWidth){
             let chosenGenomes = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
                 // currentGenomes.forEach(genome => {
-                let width = 1600 * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
+                // let width = 2000 * basicTrackSelector[currentGenomes[_]].end / window.maximumLength * Math.ceil(genomeNames.length / 5)
+                let width = maxWidth/7;
                 totalWidth += width
-                if (totalWidth > maxWidth) break
+                // if (totalWidth > maxWidth) break
                 chosenGenomes.push({
                     genome: currentGenomes[_],
                     width
                 })
-                x++
+                
+
 
             }
-            genomeTracks.push(<Stack direction="row" marginBottom={5} id={"gtVerticalReference"} key={"Stack_" + x} justifyContent={"space-around"}>
+            genomeTracks.push(<Stack direction="row" marginBottom={5} id={"gtVerticalReference"} key={"Stack_" + x}  spacing={-15}>
                 {chosenGenomes.map(genomeItem => {
                     return (
                         <BasicTrack

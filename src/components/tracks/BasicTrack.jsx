@@ -52,6 +52,12 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         { value: 'Tekay', label: 'Tekay' , color: schemeTableau10[6]}
       ];
 
+    const [selectedCladeOptions, setSelectedCladeOptions] = useState([
+        { value: 'SIRE', label: 'SIRE' , color: schemeTableau10[4]},
+        { value: 'Ogre', label: 'Ogre', color: schemeTableau10[5] },
+        { value: 'Tekay', label: 'Tekay' , color: schemeTableau10[6]}
+      ]);
+
     const colormap = {
         "SIRE": schemeTableau10[4],
         "Ogre": schemeTableau10[5],
@@ -59,7 +65,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     }
     const handleRepeatSelection =( selected) => {
 
-
+        setSelectedCladeOptions(selected)
         const selectedRepeacts = selected.map(obj => obj.value);
 
         setChosenRepeats(selectedRepeacts);
@@ -1046,7 +1052,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                                 coordinateX={x}
                                 coordinateY={canvasRef.current.offsetTop}
                                 height={canvasRef.current.offsetHeight}
-                                width={genome ? 200 : width} // boxwidth
+                                width={ width} // boxwidth
                                 preview={true}
                                 text={Math.max(Math.round(beginning), 0)}
                                 grouped={grouped}
@@ -1062,7 +1068,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     id={id +"_trackmarkers"}
                     endOfTrack={endCap}
                     startOfTrack={startOfTrack}
-                    width={genome ? 200 : maxWidth}
+                    width={maxWidth}
                     coordinateY={annotationY}
                     height={maxHeight}
                     locationScale={locationScale}
@@ -1105,7 +1111,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     id={id}
                     ref={canvasRef}
                     height={maxHeight}
-                    width={genome ? 200 :  maxWidth}
+                    width={ maxWidth}
                     className={genome ? "genomeTrack" : "actualTrack"}
                     style={style}
                     onContextMenu={doSomething}
@@ -1153,7 +1159,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     onWheel={handleScroll}
                     {...props} />
             </Tooltip>
-         {trackType=="repeats"  &&  genome  && <span style = {{
+         {/* {trackType=="repeats"  &&  genome  && <span style = {{
 
                     // height: '90%',
                     // display: 'flex',
@@ -1167,7 +1173,7 @@ options={repeatOptions}
 styles={customStyles}
 
 isMulti
-/> </span>}
+/> </span>} */}
 
             {!noScale && !genome  && <TrackScale
                 endOfTrack={endCap}
@@ -1176,7 +1182,7 @@ isMulti
                 paddingLeft={paddingLeft}
                 paddingRight={paddingLeft}
             />}
-            {!genome && <TrackControls trackType={trackType} handleRepeatSelection={handleRepeatSelection} repeatOptions={repeatOptions} id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />}
+            {!genome && <TrackControls trackType={trackType} selectedCladeOptions={selectedCladeOptions} handleRepeatSelection={handleRepeatSelection} repeatOptions={repeatOptions} id={id} height={parentWrapperHeight} gap={parentWrapperHeight} />}
 
       
 

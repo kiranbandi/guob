@@ -24,7 +24,7 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
     let alignmentList = window.alignmentList;
     let chromosomeMap = window.chromosomeMap;
 
-    console.log("AAH DEKH" , alignmentList,chromosomeMap)
+
 
     const [minQualityScore, setQualityScore] = useState(0)
     let [waiting, setWaiting] = useState()
@@ -195,7 +195,7 @@ const SVTrack = ({ index, id, normalize, dragGroup, ...props }) => {
     //////////*******change with top track when have data for top track and bottom....
     let topKey = topTrack ? topTrack.key : undefined
     let bottomKey = bottomTrack ? bottomTrack.key.slice(-1): undefined
-    console.log(topKey, bottomKey)
+    // console.log(topKey, bottomKey)
     // let topKey = "1";     
     // let bottomKey =  "2"
     if(!topKey || !bottomKey){

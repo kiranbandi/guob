@@ -20,6 +20,7 @@ function TrackControls(props) {
 
   const trackType = props.trackType;
   const repeatOptions = props.repeatOptions;
+  const selectedCladeOptions = props.selectedCladeOptions;
   const handleRepeatSelection = props.handleRepeatSelection;
 
   const [selectedRepeats, setSelectedRepeats] = useState([])
@@ -234,6 +235,7 @@ function TrackControls(props) {
   const color = props.isDark ? deepOrange[500] : deepOrange[100]
   const highlight = props.isDark ? deepOrange[200] : deepOrange[500]
   if (trackType == "repeats") {
+    console.log("Selected", selectedCladeOptions)
     console.log(repeatOptions.map((repeat) => {
       return (<MenuItem
         key={repeat.label}
@@ -321,6 +323,8 @@ function TrackControls(props) {
                 <span>
                   <Select
                   onChange={handleRepeatSelection}
+                  value={selectedCladeOptions}
+
                     options={repeatOptions}
                     isMulti
                     styles={customStyles}
