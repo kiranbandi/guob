@@ -2,6 +2,7 @@
 import Miniview from '../features/miniview/Miniview';
 import testing_array from '../data/testing_array';
 import Select from 'react-select';
+import { schemeTableau10 } from 'd3';
 
 import Draggable from '../features/draggable/Draggable';
 import DragContainer from '../features/draggable/DragContainer';
@@ -68,9 +69,24 @@ export default function Demo({ isDark }) {
         { value: 'files/LcuRepeatData_remapped.json', label: 'LENS CULINARIS' },
         { value: 'files/LerRepeatData_remapped.json', label: 'LENS ERVOIDES'},
       ];
-   
 
-    const additionalDataOptions = [
+
+    const repeatOptions = [
+    { value: 'SIRE', label: 'SIRE' , color: schemeTableau10[4]},
+    { value: 'Ogre', label: 'Ogre', color: schemeTableau10[5] },
+    { value: 'Tekay', label: 'Tekay' , color: schemeTableau10[6]}
+    ];
+   
+    let [selectedCladeOptions, setSelectedCladeOptions] = useState([
+    { value: 'SIRE', label: 'SIRE' , color: schemeTableau10[4]},
+    { value: 'Ogre', label: 'Ogre', color: schemeTableau10[5] },
+    { value: 'Tekay', label: 'Tekay' , color: schemeTableau10[6]}
+    ]);
+
+    let [chosenRepeats, setChosenRepeats] = useState(["SIRE", "Ogre", "Tekay"])
+
+
+    let additionalDataOptions = [
     { value: 'methylation', label: 'METHYLATION', color: "red" },
 
     { value: 'geneDensity', label: 'GENE DENSITY', color: "orange" },
@@ -78,6 +94,7 @@ export default function Demo({ isDark }) {
     { value: 'contig', label: 'CONTIG DATA', color: "green" },
 
     ];
+    
 
     const customStyles = {
         // menu: (provided, state) => ({
@@ -101,7 +118,7 @@ export default function Demo({ isDark }) {
         { value: 'files/LcuRepeatData_remapped.json', label: 'LENS CULINARIS' },
         { value: 'files/LerRepeatData_remapped.json', label: 'LENS ERVOIDES'},
         ]);
-    const [chosenAdditionalData, setChosenAdditionalData] = useState([]);
+    let [chosenAdditionalData, setChosenAdditionalData] = useState([]);
     const [showSV, setShowSV] = useState(false);
 
     const [testId, setTestId] = useState(5)
@@ -123,6 +140,14 @@ export default function Demo({ isDark }) {
 
     const [draggableSpacing, setDraggableSpacing] = useState(true)
     const dispatch = useDispatch()
+
+    const handleRepeatSelection =( selected) => {
+
+        setSelectedCladeOptions(selected)
+        const selectedRepeacts = selected.map(obj => obj.value);
+
+        setChosenRepeats(selectedRepeacts);
+      };
 
     // 85 px
     function addNewDraggable(key, trackType, data, normalizedLength, color, dragGroup) {
@@ -228,10 +253,8 @@ export default function Demo({ isDark }) {
     const handleAdditionalDataSelection = (selected) => {
         const selectedData = selected.map(obj => obj.value);
         setChosenAdditionalData(selectedData);
-        window.additionalData = selectedData;
-
-        // buildRepeats()
-        // setLoading(true) 
+        window.additionalData = selectedData
+     
     }
     const handleSpeciesSelection  =( selected) => {
 
@@ -418,7 +441,7 @@ ${'' /* .genomeTrack {
     const makeTracks = () =>{
         
        
-        console.log(window.additionalData)
+        // console.log(window.additionalData)
         dispatch(deleteAllGenome({}))
         dispatch(deleteAllBasicTracks({}))
         dispatch(deleteAllDraggables({
@@ -608,13 +631,13 @@ ${'' /* .genomeTrack {
     }, [demoFile])
 
     useEffect(() => {
-        let tempCount = window.additionalData.length
+        // console.log(chosenRepeats)
 
 
-       if (window.chromosomalData && window.dataset){
+    }, [chosenRepeats])
 
-        makeTracks();
-       }
+    useEffect(() => {
+    //  console.log(chosenAdditionalData)
     }, [chosenAdditionalData])
 
 
@@ -813,10 +836,10 @@ ${'' /* .genomeTrack {
             x++;
             let totalWidth = 0
             let numChrom =  genomeNames.length/demoFile.length;
-            console.log((x-1)*numChrom, numChrom*x)
+
 
             let currentGenomes = genomeNames.slice((x-1)*numChrom, numChrom*x);
-            console.log("currentGenomes", currentGenomes);
+
 
             // while(totalWidth < maxWidth){
             let chosenGenomes = []
@@ -840,6 +863,10 @@ ${'' /* .genomeTrack {
                         <BasicTrack
                             key={genomeItem.genome}
                             array={genomeSelector[genomeItem.genome.substring(6)].array}
+                            chosenRepeats = {chosenRepeats}
+                            chosenAdditionalData = {chosenAdditionalData}
+                            additionalDataOptions = {additionalDataOptions}
+                            selectedCladeOptions = {selectedCladeOptions}
                             color={basicTrackSelector[genomeItem.genome].color}
                             genome={true}
                             width={genomeItem.width}
@@ -920,6 +947,21 @@ ${'' /* .genomeTrack {
                     />
 
                 </span>
+                </FormControl>
+
+                <FormControl sx={{ m: 1, minWidth: 240, minHeight: 100 }} id={'globalClades'}>
+
+                <Select
+                  onChange={handleRepeatSelection}
+                  value={selectedCladeOptions}
+
+                    options={repeatOptions}
+                    isMulti
+                    styles={customStyles}
+                    />
+
+
+
               </FormControl>
                         <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} />
                         <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
@@ -1108,6 +1150,11 @@ ${'' /* .genomeTrack {
                                                     <BasicTrack
                                                         array={genomeSelector[item].array}
                                                         color={basicTrackSelector[item].color}
+                                                        chosenRepeats = {chosenRepeats}
+                                                        chosenAdditionalData = {chosenAdditionalData}
+
+                                                        selectedCladeOptions = {selectedCladeOptions}
+                                                        additionalDataOptions = {additionalDataOptions}
                                                         // height={basicTrackSelector[item].trackType == 'default' ? 1000 : undefined}
                                                         normalizedLength={basicTrackSelector[item].normalizedLength}
                                                         trackType={basicTrackSelector[item].trackType}
@@ -1150,6 +1197,11 @@ ${'' /* .genomeTrack {
                                                     <BasicTrack
                                                         array={genomeSelector[item].array}
                                                         color={basicTrackSelector[item].color}
+                                                        chosenRepeats = {chosenRepeats}
+                                                        chosenAdditionalData = {chosenAdditionalData}
+
+                                                        selectedCladeOptions = {selectedCladeOptions}
+                                                        additionalDataOptions = {additionalDataOptions}
                                                         // height={basicTrackSelector[item].trackType == 'default' ? 1000 : undefined}
                                                         normalizedLength={basicTrackSelector[item].normalizedLength}
                                                         trackType={basicTrackSelector[item].trackType}

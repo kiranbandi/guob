@@ -28,10 +28,13 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     const previewSelector = useSelector(selectMiniviews)['newPreview']
     const collabPreviews = useSelector(selectMiniviews)
     const comparisonSelector = useSelector(selectComparison)[title]
-    
+
 
     const [endCap, setEndCap] = useState(0)
-    const [chosenRepeats, setChosenRepeats] = useState(["SIRE", "Ogre", "Tekay"])
+    let [chosenRepeats, setChosenRepeats] = useState(props.chosenRepeats)
+    let [chosenAdditionalData, setChosenAdditionalData] = useState([])
+
+    // console.log(chosenRepeats, props.chosenRepeats);
     const [startOfTrack, setStartOfTrack] = useState(0)
     const [dragging, setDragging] = useState(false)
     const [clickLocation, setClickLocation] = useState()
@@ -52,11 +55,10 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
         { value: 'Tekay', label: 'Tekay' , color: schemeTableau10[6]}
       ];
 
-    const [selectedCladeOptions, setSelectedCladeOptions] = useState([
-        { value: 'SIRE', label: 'SIRE' , color: schemeTableau10[4]},
-        { value: 'Ogre', label: 'Ogre', color: schemeTableau10[5] },
-        { value: 'Tekay', label: 'Tekay' , color: schemeTableau10[6]}
-      ]);
+    let [selectedCladeOptions, setSelectedCladeOptions] = useState([...props.selectedCladeOptions]);
+
+
+
 
     const colormap = {
         "SIRE": schemeTableau10[4],
@@ -152,6 +154,16 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     // keep the old palette
     // piling on another hack - clear draw genes when switching track type
     // and another - clear drawn genes when the array is changed
+    useEffect(() => {
+        setChosenAdditionalData([...window.additionalData])
+        // console.log(props.chosenAdditionalData, chosenAdditionalData)
+    }, [props.chosenAdditionalData])
+
+    useEffect(() => {
+        setChosenRepeats(props.chosenRepeats)
+        setSelectedCladeOptions(props.selectedCladeOptions)
+    }, [props.chosenRepeats])
+
 
     useEffect(() => {
         setDrawnGenes([])
@@ -233,7 +245,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             else if (trackType == 'repeats'){
                 let someArray =[]
                 let counter = 0
-                let ChosenNum = chosenRepeats.length+window.additionalData.length;
+                let ChosenNum = chosenRepeats.length+chosenAdditionalData.length;
                 for (let clade of chosenRepeats){
                     const filteredList = array.filter(obj => obj.clade === clade);
 
@@ -251,7 +263,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                 // console.log(someArray)
                 // setDrawnGenes(someArray)
 
-                if (window.additionalData.indexOf("methylation") > -1){
+                if (chosenAdditionalData.indexOf("methylation") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
                   
@@ -274,7 +286,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     counter++;
                 }
 
-                if (window.additionalData.indexOf("geneDensity") > -1){
+                if (chosenAdditionalData.indexOf("geneDensity") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
                   
@@ -302,7 +314,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     counter++;
                     
                 }
-                if (window.additionalData.indexOf("contig") > -1){
+                if (chosenAdditionalData.indexOf("contig") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
                   
@@ -384,7 +396,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
                 let someArray =[]
                 let counter = 0
-                let ChosenNum = chosenRepeats.length + window.additionalData.length;
+                let ChosenNum = chosenRepeats.length + chosenAdditionalData.length;
                 for (let clade of chosenRepeats){
                     const filteredList = array.filter(obj => obj.clade === clade);
 
@@ -402,7 +414,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     counter++;
 
                 }
-                if (window.additionalData.indexOf("methylation") > -1){
+                if (chosenAdditionalData.indexOf("methylation") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
                    
@@ -428,7 +440,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     counter++;
                 }
 
-                if (window.additionalData.indexOf("geneDensity") > -1){
+                if (chosenAdditionalData.indexOf("geneDensity") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
                   
@@ -454,7 +466,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                     someArray = someArray.concat(holding);
                     counter++;
                 }
-                if (window.additionalData.indexOf("contig") > -1){
+                if (chosenAdditionalData.indexOf("contig") > -1){
 
                     //   const filteredList = window.methylationData.filter(obj => obj.clade === clade);
                   
