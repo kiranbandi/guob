@@ -156,7 +156,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     // and another - clear drawn genes when the array is changed
     useEffect (() => {
 
-    setChosenRepeats([...props.chosenRepeats])
+    setChosenRepeats([...chosenRepeats])
 
 }, [chosenAdditionalData])
 
