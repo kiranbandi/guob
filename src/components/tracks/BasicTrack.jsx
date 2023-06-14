@@ -32,7 +32,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
 
     const [endCap, setEndCap] = useState(0)
     let [chosenRepeats, setChosenRepeats] = useState(props.chosenRepeats)
-    let [chosenAdditionalData, setChosenAdditionalData] = useState([])
+    let [chosenAdditionalData, setChosenAdditionalData] = useState(props.chosenAdditionalData)
 
     // console.log(chosenRepeats, props.chosenRepeats);
     const [startOfTrack, setStartOfTrack] = useState(0)
@@ -154,9 +154,16 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
     // keep the old palette
     // piling on another hack - clear draw genes when switching track type
     // and another - clear drawn genes when the array is changed
+    useEffect (() => {
+
+    setChosenRepeats([...props.chosenRepeats])
+
+}, [chosenAdditionalData])
+
     useEffect(() => {
-        setChosenAdditionalData([...window.additionalData])
-        // console.log(props.chosenAdditionalData, chosenAdditionalData)
+        setChosenAdditionalData([...props.chosenAdditionalData])
+
+        console.log(props.chosenAdditionalData, chosenAdditionalData, title)
     }, [props.chosenAdditionalData])
 
     useEffect(() => {
