@@ -340,8 +340,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         // let adjustedColor = methColorScale(dataPoint.density)
                         let rectWidth = widthScale(dataPoint.end - dataPoint.start)
                         let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
-                        let clade = mode(dataPoint.clades)
-                        let adjustedColor = colormap[clade]
+                        let boop = mode(dataPoint.clades)
+                        let adjustedColor = colormap[boop]
 
                         let drawGene = new gene(dataPoint,adjustedColor, trackType)
                         drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
@@ -492,8 +492,8 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         // let adjustedColor = methColorScale(dataPoint.density)
                         let rectWidth = widthScale(dataPoint.end - dataPoint.start)
                         let tosetWidth = rectWidth < 0.2 ? 0.2 : rectWidth
-                        let clade = mode(dataPoint.clades)
-                        let adjustedColor = colormap[clade]
+                        let boop = mode(dataPoint.clades)
+                        let adjustedColor = colormap[boop]
 
                         let drawGene = new gene(dataPoint,adjustedColor, trackType)
                         drawGene.draw(ctx, x, maxHeight*counter/ChosenNum, tosetWidth, maxHeight/ChosenNum);
@@ -556,7 +556,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
                         rectWidth = (maxWidth - paddingRight) - x 
                     }
                     if (hovered && drawGene.key === hovered.key) {
-                        drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
+                        // drawGene.highlight(ctx, x, maxHeight - yScale(drawGene.value), rectWidth, yScale(drawGene.value))
                     }
                     else {
                         if (drawGene.draw) {
@@ -568,7 +568,7 @@ const BasicTrack = ({ array, genome = false, color = 0, trackType = 'default', n
             }
 
         }
-    }, [trackType, color, zoom, offset, drawnGenes, hovered, selection, normalize, parentWrapperHeight, chosenRepeats])
+    }, [trackType, color, zoom, offset, drawnGenes, selection, normalize, parentWrapperHeight, chosenRepeats])
 
 
     const gt = window.gt;
