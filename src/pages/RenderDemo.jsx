@@ -354,12 +354,19 @@ function RenderDemo({ isDark }) {
         })
         let normalizedLength = 0;
         normalizedLength = Math.max(...window.chromosomalData.map(d => d.end))
+        
+        let genomeNumbers = []
         chromosomalData.forEach((point, i) => {
 
             point.normalizedLength = normalizedLength
-
-            window.maximumLength += point.end;
+            // debugger
+            let chromosomeNumber = point.key.chromosome.split("_")[1].replace(/^\D+/g, '')
+            if(!genomeNumbers.includes(chromosomeNumber)){
+                window.maximumLength += point.end;
+                genomeNumbers.push(chromosomeNumber)
+            }
         })
+        console.log(genomeNumbers)
 
         setCalculationFinished(true)
     }
@@ -380,15 +387,20 @@ function RenderDemo({ isDark }) {
             let currentGenomes = genomeNames.slice(x)
 
             let chosenGenomes = []
+            let genomeNumbers = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
                 let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / totalSize
-                chosenGenomes.push({
-                    genome: currentGenomes[_],
-                    width
-                })
+                let chromosomeNumber = currentGenomes[_].split("_")[1].replace(/^\D+/g, '')
+                if(!genomeNumbers.includes(chromosomeNumber)){
+                    genomeNumbers.push(chromosomeNumber)
+                    chosenGenomes.push({
+                        genome: currentGenomes[_],
+                        width
+                    })   
+                }
                 x++
-
             }
+            // console.log(genomeNumbers)
             genomeTracks.push(
 
                 <Stack direction="row" marginBottom={0} paddingTop={3} key={"Stack_" + x} justifyContent={"space-around"} style={{ position: "sticky", top: 0, zIndex: 4, background: isDark ? "#121212" : "white" }}>
