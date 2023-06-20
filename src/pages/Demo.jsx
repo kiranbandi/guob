@@ -47,6 +47,7 @@ import TrackListener from 'components/tracks/TrackListener';
 import { resolveConfig } from 'prettier';
 import { addGenome, deleteAllGenome, selectGenome } from 'redux/slices/genomeSlice';
 import StackedProcessor from 'features/parsers/stackedProcessoor'
+import { ControlPointDuplicateRounded } from '@mui/icons-material';
 // import './canola.gff'
 
 // import 'canola.gff';
@@ -287,7 +288,7 @@ export default function Demo({ isDark }) {
         // let chosenSpecies = speciesOptions.filter(x => selectedFiles.indexOf(x.value)>-1);
         setSelectedSpecies(selected);
         setLoading(true)
-        setDemoFile(selectedFiles);
+        // setDemoFile(selectedFiles);
 
       };
     // TODO - navigation?
@@ -472,8 +473,12 @@ ${'' /* .genomeTrack {
             dragGroup: "draggables"
         }))
         window.chromosomes = window.chromosomalData.map((_ => _.key.chromosome))
+        let selectedSpeciesList = selectedSpecies.map(x=>x.label);
 
-        let chromosomalData = window.chromosomalData;
+        let chromosomalData = window.chromosomalData.filter( obj => selectedSpeciesList.indexOf(obj.species)>-1);
+        // console.log(selectedSpeciesList);
+        // console.log(chromosomalData)
+        // console.log(chromosomalData.filter( obj => selectedSpeciesList.indexOf(obj.species)>-1));
         let dataset = window.dataset;
         let normalizedLength = 0;
         let color;
@@ -510,8 +515,8 @@ ${'' /* .genomeTrack {
             dragGroup: "draggables"
         }))
 
-        setSliderHeight(sliderHeight+1);
-        setSliderHeight(sliderHeight-1);
+        setLoading(false)
+
     }
     const buildContigData = () =>{
 
@@ -579,7 +584,8 @@ ${'' /* .genomeTrack {
             .then(json => {
 
                 // json.sort((a,b) => a.key.localeCompare(b.key))
-               let species = speciesOptions.filter(x=> x.value === f).label;
+                // console.log(speciesOptions.filter(x=> x.value === f))
+               let species = speciesOptions.filter(x=> x.value === f)[0].label;
             //    console.log(species)
                 let counter= 0
                 const keys = Object.keys(json);
@@ -655,6 +661,12 @@ ${'' /* .genomeTrack {
         }
 
     }, [demoFile])
+
+    useEffect(() => {
+        if (window.chromosomalData){
+        makeTracks();
+}
+    }, [selectedSpecies])
 
     useEffect(() => {
         // console.log(chosenRepeats)
@@ -852,17 +864,19 @@ ${'' /* .genomeTrack {
     const buildGenomeView = () => {
         let genomeTracks = []
         let genomeNames = Object.keys(basicTrackSelector).filter(x => x.includes('genome'))
+        genomeNames.sort();
         // not a for loop, use a while loop
         // calculate width first
 
         let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
         let x = 0
-
+        let selectedSpeciesList = selectedSpecies.map(x=>x.label);
+        selectedSpeciesList.sort();
         while (x < selectedSpecies.length) {
-            genomeTracks.push(<>{selectedSpecies[x].label}</>)
+            genomeTracks.push(<>{selectedSpeciesList[x]}</>)
             x++;
             let totalWidth = 0
-            let numChrom =  genomeNames.length/demoFile.length;
+            let numChrom =  genomeNames.length/selectedSpecies.length;
 
 
             let currentGenomes = genomeNames.slice((x-1)*numChrom, numChrom*x);
