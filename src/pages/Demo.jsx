@@ -114,6 +114,30 @@ export default function Demo({ isDark }) {
           }),
         
       };
+
+
+
+
+      const LegendItem = ({ color, label }) => (
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+          <div style={{ width: '20px', height: '20px', backgroundColor: color, marginRight: '5px' }}></div>
+          <span>{label}</span>
+        </div>
+      );
+      
+      const Legend = ({ items }) => (
+        <div>
+          {items.map((item, index) => (
+            <LegendItem key={index} color={item.color} label={item.label} />
+          ))}
+        </div>
+      );
+
+
+
+
+
+
       const [selectedSpecies, setSelectedSpecies] = useState([
         { value: 'files/LcuRepeatData_remapped.json', label: 'LENS CULINARIS' },
         { value: 'files/LerRepeatData_remapped.json', label: 'LENS ERVOIDES'},
@@ -555,7 +579,8 @@ ${'' /* .genomeTrack {
             .then(json => {
 
                 // json.sort((a,b) => a.key.localeCompare(b.key))
-               
+               let species = speciesOptions.filter(x=> x.value === f).label;
+            //    console.log(species)
                 let counter= 0
                 const keys = Object.keys(json);
                 // console.log(keys)
@@ -568,6 +593,7 @@ ${'' /* .genomeTrack {
                     currentData.key={"chromosome": key, "designation": key};
                     currentData.data = json[key];
                     currentData.trackType= "repeats"
+                    currentData.species = species;
                     window.chromosomalData.push(currentData)
     
                     for (let entry of json[key]) {
@@ -832,7 +858,8 @@ ${'' /* .genomeTrack {
         let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width : 600
         let x = 0
 
-        while (x < demoFile.length) {
+        while (x < selectedSpecies.length) {
+            genomeTracks.push(<>{selectedSpecies[x].label}</>)
             x++;
             let totalWidth = 0
             let numChrom =  genomeNames.length/demoFile.length;
@@ -923,6 +950,10 @@ ${'' /* .genomeTrack {
                             setTitleState("Lens ervoides Repeats")
                             // setDemoCollinearity()
                         }}>Lens ervoides Repeats</Button> */}
+                                            <div>
+                        <h3>Repeats</h3>
+                        <Legend items={repeatOptions} />
+                    </div>
                            <FormControl sx={{ m: 1, minWidth: 240, minHeight: 100 }} id={'speciesrepeat'}>
                 <span>
                   <Select

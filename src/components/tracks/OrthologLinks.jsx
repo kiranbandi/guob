@@ -236,11 +236,12 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
     let arrayLinks = [];
     let parentWrapperHeight = document.querySelector('.draggableItem')?.getBoundingClientRect()?.height
-    console.log(parentWrapperHeight)
+
 
     const paddingRight = 10, paddingLeft = 10
-    let topRatio = normalize ? aboveCap / topGenome.normalizedLength : 1.0
-    let bottomRatio = normalize ? belowCap / bottomGenome.normalizedLength : 1.0
+    let topRatio = normalize ? aboveCap / topTrack.normalizedLength : 1.0
+    // console.log(topGenome)
+    let bottomRatio = normalize ? belowCap / bottomTrack.normalizedLength : 1.0
     let xScale1 = topKey ? scaleLinear().domain([0, aboveCap]).range([0, ((maxWidth) * topRatio * topTrack.zoom)]) : false
     let xScale2 = bottomKey ? scaleLinear().domain([0, belowCap]).range([0, ((maxWidth) * bottomRatio * bottomTrack.zoom)]) : false
 
@@ -260,7 +261,6 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
         let topX1 = xScale1(geneAbove.start) + topTrack.offset
         let topX2 = topX1 + widthScale1(geneAbove.end - geneAbove.start)
-
         if (topX2-topX1 < 0.5){
             topX2 = topX1+0.5
         }
