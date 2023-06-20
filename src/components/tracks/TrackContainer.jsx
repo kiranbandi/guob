@@ -600,6 +600,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y + 27
     let verticalScroll = document.documentElement.scrollTop
+    let clientHeight = document.documentElement.clientHeight
+    // if (verticalScroll > top || top + adjustedHeight + 24 < verticalScroll + clientHeight){
+    //   return
+    // }
 
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     // let cursorColor = isDark ? "white" : "black"
@@ -638,6 +642,11 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y + 27
     let verticalScroll = document.documentElement.scrollTop
+    let clientHeight = document.documentElement.clientHeight
+    // if (verticalScroll > top || top + adjustedHeight + 24 < verticalScroll + clientHeight){
+    //   return
+    // }
+
 
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     let cursorColor = isDark ? "white" : "black"
@@ -754,6 +763,12 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
     let verticalScroll = document.documentElement.scrollTop;
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect();
+    let clientHeight = document.documentElement.clientHeight
+    let top = trackBoundingRectangle.y
+    // if (verticalScroll > top || top + adjustedHeight + 24 < verticalScroll + clientHeight){
+    //   return
+    // }
+
     let xScale, widthScale, bpPosition;
 
     if (renderTrack == "stackedTrack" && array.length != 0) {
@@ -868,7 +883,8 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let top = trackBoundingRectangle.y
     let verticalScroll = document.documentElement.scrollTop
     let trackWidth = trackBoundingRectangle.width
-
+    let clientHeight = document.documentElement.clientHeight
+     
     let bpPosition = cursorPosition
 
     let xScale = normalize && !genome ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
@@ -882,8 +898,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       else {
         cursorStyle = { pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + 27 + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, backgroundColor: cursorColor, opacity: 0.4 }
       }
-
-    }
+  }
   }
   return (
     <>

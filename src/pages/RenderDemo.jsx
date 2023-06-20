@@ -241,7 +241,7 @@ function RenderDemo({ isDark }) {
             let starting_tracks = {
                 'at-coordinate_at1': {
                     // array: at1_array,
-                    key: 'at1',
+                    key: 'at-coordinate_at1',
                     color: "#4e79a7",
                     zoom: 1,
                     pastZoom: 1,
@@ -250,7 +250,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at2': {
-                    key: 'at2',
+                    key: 'at-coordinate_at2',
                     // array: at2_array,
                     color: "#e15759",
                     zoom: 1,
@@ -260,7 +260,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at3': {
-                    key: 'at3',
+                    key: 'at-coordinate_at3',
                     // array: at3_array,
                     color: "#76b7b2",
                     zoom: 1,
@@ -270,7 +270,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at4': {
-                    key: 'at4',
+                    key: 'at-coordinate_at4',
                     // array: at4_array,
                     color: "#59a14f",
                     zoom: 1,
@@ -280,7 +280,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at5': {
-                    key: 'at5',
+                    key: 'at-coordinate_at5',
                     // array: at5_array,
                     color: "#edc949",
                     zoom: 1,
@@ -357,16 +357,13 @@ function RenderDemo({ isDark }) {
         
         let genomeNumbers = []
         chromosomalData.forEach((point, i) => {
-
             point.normalizedLength = normalizedLength
-            // debugger
             let chromosomeNumber = point.key.chromosome.split("_")[1].replace(/^\D+/g, '')
             if(!genomeNumbers.includes(chromosomeNumber)){
                 window.maximumLength += point.end;
                 genomeNumbers.push(chromosomeNumber)
             }
         })
-        console.log(genomeNumbers)
 
         setCalculationFinished(true)
     }

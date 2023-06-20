@@ -75,10 +75,10 @@ const OrthologLinks = ({ index, id, normalize, dragGroup, ...props }) => {
 
     if (window.chromosomalData) {
         if(bottomTrack && bottomTrack.key){
-            bottomGenome = window.chromosomalData.find(x => x.key.designation == bottomTrack.key)
+            bottomGenome = window.chromosomalData.find(x => x.key.chromosome == bottomTrack.key)
         }
         if(topTrack && topTrack.key){
-            topGenome = window.chromosomalData.find(x => x.key.designation == topTrack.key)
+            topGenome = window.chromosomalData.find(x => x.key.chromosome == topTrack.key)
 
         }
       }
