@@ -18,7 +18,7 @@ import TrackScale from './track_components/TrackScale'
 import { addAnnotation, removeAnnotation, selectAnnotations, selectSearch, addOrtholog, selectOrthologs, } from '../../redux/slices/annotationSlice'
 import { selectTrial, incrementTrial } from 'redux/slices/trialSlice'
 import { nanoid } from '@reduxjs/toolkit'
-import { ContentPasteOffSharp, EditNotificationsOutlined } from '@mui/icons-material'
+import { ContentPasteOffSharp, EditNotificationsOutlined, WindowOutlined } from '@mui/icons-material'
 
 
 function indexTopixel(index, zoom, array, maxWidth) {
@@ -31,7 +31,7 @@ function pixelToindex(pixel, zoom, array, maxWidth) {
   return index(pixel)
 
 }
-function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, renderTrack, genome, usePreloadedImages, subGenomes }) {
+function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, renderTrack, genome, usePreloadedImages, subGenomes, moveCursor, cursorPosition }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
   //! to be passed from the slice to the track. In the return statement, check the "renderTrack" prop
@@ -58,7 +58,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       normalizedLength = 0
     }
   }
-
 
   //! Trial Logic ###################################################################
   const trialSelector = useSelector(selectTrial)['trial']
@@ -306,8 +305,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
 
   useEffect(() => {
-
-  }, [isDark])
+  }, [isDark, cursorPosition])
 
   useEffect(() => {
     let scalingIncrements
@@ -491,7 +489,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   function deleteAnnotation(x) {
     let annotation = {
       key: true_id,
-      location: previewSelector.center
+      location: window.previewCenter
     }
     dispatch(removeAnnotation(annotation))
 
@@ -577,9 +575,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   function leaveTrack() {
     setHoverStyle({ display: "none" })
     setDragging(undefined)
-    dispatch(changePreviewVisibility({
-      visible: false
-    }))
+    window.previewVisible = false
+    // dispatch(changePreviewVisibility({
+    //   visible: false
+    // }))
     // setCursorStyle({display: "none"})
   }
 
@@ -727,6 +726,24 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }
 
 
+  function binarySearch(array, low, high, position){
+    if(high >= low){
+      let centerIndex = Math.floor((low + high)/2)
+      let center = array[centerIndex]
+      if(position < center.start){
+        return binarySearch(array, low, centerIndex - 1, position)
+      }
+      else if (position > center.end){
+        return binarySearch(array, centerIndex + 1, high, position)
+      }
+      else{
+        return center
+      }
+    }
+    else{
+      return -1
+    }
+  }
 
 
   function hover(e) {
@@ -765,15 +782,8 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     widthScale = scaleLinear().domain([0, endCap - startOfTrack]).range([0, originalWidth])
     bpPosition = getXLocation(adjustedPos)
 
-    if (!previewSelector.visible) {
-      dispatch(changePreviewVisibility({
-        visible: true
-      }))
-    }
-    dispatch(movePreview({
-      center: bpPosition
-    })
-    )
+    moveCursor(bpPosition)
+    // window.previewCenter = bpPosition
 
     if (renderTrack === "stackedTrack") {
       for (let i = 0; i < array.length; i++) {
@@ -789,40 +799,50 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
 
 
-    if (bpMapping) {
-      let keys = Object.keys(bpMapping)
-      let numberOfKeys = keys.length
-      let firstIndex, lastIndex
-      for (let x = 0; x < numberOfKeys; x++) {
-        if (bpPosition < +keys[x]) break
-        firstIndex = bpMapping[keys[x]].firstIndex
-        lastIndex = bpMapping[keys[x]].lastIndex
-      }
-      for (let i = +firstIndex; i < +lastIndex; i++) {
-        if (bpPosition > array[i].start && bpPosition < array[i].end) {
-          let width = widthScale(array[i].end - array[i].start)
-          if (renderTrack === "bitmap") {
-            setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
-            setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
-            return
-          }
-          else if (renderTrack === "basic") {
-            setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
-            setHoverStyle({
-              pointerEvents: "none", zIndex: 2,
-              position: "absolute",
-              left: xScale(array[i].start) + trackBoundingRectangle.left + offset,
-              width: width,
-              top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25,
-              height: renderOrthologs ? adjustedHeight : adjustedHeight + 25,
-              backgroundColor: "red"
-            })
-            return
-          }
-        }
-      }
+    // if (bpMapping) {
+    //   let keys = Object.keys(bpMapping)
+    //   let numberOfKeys = keys.length
+    //   let firstIndex, lastIndex
+    //   for (let x = 0; x < numberOfKeys; x++) {
+    //     if (bpPosition < +keys[x]) break
+    //     firstIndex = bpMapping[keys[x]].firstIndex
+    //     lastIndex = bpMapping[keys[x]].lastIndex
+    //   }
+    //   for (let i = +firstIndex; i < +lastIndex; i++) {
+    //     if (bpPosition > array[i].start && bpPosition < array[i].end) {
+    //       let width = widthScale(array[i].end - array[i].start)
+    //       if (renderTrack === "bitmap") {
+    //         setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
+    //         setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
+    //         return
+    //       }
+    //       else if (renderTrack === "basic") {
+    //         setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
+    //         setHoverStyle({
+    //           pointerEvents: "none", zIndex: 2,
+    //           position: "absolute",
+    //           left: xScale(array[i].start) + trackBoundingRectangle.left + offset,
+    //           width: width,
+    //           top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25,
+    //           height: renderOrthologs ? adjustedHeight : adjustedHeight + 25,
+    //           backgroundColor: "red"
+    //         })
+    //         return
+    //       }
+    //     }
+    //   }
 
-    }
+    // }
+
+    let gene = binarySearch(array, 0, array.length - 1, bpPosition)
+    if (gene !== -1){
+      
+            setInfo(`${gene.key.toUpperCase()}\nStart Location: ${gene.start}\nOrthologs: ${gene.siblings.length > 0 ? gene.siblings.map(x => x.key) : 'No Orthologs'}`)
+            setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(gene.start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
+          return
+          }
+
+
     setInfo("")
     setHoverStyle({ display: "none", pointerEvents: "none" })
   }
@@ -841,7 +861,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   let cursorStyle = { display: "none", pointerEvents: "none" }
 
 
-  if (previewSelector.visible && trackRef.current) {
+  if (cursorPosition && trackRef.current) {
 
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
@@ -849,9 +869,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let verticalScroll = document.documentElement.scrollTop
     let trackWidth = trackBoundingRectangle.width
 
-    let bpPosition = previewSelector.center
-
-
+    let bpPosition = cursorPosition
 
     let xScale = normalize && !genome ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     let current_location = xScale(bpPosition) + trackRef.current.offsetLeft + offset
@@ -871,9 +889,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     <>
       <div style={cursorStyle}></div>
       <div style={hoverStyle}></div>
-      {previewSelector.visible && generateAnnotations()}
-      {previewSelector.visible && displayRelatedMarkers(allAnnotations)}
-      {previewSelector.visible && displayRelatedMarkers(allSearches)}
+      {window.previewVisible && generateAnnotations()}
+      {window.previewVisible && displayRelatedMarkers(allAnnotations)}
+      {window.previewVisible && displayRelatedMarkers(allSearches)}
       {searchSelector && displayTrackMarker(searchSelector)}
       {allOrthologs[id] && generateOrthologMarkers()}
 

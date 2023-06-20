@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import {selectBasicTracks} from '../../redux/slices/basicTrackSlice'
 import {selectGenome} from '../../redux/slices/genomeSlice'
 
-function Track({ id, renderTrack, isDark, normalize, usePreloadedImages, genome=false, width }) {
+function Track({ id, renderTrack, isDark, normalize, usePreloadedImages, genome=false, width, moveCursor, cursorPosition }) {
 
     
     let true_id = id.includes("_splitview") ? id.split("_splitview")[0] : id
@@ -34,6 +34,8 @@ function Track({ id, renderTrack, isDark, normalize, usePreloadedImages, genome=
             usePreloadedImages={usePreloadedImages}
             genome={genome}
             width={width}
+            moveCursor={moveCursor}
+            cursorPosition={cursorPosition}
         />
 
     )

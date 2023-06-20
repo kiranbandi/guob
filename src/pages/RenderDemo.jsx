@@ -29,7 +29,7 @@ import TextField from '@mui/material/TextField'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Track from 'components/tracks/Track'
 
-import { text } from "d3-fetch"
+import { text, json } from "d3-fetch"
 import StackedProcessor from 'features/parsers/stackedProcessoor';
 
 
@@ -59,6 +59,7 @@ function RenderDemo({ isDark }) {
     const [stackedArray, setStackedArray] = useState({})
     const [alignmentList, setAlignmentList] = useState([])
     const [chromosomeMap, setChromosomeMap] = useState({})
+    const [cursorPosition, setCursorPosition] = useState(0)
 
 
     const dispatch = useDispatch()
@@ -132,6 +133,11 @@ function RenderDemo({ isDark }) {
         }
     }
 
+
+    function moveCursor(location) {
+        setCursorPosition(location)
+    }
+
     useEffect(() => {
 
 
@@ -141,12 +147,7 @@ function RenderDemo({ isDark }) {
             channel.addEventListener('message', checking);
         }
 
-        if (loading) {
-
-            // StackedProcessor("AT1", "AT_camelina"  ).then((data)=>{
-            //     window.stackData = {data};
-            //     setStackedArray({...data});
-            // })
+        if (loading && !firstLoad) {
             setCalculationFinished(false)
             dispatch(deleteAllGenome({}))
             dispatch(deleteAllBasicTracks({}))
@@ -165,21 +166,23 @@ function RenderDemo({ isDark }) {
                         key: "links",
                         dragGroup: "draggables"
                     }))
-                    setLoading(false)
+                    json('files/at_chromosomalData.json').then(x => buildJsonDemo(x))
+                    json('files/at_dataset.json').then(x => window.dataset = x)
                     break
                 case "files/bn_coordinate.gff":
                     buildTracks("bn-coordinate_bn", 19)
-                    setLoading(false)
+                    json('files/bn_chromosomalData.json').then(x => buildJsonDemo(x))
+                    json('files/bn_dataset.json').then(x => window.dataset = x)
                     break
                 case "files/bn_methylation_100k.bed":
                     buildTracks("bn-methylation-100k_N-METHYL-", 19, "", "histogram")
-                    setLoading(false)
                     break
                 case "files/ta_hb_coordinate.gff":
                     buildTracks("ta_hb_coordinate", 7, "A")
                     buildTracks("ta_hb_coordinate", 7, "B")
                     buildTracks("ta_hb_coordinate", 7, "D")
-                    setLoading(false)
+                    json('files/ta_hb_chromosomalData.json').then(x => buildJsonDemo(x))
+                    json('files/ta_hb_dataset.json').then(x => window.dataset = x)
                     break
                 case "files/topas/all_gene_expression_100k.bed":
                     buildTracks("all-smallRNA-100k_N", 19, "", "histogram")
@@ -188,63 +191,55 @@ function RenderDemo({ isDark }) {
                     buildTracks("seed-gene-expression-100k_N", 19, "", "histogram")
                     buildTracks("leaf-smallRNA-100k_N", 19, "", "histogram")
                     buildTracks("leaf-gene-expression-100k_N", 19, "", "histogram")
-                    setLoading(false)
+                    json('files/topas_chromosomalData.json').then(x => buildJsonDemo(x))
+                    json('files/topas_dataset.json').then(x => window.dataset = x)
                     break
                 default:
                     setLoading(false)
 
             }
 
-            
-        //     text(demoFile[0]).then(async data => {
-        //         return text(demoCollinearity).then(c => {
-        //             return sendFileToWorkers('gff', data, demoFile[0].split(".")[0].split("_")[1], c)
-        //         })
-        //     }).then(parsedData => {
-        //         buildDemo(parsedData.chromosomalData, parsedData.dataset)
-        //     })
-        // }
-
-
-            demoFile.forEach(file => {
-                console.log(file)
-                text(file).then(async data => {
-                    let fileName = file.split(".")[0].split("/")
-                    let nameDesignation = fileName[fileName.length - 1].split("_").join("-")
-                    debugger
-                    if (demoCollinearity) {
-                        return text(demoCollinearity).then(c => {
-                            return sendFileToWorkers('gff', data, nameDesignation, c);
-                        })
-                    }
-                    else {
-                        if (file.includes(".bed")) {
-                            return sendFileToWorkers('bed', data, nameDesignation)
-                        }
-                        else {
-                            return sendFileToWorkers('gff', data, nameDesignation)
-                        }
-                    }
-
-                }).then(parsedData => {
-                    debugger
-                    buildDemo(parsedData.chromosomalData, parsedData.dataset)
-                })
-
-            })
             setLoading(false)
+
+            // demoFile.forEach(file => {
+            //     text(file).then(async data => {
+            //         let fileName = file.split(".")[0].split("/")
+            //         let nameDesignation = fileName[fileName.length - 1].split("_").join("-")                
+            //         if (demoCollinearity) {
+            //             return text(demoCollinearity).then(c => {
+            //                 return sendFileToWorkers('gff', data, nameDesignation, c);
+            //             })
+            //         }
+            //         else {
+            //             if (file.includes(".bed")) {
+            //                 return sendFileToWorkers('bed', data, nameDesignation)
+            //             }
+            //             else {
+            //                 return sendFileToWorkers('gff', data, nameDesignation)
+            //             }
+            //         }
+
+            //     }).then(parsedData => {
+            //         buildDemo(parsedData.chromosomalData, parsedData.dataset)
+            //     })
+
+            // })
+            // setLoading(false)
 
         }
         if (firstLoad) {
+            json('files/at_chromosomalData.json').then(x => window.chromosomalData = x)
+            json('files/at_dataset.json').then(x => window.dataset = x)
+            window.previewVisible = false
+            window.previewCenter = 0
             dispatch(deleteAllBasicTracks({}))
             dispatch(deleteAllDraggables({
                 dragGroup: "draggables"
             }))
-            setFirstLoad(false)
-            window.maximumLength = 0
-            let starting_draggables = ['coordinate_at1', 'coordinate_at2', 'coordinate_at3', 'links', 'coordinate_at4', 'coordinate_at5',]
+            window.maximumLength = 119135637
+            let starting_draggables = ['at-coordinate_at1', 'at-coordinate_at2', 'at-coordinate_at3', 'links', 'at-coordinate_at4', 'at-coordinate_at5',]
             let starting_tracks = {
-                'coordinate_at1': {
+                'at-coordinate_at1': {
                     // array: at1_array,
                     key: 'at1',
                     color: "#4e79a7",
@@ -254,7 +249,7 @@ function RenderDemo({ isDark }) {
                     end: 30425192,
                     offset: 0,
                 },
-                'coordinate_at2': {
+                'at-coordinate_at2': {
                     key: 'at2',
                     // array: at2_array,
                     color: "#e15759",
@@ -264,7 +259,7 @@ function RenderDemo({ isDark }) {
                     end: 19696821,
                     offset: 0,
                 },
-                'coordinate_at3': {
+                'at-coordinate_at3': {
                     key: 'at3',
                     // array: at3_array,
                     color: "#76b7b2",
@@ -274,7 +269,7 @@ function RenderDemo({ isDark }) {
                     end: 23458459,
                     offset: 0,
                 },
-                'coordinate_at4': {
+                'at-coordinate_at4': {
                     key: 'at4',
                     // array: at4_array,
                     color: "#59a14f",
@@ -284,7 +279,7 @@ function RenderDemo({ isDark }) {
                     end: 18584524,
                     offset: 0,
                 },
-                'coordinate_at5': {
+                'at-coordinate_at5': {
                     key: 'at5',
                     // array: at5_array,
                     color: "#edc949",
@@ -307,13 +302,19 @@ function RenderDemo({ isDark }) {
                 }))
             })
 
-            text(demoFile[0]).then(async data => {
-                return text(demoCollinearity).then(c => {
-                    return sendFileToWorkers('gff', data, demoFile[0].split(".")[0].split("_")[1], c)
-                })
-            }).then(parsedData => {
-                buildDemo(parsedData.chromosomalData, parsedData.dataset)
-            })
+
+            // text(demoFile[0]).then(async data => {
+            //     return text(demoCollinearity).then(c => {
+            //         return sendFileToWorkers('gff', data, demoFile[0].split(".")[0].split("_")[1], c)
+            //     })
+            // }).then(parsedData => {
+            //      buildDemo(parsedData.chromosomalData, parsedData.dataset)
+            // })
+            // debugger
+           
+            setCalculationFinished(true)
+
+            setFirstLoad(false)
         }
 
     }, [demoFile])
@@ -322,7 +323,7 @@ function RenderDemo({ isDark }) {
     useEffect(() => {
     }, [calculationFinished])
 
-    const buildDemo = (chromosomalData, dataset) => {
+    async function buildDemo(chromosomalData, dataset){
         window.dataset = { ...window.dataset, ...dataset }
         if (!window.chromosomalData) window.chromosomalData = []
         window.chromosomalData.push(...chromosomalData)
@@ -339,15 +340,39 @@ function RenderDemo({ isDark }) {
         setCalculationFinished(true)
     }
 
+    async function buildJsonDemo(chromosomalData){
+        window.chromosomalData = chromosomalData
+        window.chromosomes = []
+        chromosomalData.forEach(x => {
+            window.chromosomes.push(x.key.chromosome)
+            dispatch(addBasicTrack({
+                key: x.key.chromosome,
+                trackType: x.trackType,
+                start: 0,
+                end: x.end
+            }))
+        })
+        let normalizedLength = 0;
+        normalizedLength = Math.max(...window.chromosomalData.map(d => d.end))
+        chromosomalData.forEach((point, i) => {
+
+            point.normalizedLength = normalizedLength
+
+            window.maximumLength += point.end;
+        })
+
+        setCalculationFinished(true)
+    }
+
 
     const buildGenomeView = () => {
         if (!window.chromosomalData || window.chromosomalData.length === 0) return
+
         let genomeTracks = []
         let genomeNames = Object.keys(basicTrackSelector)
 
         let totalSize = window.maximumLength
-
-        let maxWidth = document.querySelector('.widthSlider')?.getBoundingClientRect()?.width ? document.querySelector('.widthSlider')?.getBoundingClientRect()?.width - 100 : 600
+        let maxWidth = window.innerWidth - 100
         let x = 0
 
         while (x < genomeNames.length) {
@@ -364,8 +389,6 @@ function RenderDemo({ isDark }) {
                 x++
 
             }
-
-            // debugger
             genomeTracks.push(
 
                 <Stack direction="row" marginBottom={0} paddingTop={3} key={"Stack_" + x} justifyContent={"space-around"} style={{ position: "sticky", top: 0, zIndex: 4, background: isDark ? "#121212" : "white" }}>
@@ -379,6 +402,8 @@ function RenderDemo({ isDark }) {
                                 usePreloadedImages={preloaded}
                                 genome={true}
                                 width={genomeItem.width}
+                                moveCursor={moveCursor}
+                                cursorPosition={cursorPosition}
                             />
                         )
                     })
@@ -660,12 +685,12 @@ function RenderDemo({ isDark }) {
 
 
     const longtext = "Alt + scroll to zoom\nClick and drag to pan\nShift + click to add annotation\n Ctrl + click to remove annotation"
-
     return (
 
-
+ 
         <div css={styling}>
-
+       {firstLoad ? <img src={"files/Arabidopsis_image.png"}></img> :
+        <>
             <Typography variant={'h5'} sx={{
                 WebkitUserSelect: 'none',
             }}>
@@ -689,8 +714,6 @@ function RenderDemo({ isDark }) {
                     }}>Canola Methylation</Button>
                     <Button variant='outlined' onClick={() => {
                         if (JSON.stringify(demoFile) !== JSON.stringify(["files/at_coordinate.gff"])) setLoading(true)
-                        console.log(demoFile)
-                        console.log(JSON.stringify(demoFile) !== JSON.stringify(["files/at_coordinate.gff"]))
                         setDemoFile(["files/at_coordinate.gff"])
                         setTitleState("Aradopsis thaliana")
                         setDemoCollinearity("files/at_vv_collinear.collinearity")
@@ -703,7 +726,6 @@ function RenderDemo({ isDark }) {
                     }}>Brassica napus</Button>
                     <Button variant='outlined' onClick={() => {
                         if (JSON.stringify(demoFile) !== JSON.stringify(["files/ta_hb_coordinate.gff"])) setLoading(true)
-
                         setDemoFile(["files/ta_hb_coordinate.gff"])
                         setTitleState("Triticum aestivum")
                         setDemoCollinearity()
@@ -841,6 +863,8 @@ function RenderDemo({ isDark }) {
                                                     isDark={isDark}
                                                     renderTrack={bitmap ? "bitmap" : 'basic'}
                                                     usePreloadedImages={preloaded}
+                                                    moveCursor={moveCursor}
+                                                    cursorPosition={cursorPosition}
                                                 />
                                             </Draggable>
                                         )
@@ -872,6 +896,8 @@ function RenderDemo({ isDark }) {
                         </>
                 }
             </TrackListener>
+            </>
+            }
         </div>
     )
 }
