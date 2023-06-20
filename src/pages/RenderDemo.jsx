@@ -14,7 +14,7 @@ import { Typography, Slider, Tooltip } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import OrthologLinks from '../components/tracks/OrthologLinks'
-import { moveCollabPreview } from '../features/miniview/miniviewSlice';
+import { moveCollabPreview, changePreviewVisibility } from '../features/miniview/miniviewSlice';
 import SVTrack from '../components/tracks/SVTrack'
 import { selectMiniviews } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
@@ -37,6 +37,8 @@ import StackedProcessor from 'features/parsers/stackedProcessoor';
 
 function RenderDemo({ isDark }) {
 
+
+    const previewSelector = useSelector(selectMiniviews)['newPreview']
     const basicTrackSelector = useSelector(selectBasicTracks)
     const draggableSelector = useSelector(selectDraggables)['draggables']
     const orthologDraggableSelector = useSelector(selectDraggables)['ortholog']
@@ -135,6 +137,11 @@ function RenderDemo({ isDark }) {
 
 
     function moveCursor(location) {
+        if(!previewSelector.visible){
+            dispatch(changePreviewVisibility({
+                visible: true
+            }))
+        }
         setCursorPosition(location)
     }
 
