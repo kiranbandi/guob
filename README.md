@@ -13,46 +13,31 @@ The GUTB has been built with React/Redux, and incorporates the [Groupware Toolki
 ---
 
 **Multiple Track Types**
+
 The GUTB supports several track types, rendering datasets procedurally as a line graph, histogram, bar-chart, scatter plot, or heatmap.
 If self-hosting, there is another track type configured to use pre-rendered images, for faster load times.
+![Track Types](/documentation/track_types.gif)
 
 **Linkages**
+
 The GUTB supports synteny linkages like those found in [Synviso](https://synvisio.github.io/#/), to visualise relations between data points.
+![Linkages](/documentation/synvisio_links.gif)
 
 **Interactive**
+
 The GUTB is fully interactive, supporting modern interaction techniques, such as zooming, panning and dragging to re-arrange tracks.
+![Dragging](/documentation/draggable.gif)
 
 **Annotation**
+
 The GUTB supports annotating track positions, so the user is able to make note of important data points or regions and can easily compare them against other areas.
+![Annotation demonstration](/documentation/Third.gif)
 
 **Search**
+
 Find important areas instantly with the search feature.
 
-# Demo of Components on this Branch
+**Split View**
 
-![Demo](/documentation/Groupable_components.gif)
+Compare different areas of the same dataset.
 
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
