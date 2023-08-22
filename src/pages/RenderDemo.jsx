@@ -176,13 +176,39 @@ function RenderDemo({ isDark }) {
                     break
                 case "files/bn_methylation_100k.bed":
                     buildTracks("bn-methylation-100k_N-METHYL-", 19, "", "histogram")
+                    json('files/bn-methylation_chromosomalData.json').then(x => buildJsonDemo(x))
+                    json('files/bn-methylation_dataset.json').then(x => window.dataset = x)
                     break
                 case "files/ta_hb_coordinate.gff":
                     buildTracks("ta_hb_coordinate", 7, "A")
                     buildTracks("ta_hb_coordinate", 7, "B")
                     buildTracks("ta_hb_coordinate", 7, "D")
-                    json('files/ta_hb_chromosomalData.json').then(x => buildJsonDemo(x))
-                    json('files/ta_hb_dataset.json').then(x => window.dataset = x)
+                    // json('files/ta_hb_chromosomalData.json').then(x => buildJsonDemo(x))
+                    // json('files/ta_hb_dataset.json').then(x => window.dataset = x)
+                    demoFile.forEach(file => {
+                        text(file).then(async data => {
+                            let fileName = file.split(".")[0].split("/")
+                            let nameDesignation = fileName[fileName.length - 1].split("_").join("-")
+                            if (demoCollinearity) {
+                                return text(demoCollinearity).then(c => {
+                                    return sendFileToWorkers('gff', data, nameDesignation, c);
+                                })
+                            }
+                            else {
+                                if (file.includes(".bed")) {
+                                    return sendFileToWorkers('bed', data, nameDesignation)
+                                }
+                                else {
+                                    return sendFileToWorkers('gff', data, nameDesignation)
+                                }
+                            }
+
+                        }).then(parsedData => {
+                            buildDemo(parsedData.chromosomalData, parsedData.dataset)
+                        })
+
+                    })
+                    setLoading(false)
                     break
                 case "files/topas/all_gene_expression_100k.bed":
                     buildTracks("all-smallRNA-100k_N", 19, "", "histogram")
@@ -290,9 +316,9 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 }
             }
-            for (let key in starting_tracks){
+            for (let key in starting_tracks) {
                 const track = starting_tracks[key]
-                let new_track = {[key] : track}
+                let new_track = { [key]: track }
                 dispatch(initializeBasicTracks(new_track))
             }
             starting_draggables.forEach(draggable => {
@@ -311,7 +337,7 @@ function RenderDemo({ isDark }) {
             //      buildDemo(parsedData.chromosomalData, parsedData.dataset)
             // })
             // debugger
-           
+
             setCalculationFinished(true)
 
             setFirstLoad(false)
@@ -323,7 +349,7 @@ function RenderDemo({ isDark }) {
     useEffect(() => {
     }, [calculationFinished])
 
-    async function buildDemo(chromosomalData, dataset){
+    async function buildDemo(chromosomalData, dataset) {
         window.dataset = { ...window.dataset, ...dataset }
         if (!window.chromosomalData) window.chromosomalData = []
         window.chromosomalData.push(...chromosomalData)
@@ -340,7 +366,7 @@ function RenderDemo({ isDark }) {
         setCalculationFinished(true)
     }
 
-    async function buildJsonDemo(chromosomalData){
+    async function buildJsonDemo(chromosomalData) {
         window.chromosomalData = chromosomalData
         window.chromosomes = []
         chromosomalData.forEach(x => {
@@ -687,216 +713,216 @@ function RenderDemo({ isDark }) {
     const longtext = "Alt + scroll to zoom\nClick and drag to pan\nShift + click to add annotation\n Ctrl + click to remove annotation"
     return (
 
- 
+
         <div css={styling}>
-       {firstLoad ? <img src={"files/Arabidopsis_image.png"}></img> :
-        <>
-            <Typography variant={'h5'} sx={{
-                WebkitUserSelect: 'none',
-            }}>
-                {"Render Demo"}
-            </Typography>
-            <Tooltip title={<Typography
-                variant="caption"
-                style={{ whiteSpace: 'pre-line' }}
-            >
-                {longtext}
-            </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
-                <HelpOutlineIcon size="large"></HelpOutlineIcon>
-            </Tooltip>
-            <TrackListener isDark={isDark} style={{ height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh" }}>
-                <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
-                    <Button variant='outlined' onClick={() => {
-                        if (JSON.stringify(demoFile) !== JSON.stringify(["files/bn_methylation_100k.bed"])) setLoading(true)
-                        setDemoFile(["files/bn_methylation_100k.bed"])
-                        setTitleState("Canola Methylation")
-                        setDemoCollinearity()
-                    }}>Canola Methylation</Button>
-                    <Button variant='outlined' onClick={() => {
-                        if (JSON.stringify(demoFile) !== JSON.stringify(["files/at_coordinate.gff"])) setLoading(true)
-                        setDemoFile(["files/at_coordinate.gff"])
-                        setTitleState("Aradopsis thaliana")
-                        setDemoCollinearity("files/at_vv_collinear.collinearity")
-                    }}>Aradopsis thaliana</Button>
-                    <Button variant='outlined' onClick={() => {
-                        if (JSON.stringify(demoFile) !== JSON.stringify(["files/bn_coordinate.gff"])) setLoading(true)
-                        setDemoFile(["files/bn_coordinate.gff"])
-                        setTitleState("Brassica napus")
-                        setDemoCollinearity()
-                    }}>Brassica napus</Button>
-                    <Button variant='outlined' onClick={() => {
-                        if (JSON.stringify(demoFile) !== JSON.stringify(["files/ta_hb_coordinate.gff"])) setLoading(true)
-                        setDemoFile(["files/ta_hb_coordinate.gff"])
-                        setTitleState("Triticum aestivum")
-                        setDemoCollinearity()
-                    }}>Triticum aestivum</Button>
-                    <Button variant='outlined' onClick={() => {
-                        if (JSON.stringify(demoFile) !== JSON.stringify(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])) setLoading(true)
+            {firstLoad ? <img src={"files/Arabidopsis_image.png"}></img> :
+                <>
+                    <Typography variant={'h5'} sx={{
+                        WebkitUserSelect: 'none',
+                    }}>
+                        {"Render Demo"}
+                    </Typography>
+                    <Tooltip title={<Typography
+                        variant="caption"
+                        style={{ whiteSpace: 'pre-line' }}
+                    >
+                        {longtext}
+                    </Typography>} arrow style={{ whiteSpace: 'pre-line' }}>
+                        <HelpOutlineIcon size="large"></HelpOutlineIcon>
+                    </Tooltip>
+                    <TrackListener isDark={isDark} style={{ height: document.querySelector(".Container") ? document.querySelector(".Container").getBoundingClientRect().height : "100vh" }}>
+                        <Stack mt={5} direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                            <Button variant='outlined' onClick={() => {
+                                if (JSON.stringify(demoFile) !== JSON.stringify(["files/bn_methylation_100k.bed"])) setLoading(true)
+                                setDemoFile(["files/bn_methylation_100k.bed"])
+                                setTitleState("Canola Methylation")
+                                setDemoCollinearity()
+                            }}>Canola Methylation</Button>
+                            <Button variant='outlined' onClick={() => {
+                                if (JSON.stringify(demoFile) !== JSON.stringify(["files/at_coordinate.gff"])) setLoading(true)
+                                setDemoFile(["files/at_coordinate.gff"])
+                                setTitleState("Aradopsis thaliana")
+                                setDemoCollinearity("files/at_vv_collinear.collinearity")
+                            }}>Aradopsis thaliana</Button>
+                            <Button variant='outlined' onClick={() => {
+                                if (JSON.stringify(demoFile) !== JSON.stringify(["files/bn_coordinate.gff"])) setLoading(true)
+                                setDemoFile(["files/bn_coordinate.gff"])
+                                setTitleState("Brassica napus")
+                                setDemoCollinearity()
+                            }}>Brassica napus</Button>
+                            <Button variant='outlined' onClick={() => {
+                                if (JSON.stringify(demoFile) !== JSON.stringify(["files/ta_hb_coordinate.gff"])) setLoading(true)
+                                setDemoFile(["files/ta_hb_coordinate.gff"])
+                                setTitleState("Triticum aestivum")
+                                setDemoCollinearity()
+                            }}>Triticum aestivum</Button>
+                            <Button variant='outlined' onClick={() => {
+                                if (JSON.stringify(demoFile) !== JSON.stringify(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])) setLoading(true)
 
-                        setDemoFile(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])
-                        setTitleState("Topas")
-                        setDemoCollinearity()
-                    }}>Topas</Button>
+                                setDemoFile(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])
+                                setTitleState("Topas")
+                                setDemoCollinearity()
+                            }}>Topas</Button>
 
-                </Stack>
-                <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+                        </Stack>
+                        <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
 
-                    {/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
-                    <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
-                    <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
-                    <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
-                    <FormControlLabel control={<Switch onChange={changeGenomeView} checked={genomeView} />} label={"Enable overview"} />
-                    <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
-                </Stack>
-                {/* <Stack mt={2} spacing={2}> */}
-                <Stack direction='row' justifyContent={"flex-start"}>
-                    <Autocomplete sx={{ width: '15%' }}
-                        multiple
-                        size="small"
-                        onChange={(event, newValue) => {
-                            setSearchingChromosome(newValue[0])
-                        }}
-                        id="Chromosome Category"
-                        options={window.chromosomes ? window.chromosomes : []}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Chromosome"
-                                InputProps={{
-                                    ...params.InputProps,
-                                    type: 'search',
+                            {/* <FormControlLabel control={<Switch onChange={changeMargins} checked={draggableSpacing} />} label={"Toggle Margins"} /> */}
+                            <FormControlLabel control={<Switch onChange={changeNormalize} checked={normalize} />} label={"Normalize"} />
+                            <FormControlLabel control={<Switch onChange={toggleImages} checked={preloaded} />} label={"Use Preloaded Images"} />
+                            <FormControlLabel control={<Switch onChange={changeRender} checked={bitmap} />} label={"Use Bitmaps"} />
+                            <FormControlLabel control={<Switch onChange={changeGenomeView} checked={genomeView} />} label={"Enable overview"} />
+                            <FormControlLabel control={<Switch onChange={enableGT} />} label={"Enable Collaboration"} />
+                        </Stack>
+                        {/* <Stack mt={2} spacing={2}> */}
+                        <Stack direction='row' justifyContent={"flex-start"}>
+                            <Autocomplete sx={{ width: '15%' }}
+                                multiple
+                                size="small"
+                                onChange={(event, newValue) => {
+                                    setSearchingChromosome(newValue[0])
                                 }}
+                                id="Chromosome Category"
+                                options={window.chromosomes ? window.chromosomes : []}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Chromosome"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            type: 'search',
+                                        }}
+                                    />
+                                )}
                             />
-                        )}
-                    />
-                    <Button onClick={toggleSortedTracks}
-                    >Sort Tracks</Button>
-                    {window.dataset && <Autocomplete sx={{ width: '70%' }}
-                        multiple
-                        size="small"
-                        onChange={(event, newValue) => {
-                            setSearchTerms(newValue)
-                        }}
-                        id="Gene Search"
-                        options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome === searchingChromosome)}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Search input"
-                                InputProps={{
-                                    ...params.InputProps,
-                                    type: 'search',
+                            <Button onClick={toggleSortedTracks}
+                            >Sort Tracks</Button>
+                            {window.dataset && <Autocomplete sx={{ width: '70%' }}
+                                multiple
+                                size="small"
+                                onChange={(event, newValue) => {
+                                    setSearchTerms(newValue)
                                 }}
-                            />
-                        )}
-                    />}
-                    <Button onClick={() => {
-                        let gt = window.gt;
+                                id="Gene Search"
+                                options={Object.keys(window.dataset).filter(_ => window.dataset[_].chromosome === searchingChromosome)}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Search input"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            type: 'search',
+                                        }}
+                                    />
+                                )}
+                            />}
+                            <Button onClick={() => {
+                                let gt = window.gt;
 
-                        dispatch(clearSearches())
-                        if (gt) {
-                            gt.updateState({ Action: "clearSearch" })
+                                dispatch(clearSearches())
+                                if (gt) {
+                                    gt.updateState({ Action: "clearSearch" })
+                                }
+
+                                if (!searchTerms || searchTerms.length < 1) return
+                                searchTerms.forEach(term => {
+                                    let gene = window.dataset[term]
+                                    let annotation = {
+                                        key: gene.chromosome,
+                                        note: gene.key,
+                                        location: +gene.start
+                                    }
+                                    dispatch(addSearch(annotation))
+                                    if (gt) {
+                                        gt.updateState({ Action: "handleSearch", annotation })
+                                    }
+                                })
+                            }
+
+                            }>
+                                Update Search
+                            </Button>
+
+                        </Stack>
+
+                        <Slider className="widthSlider"
+                            step={1}
+                            min={75}
+                            max={300}
+                            value={sliderHeight}
+                            valueLabelDisplay={"auto"}
+                            onChange={handleSlider}
+                        />
+                        <Divider orientation="horizontal" />
+                        {
+                            loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
+                                <CircularProgress size={75} />
+                            </Box> :
+                                <>
+
+                                    <Typography variant="h3" id={"gtVerticalReference"}>
+                                        {titleState}
+                                    </Typography>
+                                    {genomeView && buildGenomeView()}
+                                    <CustomDragLayer groupID={groupSelector} isDark={isDark} />
+                                    <DragContainer startingList={draggableSelector} isDark={isDark}>
+                                        {draggableSelector.map((x, i) => {
+                                            if (x === "links") {
+                                                return (
+                                                    <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
+                                                        <OrthologLinks key={x} id={x} index={draggableSelector.indexOf(x)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
+                                                    </Draggable>
+                                                )
+                                            }
+                                            else {
+                                                return (
+                                                    <Draggable
+                                                        key={x}
+                                                        grouped={groupSelector.includes(x)}
+                                                        groupID={groupSelector}
+                                                        className={"draggable"}
+                                                        dragGroup={"draggables"}
+                                                    >
+                                                        <Track
+                                                            id={x}
+                                                            normalize={normalize}
+                                                            isDark={isDark}
+                                                            renderTrack={bitmap ? "bitmap" : 'basic'}
+                                                            usePreloadedImages={preloaded}
+                                                            moveCursor={moveCursor}
+                                                            cursorPosition={cursorPosition}
+                                                        />
+                                                    </Draggable>
+                                                )
+                                            }
+                                        })}
+
+                                    </DragContainer>
+                                    {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("_splitview")) &&
+                                        <DragContainer startingList={orthologDraggableSelector} style={{ float: "left" }} isDark={isDark}>
+                                            {orthologDraggableSelector.map(item => {
+                                                console.log(item)
+                                                return (
+                                                    <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
+                                                        {item !== 'links' && !item.includes('genome') &&
+                                                            <Track
+                                                                id={item}
+                                                                normalize={normalize}
+                                                                isDark={isDark}
+                                                                renderTrack={bitmap ? "bitmap" : 'basic'}
+                                                                usePreloadedImages={preloaded}
+                                                            /> || item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
+                                                        {/* {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>} */}
+                                                    </Draggable>
+
+                                                )
+                                            })}
+
+                                        </DragContainer>}
+                                </>
                         }
-
-                        if (!searchTerms || searchTerms.length < 1) return
-                        searchTerms.forEach(term => {
-                            let gene = window.dataset[term]
-                            let annotation = {
-                                key: gene.chromosome,
-                                note: gene.key,
-                                location: +gene.start
-                            }
-                            dispatch(addSearch(annotation))
-                            if (gt) {
-                                gt.updateState({ Action: "handleSearch", annotation })
-                            }
-                        })
-                    }
-
-                    }>
-                        Update Search
-                    </Button>
-
-                </Stack>
-
-                <Slider className="widthSlider"
-                    step={1}
-                    min={75}
-                    max={300}
-                    value={sliderHeight}
-                    valueLabelDisplay={"auto"}
-                    onChange={handleSlider}
-                />
-                <Divider orientation="horizontal" />
-                {
-                    loading ? <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 40 }}>
-                        <CircularProgress size={75} />
-                    </Box> :
-                        <>
-
-                            <Typography variant="h3" id={"gtVerticalReference"}>
-                                {titleState}
-                            </Typography>
-                            {genomeView && buildGenomeView()}
-                            <CustomDragLayer groupID={groupSelector} isDark={isDark} />
-                            <DragContainer startingList={draggableSelector} isDark={isDark}>
-                                {draggableSelector.map((x, i) => {
-                                    if (x === "links") {
-                                        return (
-                                            <Draggable key={x} grouped={groupSelector.includes(x)} groupID={groupSelector} className={"draggable"} dragGroup={"draggables"}>
-                                                <OrthologLinks key={x} id={x} index={draggableSelector.indexOf(x)} normalize={normalize} dragGroup={"draggables"}></OrthologLinks>
-                                            </Draggable>
-                                        )
-                                    }
-                                    else {
-                                        return (
-                                            <Draggable
-                                                key={x}
-                                                grouped={groupSelector.includes(x)}
-                                                groupID={groupSelector}
-                                                className={"draggable"}
-                                                dragGroup={"draggables"}
-                                            >
-                                                <Track
-                                                    id={x}
-                                                    normalize={normalize}
-                                                    isDark={isDark}
-                                                    renderTrack={bitmap ? "bitmap" : 'basic'}
-                                                    usePreloadedImages={preloaded}
-                                                    moveCursor={moveCursor}
-                                                    cursorPosition={cursorPosition}
-                                                />
-                                            </Draggable>
-                                        )
-                                    }
-                                })}
-
-                            </DragContainer>
-                            {orthologDraggableSelector.length > 0 && Object.keys(basicTrackSelector).some(x => x.includes("_splitview")) &&
-                                <DragContainer startingList={orthologDraggableSelector} style={{ float: "left" }} isDark={isDark}>
-                                    {orthologDraggableSelector.map(item => {
-                                        console.log(item)
-                                        return (
-                                            <Draggable key={item} grouped={groupSelector.includes(item)} groupID={groupSelector} className={"draggable"} dragGroup={"ortholog"}>
-                                                {item !== 'links' && !item.includes('genome') &&
-                                                    <Track
-                                                        id={item}
-                                                        normalize={normalize}
-                                                        isDark={isDark}
-                                                        renderTrack={bitmap ? "bitmap" : 'basic'}
-                                                        usePreloadedImages={preloaded}
-                                                    /> || item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>}
-                                                {/* {item === 'links' && <OrthologLinks key={item} id={item} index={draggableSelector.indexOf(item)} normalize={normalize} dragGroup={"ortholog"}></OrthologLinks>} */}
-                                            </Draggable>
-
-                                        )
-                                    })}
-
-                                </DragContainer>}
-                        </>
-                }
-            </TrackListener>
-            </>
+                    </TrackListener>
+                </>
             }
         </div>
     )
