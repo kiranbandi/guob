@@ -14,7 +14,7 @@ import { Typography, Slider, Tooltip } from '@mui/material';
 import { CustomDragLayer } from 'features/draggable/CustomDragLayer';
 import TrackListener from 'components/tracks/TrackListener';
 import OrthologLinks from '../components/tracks/OrthologLinks'
-import { moveCollabPreview } from '../features/miniview/miniviewSlice';
+import { moveCollabPreview, changePreviewVisibility } from '../features/miniview/miniviewSlice';
 import SVTrack from '../components/tracks/SVTrack'
 import { selectMiniviews } from '../features/miniview/miniviewSlice';
 import TrackContainer from 'components/tracks/TrackContainer'
@@ -37,6 +37,8 @@ import StackedProcessor from 'features/parsers/stackedProcessoor';
 
 function RenderDemo({ isDark }) {
 
+
+    const previewSelector = useSelector(selectMiniviews)['newPreview']
     const basicTrackSelector = useSelector(selectBasicTracks)
     const draggableSelector = useSelector(selectDraggables)['draggables']
     const orthologDraggableSelector = useSelector(selectDraggables)['ortholog']
@@ -135,6 +137,11 @@ function RenderDemo({ isDark }) {
 
 
     function moveCursor(location) {
+        if(!previewSelector.visible){
+            dispatch(changePreviewVisibility({
+                visible: true
+            }))
+        }
         setCursorPosition(location)
     }
 
@@ -267,7 +274,7 @@ function RenderDemo({ isDark }) {
             let starting_tracks = {
                 'at-coordinate_at1': {
                     // array: at1_array,
-                    key: 'at1',
+                    key: 'at-coordinate_at1',
                     color: "#4e79a7",
                     zoom: 1,
                     pastZoom: 1,
@@ -276,7 +283,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at2': {
-                    key: 'at2',
+                    key: 'at-coordinate_at2',
                     // array: at2_array,
                     color: "#e15759",
                     zoom: 1,
@@ -286,7 +293,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at3': {
-                    key: 'at3',
+                    key: 'at-coordinate_at3',
                     // array: at3_array,
                     color: "#76b7b2",
                     zoom: 1,
@@ -296,7 +303,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at4': {
-                    key: 'at4',
+                    key: 'at-coordinate_at4',
                     // array: at4_array,
                     color: "#59a14f",
                     zoom: 1,
@@ -306,7 +313,7 @@ function RenderDemo({ isDark }) {
                     offset: 0,
                 },
                 'at-coordinate_at5': {
-                    key: 'at5',
+                    key: 'at-coordinate_at5',
                     // array: at5_array,
                     color: "#edc949",
                     zoom: 1,
@@ -380,11 +387,15 @@ function RenderDemo({ isDark }) {
         })
         let normalizedLength = 0;
         normalizedLength = Math.max(...window.chromosomalData.map(d => d.end))
+        
+        let genomeNumbers = []
         chromosomalData.forEach((point, i) => {
-
             point.normalizedLength = normalizedLength
-
-            window.maximumLength += point.end;
+            let chromosomeNumber = point.key.chromosome.split("_")[1].replace(/^\D+/g, '')
+            if(!genomeNumbers.includes(chromosomeNumber)){
+                window.maximumLength += point.end;
+                genomeNumbers.push(chromosomeNumber)
+            }
         })
 
         setCalculationFinished(true)
@@ -406,15 +417,20 @@ function RenderDemo({ isDark }) {
             let currentGenomes = genomeNames.slice(x)
 
             let chosenGenomes = []
+            let genomeNumbers = []
             for (let _ = 0; _ < currentGenomes.length; _++) {
                 let width = maxWidth * basicTrackSelector[currentGenomes[_]].end / totalSize
-                chosenGenomes.push({
-                    genome: currentGenomes[_],
-                    width
-                })
+                let chromosomeNumber = currentGenomes[_].split("_")[1].replace(/^\D+/g, '')
+                if(!genomeNumbers.includes(chromosomeNumber)){
+                    genomeNumbers.push(chromosomeNumber)
+                    chosenGenomes.push({
+                        genome: currentGenomes[_],
+                        width
+                    })   
+                }
                 x++
-
             }
+            // console.log(genomeNumbers)
             genomeTracks.push(
 
                 <Stack direction="row" marginBottom={0} paddingTop={3} key={"Stack_" + x} justifyContent={"space-around"} style={{ position: "sticky", top: 0, zIndex: 4, background: isDark ? "#121212" : "white" }}>

@@ -522,11 +522,11 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         if (e.ctrlKey) {
           deleteAnnotation(e.clientX - offset)
         }
-        let gene = findGene(getBasePairPosition(e))
+        let gene = binarySearch(array, 0, array.length -1, getBasePairPosition(e))
 
         // ! Trial Logic ##############################################################################################
         //  debugger
-        if (gene.key.toLowerCase() === trialSelector[0].toLowerCase(['trial'])) {
+        if (gene !== -1 && gene.key.toLowerCase() === trialSelector[0].toLowerCase(['trial'])) {
           dispatch(incrementTrial({}))
           window.timing.push({ "found_target": Date.now() })
           return
@@ -535,7 +535,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
         // ! Trial Logic ##############################################################################################
 
         //! Will need logic to align tracks
-        if (gene && gene.siblings.length > 0) {
+        if (gene !== -1 && gene.siblings.length > 0) {
           dispatch(clearDraggables({ dragGroup: "ortholog" }))
           gene.siblings.forEach(sibling => {
             dispatch(addBasicTrack({
@@ -575,10 +575,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   function leaveTrack() {
     setHoverStyle({ display: "none" })
     setDragging(undefined)
-    window.previewVisible = false
-    // dispatch(changePreviewVisibility({
-    //   visible: false
-    // }))
+    // window.previewVisible = false
+    dispatch(changePreviewVisibility({
+      visible: false
+    }))
     // setCursorStyle({display: "none"})
   }
 
@@ -600,6 +600,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y + 27
     let verticalScroll = document.documentElement.scrollTop
+    let clientHeight = document.documentElement.clientHeight
+    // if (verticalScroll > top || top + adjustedHeight + 24 < verticalScroll + clientHeight){
+    //   return
+    // }
 
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     // let cursorColor = isDark ? "white" : "black"
@@ -633,11 +637,17 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   function displayTrackMarker(selector) {
     // debugger
+    console.log("TrackMarker")
     if (!trackRef.current) return
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
     let top = trackBoundingRectangle.y + 27
     let verticalScroll = document.documentElement.scrollTop
+    let clientHeight = document.documentElement.clientHeight
+    // if (verticalScroll > top || top + adjustedHeight + 24 < verticalScroll + clientHeight){
+    //   return
+    // }
+
 
     let xScale = normalize ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
     let cursorColor = isDark ? "white" : "black"
@@ -646,6 +656,7 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     if (selector) {
 
       let yCoordinate = genome ? 0 : top + verticalScroll
+      console.log("Should be there?")
       return selector.map(x => {
 
         return (
@@ -684,7 +695,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }
 
   function generateAnnotations() {
+    // debugger
     if (annotationSelector) {
+      console.log("Make an annotation")
       return displayTrackMarker(annotationSelector)
     }
   }
@@ -696,21 +709,21 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }
 
   function findGene(bpPosition) {
-    if (bpMapping) {
-      let keys = Object.keys(bpMapping)
-      let numberOfKeys = 1000
-      let firstIndex, lastIndex
-      for (let x = 0; x < numberOfKeys; x++) {
-        if (bpPosition < +keys[x]) break
-        firstIndex = bpMapping[keys[x]].firstIndex
-        lastIndex = bpMapping[keys[x]].lastIndex
-      }
-      for (let i = +firstIndex; i < +lastIndex; i++) {
-        if (bpPosition > array[i].start && bpPosition < array[i].end) {
-          return array[i]
-        }
-      }
-    }
+    // if (bpMapping) {
+    //   let keys = Object.keys(bpMapping)
+    //   let numberOfKeys = 1000
+    //   let firstIndex, lastIndex
+    //   for (let x = 0; x < numberOfKeys; x++) {
+    //     if (bpPosition < +keys[x]) break
+    //     firstIndex = bpMapping[keys[x]].firstIndex
+    //     lastIndex = bpMapping[keys[x]].lastIndex
+    //   }
+    //   for (let i = +firstIndex; i < +lastIndex; i++) {
+    //     if (bpPosition > array[i].start && bpPosition < array[i].end) {
+    //       return array[i]
+    //     }
+    //   }
+    // }
   }
 
   function getBasePairPosition(e) {
@@ -754,6 +767,12 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
     let verticalScroll = document.documentElement.scrollTop;
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect();
+    let clientHeight = document.documentElement.clientHeight
+    let top = trackBoundingRectangle.y
+    // if (verticalScroll > top || top + adjustedHeight + 24 < verticalScroll + clientHeight){
+    //   return
+    // }
+
     let xScale, widthScale, bpPosition;
 
     if (renderTrack == "stackedTrack" && array.length != 0) {
@@ -868,7 +887,8 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let top = trackBoundingRectangle.y
     let verticalScroll = document.documentElement.scrollTop
     let trackWidth = trackBoundingRectangle.width
-
+    let clientHeight = document.documentElement.clientHeight
+     
     let bpPosition = cursorPosition
 
     let xScale = normalize && !genome ? scaleLinear().domain([0, normalizedLength]).range([0, maxWidth]) : scaleLinear().domain([0, cap]).range([0, maxWidth])
@@ -882,16 +902,16 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       else {
         cursorStyle = { pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(bpPosition) + left + offset - 2, width: 4, top: top + 27 + verticalScroll, height: genome ? adjustedHeight : adjustedHeight + 24, backgroundColor: cursorColor, opacity: 0.4 }
       }
-
-    }
   }
+  }
+  // debugger
   return (
     <>
       <div style={cursorStyle}></div>
       <div style={hoverStyle}></div>
-      {window.previewVisible && generateAnnotations()}
-      {window.previewVisible && displayRelatedMarkers(allAnnotations)}
-      {window.previewVisible && displayRelatedMarkers(allSearches)}
+      {previewSelector.visible && generateAnnotations()}
+      {previewSelector.visible && displayRelatedMarkers(allAnnotations)}
+      {previewSelector.visible && displayRelatedMarkers(allSearches)}
       {searchSelector && displayTrackMarker(searchSelector)}
       {allOrthologs[id] && generateOrthologMarkers()}
 
