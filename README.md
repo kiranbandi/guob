@@ -31,7 +31,7 @@ The GUTB is fully interactive, supporting modern interaction techniques, such as
 **Annotation**
 
 The GUTB supports annotating track positions, so the user is able to make note of important data points or regions and can easily compare them against other areas.
-![Annotation demonstration](/documentation/Third.gif)
+![Annotation demonstration](/documentation/annotations.gif)
 
 **Search**
 

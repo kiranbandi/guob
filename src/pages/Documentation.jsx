@@ -21,15 +21,16 @@ export default function Documentation() {
       <img src="track_types.gif" style={{width: "inherit",}}/>
 
 <h4>Linkages</h4>
-<p>The GUTB supports synteny linkages like those found in [Synviso](https://synvisio.github.io/#/), to visualise relations between data points.</p>
+<p>The GUTB supports synteny linkages like those found in <a href="https://synvisio.github.io/#/">Synviso</a>, to visualise relations between data points.</p>
       <img src="synvisio_links.gif" style={{width: "inherit",}}/>
 
 <h4>Interactive</h4>
 <p>The GUTB is fully interactive, supporting modern interaction techniques, such as zooming, panning and dragging to re-arrange tracks.</p>
+      <img src="draggable.gif" style={{width: "inherit",}}/>
 
 <h4>Annotation</h4>
 <p>The GUTB supports annotating track positions, so the user is able to make note of important data points or regions and can easily compare them against other areas.</p>
-      <img src="Third.gif" style={{width: "inherit",}}/>
+      <img src="annotations.gif" style={{width: "inherit",}}/>
 
 
 <h4>Search</h4>
