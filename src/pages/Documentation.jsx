@@ -12,7 +12,7 @@ export default function Documentation() {
 
 <p>The various track components can be used to visualise other sets of data as well.</p>
 
-<p>The GUTB has been built with React/Redux, and incorporates the [Groupware Toolkit](https://github.com/kiranbandi/GroupwareToolkitClient) for real-time collaboration.</p>
+      <p>The GUTB has been built with React/Redux, and incorporates the <a href="https://github.com/kiranbandi/GroupwareToolkitClient" style={{color: "green",}}>Groupware Toolkit</a> for real-time collaboration.</p>
 
 <h3>Features</h3>
 <h4>Multiple Track Types</h4>
@@ -21,7 +21,7 @@ export default function Documentation() {
       <img src="track_types.gif" style={{width: "inherit",}}/>
 
 <h4>Linkages</h4>
-<p>The GUTB supports synteny linkages like those found in <a href="https://synvisio.github.io/#/">Synviso</a>, to visualise relations between data points.</p>
+      <p>The GUTB supports synteny linkages like those found in <a href="https://synvisio.github.io/#/" style={{color: "green",}}>Synviso</a>, to visualise relations between data points.</p>
       <img src="synvisio_links.gif" style={{width: "inherit",}}/>
 
 <h4>Interactive</h4>
