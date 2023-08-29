@@ -8,6 +8,19 @@ import { css, keyframes } from "@emotion/react";
 
 /**
  * Component for rendering bitmap tracks once passed an image file
+ * image: the file to use
+ * offset: Integer, the pixel distance to offset the image
+ * zoom: Float, the value used to scale the image
+ * id: the id of the track
+ * genome: Boolean, flag to determine if the track has full interactivity
+ * cap: the maximum value of the x-axis of the array
+ * color: the color of the track as a hex
+ * normalizedLength: Integer, the maximum x-axis value of all the tracks to be used to reference track width
+ * normalize: Boolean, flag to determine whether to normalize the track againse normalizedLength
+ * height: height of the track
+ * width: width of the track
+ * orthologs: the file of the ortholog track (if present)
+ * isHighDef = Boolean, flag determining if the track is zoomed in to the level that the next layer of images is to be used TODO this is a HACK and should be replaced
  */
 function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, normalizedLength, normalize, height, width, orthologs, isHighDef = false }) {
 
@@ -21,7 +34,9 @@ function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, norma
 
 
 
-
+/**
+ * Function for determining the zoom/pan locations of the track
+ */
     function trackStyle(currentOffset, currentZoom, index) {
         if (currentOffset === undefined) {
             return {
@@ -78,7 +93,9 @@ function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, norma
         return (style)
 
     }
-
+/**
+ * Function for determining the zoom/pan of the ortholog track(if present)
+ */
     function orthologStyle(currentOffset, currentZoom) {
         if (currentOffset === undefined) {
             return {

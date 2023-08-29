@@ -6,10 +6,33 @@ import { gene } from './gene.js'
 import { updateTrack } from "../../redux/slices/basicTrackSlice.js";
 import { line } from 'd3-shape';
 
+// TODO some of these are likely deprecated, and can be remvoed
 /**
  * Updated version of the BasicTrack - renders bars based on the information passed through the "array" prop
+ * array: The array to be rendered, data items require a start, end, and gene(key). Value is optional, and used for line/scatter plots
+ * genome: Flag used to limit interactivity, if the track is a miniview
+ * trackType: String to designate the type of track to render (scatter, line, histogram, default)
+ * normalizedLength: Integer used for adjusting the length of the track in comparison to other tracks
+ * coordinateX: Integer used to realign the track if needed
+ * coordinateY: integer used to realing the track if needed
+ * width: integer, width of the track
+ * height: integer, height of the track
+ * id: unique id of the track
+ * beginning: first "start" in the array
+ * fin: last "end" in the array
+ * grouped: Boolean flag used to designate if interactions should be applied to other tracks as well
+ * zoom: Float value for zoom scale
+ * pastZoom: Float value for the last zoom scale (needed for correct zoom/panning)
+ * offset: Integer, pixel distance to pan the track
+ * title: String, title of the track
+ * selection: String, used to identify a particular key in the array, for things such as search
+ * noScale: Boolean flag used to remove the scale found at the bottom of the track
+ * isDark: Boolean, flag used for dark mode
+ * normalize: Boolean, flag used to determine whether to adjust the length of the track to normalize against other tracks. Requires normalizedLength to not be 0
+ * max: Integer, used to determine the maximum value of the array, to properly scale values in scatterplots, line plots, etc
+ *
  */
-const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', normalizedLength = 0, coordinateX, coordinateY, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
+const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', normalizedLength = 0, coordinateX = 0, coordinateY = 0, width, height, id, beginning, fin, grouped, zoom, pastZoom, offset, title, selection, noScale, isDark, normalize, max, ...props }) => {
 
     const canvasRef = useRef(null)
 
@@ -240,8 +263,6 @@ const RenderTrack = ({ array, genome = false, color = 0, trackType = 'default', 
 
 RenderTrack.defaultProps = {
     color: 0,
-    coordinateX: 0,
-    coordinateY: 0,
     width: 1000,
     zoom: 1.0,
     pastZoom: 1.0,

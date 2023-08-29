@@ -31,6 +31,27 @@ function pixelToindex(pixel, zoom, array, maxWidth) {
   return index(pixel)
 
 }
+
+/**
+ * Container used to hold tracks - abstracts away the logic of panning/zooming, so that tracks can focus on rendering
+ * trackType: String to designate the type of track to render (scatter, line, histogram, default)
+ * id: id of the track, TODO should likely not be using this for this purpose
+ * color: the color of the track as a hex
+ * isDark: Boolean, flag used for dark mode
+ * zoom: Float value for zoom scale
+ * offset: Integer, pixel distance to pan the track
+ * width: integer, width of the track
+ * cap: TODO
+ * height: integer, height of the track
+ * pastZoom: Float value for the last zoom scale (needed for correct zoom/panning)
+ * normalize: Boolean, flag used to determine whether to adjust the length of the track to normalize against other tracks. Requires normalizedLength to not be 0
+ * renderTrack: TODO
+ * genome: Flag used to limit interactivity, if the track is a miniview
+ * usePreloadedImages: TODO
+ * subGenomes: TODO
+ * moveCursor: TODO
+ * cursorPosition: TODO
+ */
 function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap, height, pastZoom, normalize, renderTrack, genome, usePreloadedImages, subGenomes, moveCursor, cursorPosition }) {
 
   //! This is intended to hold the different tracktypes. Use it to modify any information that needs
@@ -347,7 +368,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
   }, [SGThreshold])
 
-
+/**
+ * Function used to calculate zoom values to pass to track
+ * e: the event
+  */
   function handleScroll(e) {
     if (genome) return
     if (e.altKey === true) {
@@ -379,11 +403,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
 
       if (Math.max(zoom * factor, 1.0) === 1.0) offsetX = 0
 
-      //! Trial Logic ##################################################################
-      window.timing.push({ "zoom_single_track": Date.now() })
-
-      //! Trial Logic #################################################################
-
       dispatch(updateMatchingTracks({
         key: id,
         offset: offsetX,
@@ -392,7 +411,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
   }
 
-
+/**
+ * Function used to calculate offset values to pass to the track
+ * e: the event
+  */
   function handlePan(e) {
 
     if (genome) return
@@ -417,7 +439,12 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     if (gt) updateTimer(id, offsetX / originalWidth, zoom)
   }
 
-
+/**
+ * TODO RENAME
+ * Function used for passing several track images after the zoom level has passed a sufficient threshold to maintain quality
+ * currentZoom: Float, the current zoom multiplier
+ * currentOffset: Integer, the pixel distance that the page will move to pan
+ */
   function bunchOfTracks(currentZoom, currentOffset) {
     // Used to determine which images to pass as a prop to imageTracks, as well as to adjust the offset/zoom
     // once those multiple images are sent.
@@ -468,6 +495,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     )
   }
 
+ /**
+  * Function for adding an annotation to the track at a given position
+  * x: The x coordinate on screen
+  */
   function newAnnotation(x) {
     let note = prompt("Enter an annotation: ")
     if (!note) return
@@ -485,7 +516,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
 
   }
-
+/**
+ * Function for removing an annotation
+ * x: the x coordinate on screen
+ */
   function deleteAnnotation(x) {
     let annotation = {
       key: true_id,
@@ -498,7 +532,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
   }
 
-
+/**
+ * Function for converting the screen position x-coordinate to a pixel related to the track
+ * x: the screen coordinate
+ */
   function getXLocation(x) {
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
     let left = trackBoundingRectangle.x
@@ -506,9 +543,16 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     return xScale.invert(x - left)
   }
 
-
+/**
+ * Function for determining which action to perform on click
+ * e: the event
+ */
   function handleClick(e) {
+
+    // Overview tracks do not allow interactions
     if (genome) return
+
+    // simple state machine to separate click from drag
     if (e.type === 'mousedown') {
       setClickLocation(e.clientX)
       setDragging(true)
@@ -523,16 +567,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
           deleteAnnotation(e.clientX - offset)
         }
         let gene = binarySearch(array, 0, array.length -1, getBasePairPosition(e))
-
-        // ! Trial Logic ##############################################################################################
-        //  debugger
-        if (gene !== -1 && gene.key.toLowerCase() === trialSelector[0].toLowerCase(['trial'])) {
-          dispatch(incrementTrial({}))
-          window.timing.push({ "found_target": Date.now() })
-          return
-        }
-
-        // ! Trial Logic ##############################################################################################
 
         //! Will need logic to align tracks
         if (gene !== -1 && gene.siblings.length > 0) {
@@ -571,7 +605,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
   }
 
-
+/**
+ * Function for removing track markers when the user leaves a track
+ */
   function leaveTrack() {
     setHoverStyle({ display: "none" })
     setDragging(undefined)
@@ -582,6 +618,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     // setCursorStyle({display: "none"})
   }
 
+/**
+ * Function for pushing changes to other tracks if they are related (ex. the same chromosome)
+ * selector: the selector through redux
+ */
 
   function displayRelatedMarkers(selector) {
     let chromosomeNumber = id.split("_")[1].replace(/^\D+/g, '')
@@ -634,7 +674,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     })
   }
 
-
+/**
+ * Function for displaying all relevant markers on the track (location indicators, text, etc)
+ * selector: the selector through redux
+ */
   function displayTrackMarker(selector) {
     // debugger
     console.log("TrackMarker")
@@ -683,7 +726,9 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       })
     }
   }
-
+/**
+ * Logic function for deciding which action to perform on a mouse move
+ */
   function handleMouseMove(e) {
     if (dragging) {
       handlePan(e)
@@ -693,39 +738,28 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       handleTooltip(e)
     }
   }
-
+/**
+ * Intermediate function for displaying annotations
+ */
   function generateAnnotations() {
     // debugger
     if (annotationSelector) {
-      console.log("Make an annotation")
       return displayTrackMarker(annotationSelector)
     }
   }
-
+/**
+ * Intermediate function for displaying relevant track markers of orthologs (related keys on different tracks)
+ */
   function generateOrthologMarkers() {
     if (allOrthologs[id]) {
       return displayTrackMarker(allOrthologs[id])
     }
   }
 
-  function findGene(bpPosition) {
-    // if (bpMapping) {
-    //   let keys = Object.keys(bpMapping)
-    //   let numberOfKeys = 1000
-    //   let firstIndex, lastIndex
-    //   for (let x = 0; x < numberOfKeys; x++) {
-    //     if (bpPosition < +keys[x]) break
-    //     firstIndex = bpMapping[keys[x]].firstIndex
-    //     lastIndex = bpMapping[keys[x]].lastIndex
-    //   }
-    //   for (let i = +firstIndex; i < +lastIndex; i++) {
-    //     if (bpPosition > array[i].start && bpPosition < array[i].end) {
-    //       return array[i]
-    //     }
-    //   }
-    // }
-  }
-
+/**
+ * Function for determining the x-axis position of a pixel location
+ * e: the event
+ */
   function getBasePairPosition(e) {
     let verticalScroll = document.documentElement.scrollTop
     let trackBoundingRectangle = trackRef.current.getBoundingClientRect()
@@ -738,7 +772,13 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     return bpPosition
   }
 
-
+/**
+ * Binary search, because linear search is too slow with wide data
+ * array: the sub-array to search
+ * low: the first index of the sub-array
+ * high: the last index of the sub-array
+ * position: the cursor used for the recursive search
+ */
   function binarySearch(array, low, high, position){
     if(high >= low){
       let centerIndex = Math.floor((low + high)/2)
@@ -758,7 +798,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     }
   }
 
-
+/**
+ * Function used for presenting information from the array as a tooltip to the user, also produces a cursor
+ * e: the event
+ */
   function hover(e) {
     if (genome) return
     if (e.target.id.includes('ortholog')) {
@@ -817,42 +860,6 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
       }
     }
 
-
-    // if (bpMapping) {
-    //   let keys = Object.keys(bpMapping)
-    //   let numberOfKeys = keys.length
-    //   let firstIndex, lastIndex
-    //   for (let x = 0; x < numberOfKeys; x++) {
-    //     if (bpPosition < +keys[x]) break
-    //     firstIndex = bpMapping[keys[x]].firstIndex
-    //     lastIndex = bpMapping[keys[x]].lastIndex
-    //   }
-    //   for (let i = +firstIndex; i < +lastIndex; i++) {
-    //     if (bpPosition > array[i].start && bpPosition < array[i].end) {
-    //       let width = widthScale(array[i].end - array[i].start)
-    //       if (renderTrack === "bitmap") {
-    //         setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
-    //         setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(array[i].start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
-    //         return
-    //       }
-    //       else if (renderTrack === "basic") {
-    //         setInfo(`${array[i].key.toUpperCase()}\nStart Location: ${array[i].start}\nOrthologs: ${array[i].siblings.length > 0 ? array[i].siblings.map(x => x.key) : 'No Orthologs'}`)
-    //         setHoverStyle({
-    //           pointerEvents: "none", zIndex: 2,
-    //           position: "absolute",
-    //           left: xScale(array[i].start) + trackBoundingRectangle.left + offset,
-    //           width: width,
-    //           top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25,
-    //           height: renderOrthologs ? adjustedHeight : adjustedHeight + 25,
-    //           backgroundColor: "red"
-    //         })
-    //         return
-    //       }
-    //     }
-    //   }
-
-    // }
-
     let gene = binarySearch(array, 0, array.length - 1, bpPosition)
     if (gene !== -1){
       
@@ -866,8 +873,10 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     setHoverStyle({ display: "none", pointerEvents: "none" })
   }
 
-
-
+/**
+ * Function used for placing the location of the tooltip
+ * event: the event
+ */
   function handleTooltip(event) {
     positionRef.current = { x: event.clientX, y: event.clientY };
 
