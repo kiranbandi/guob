@@ -778,7 +778,7 @@ function RenderDemo({ isDark }) {
                                 setDemoFile(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])
                                 setTitleState("Topas")
                                 setDemoCollinearity()
-                            }}>Topas</Button>
+                            }}>DH4079</Button>
 
                         </Stack>
                         <Stack direction='row' alignItems={'center'} justifyContent={'center'} spacing={3} divider={<Divider orientation="vertical" flexItem />}>

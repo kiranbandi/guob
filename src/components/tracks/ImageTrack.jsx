@@ -32,6 +32,32 @@ function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, norma
     if (normalize) originalWidth = originalWidth * cap / normalizedLength;
     let adjustedHeight = height ? height : document.querySelector('.draggable')?.getBoundingClientRect()?.height - 50
 
+    //////////////////////////////
+    // Quick hacky fix for renaming tracks for DH4079
+
+    let conversion_mapping = {
+        "N1" : "A1",
+        "N2" : "A2",
+        "N3" : "A3",
+        "N4" : "A4",
+        "N5" : "A5",
+        "N6" : "A6",
+        "N7" : "A7",
+        "N8" : "A8",
+        "N9" : "A9",
+        "N10" : "A10",
+        "N11" : "C1",
+        "N12" : "C2",
+        "N13" : "C3",
+        "N14" : "C4",
+        "N15" : "C5",
+        "N16" : "C6",
+        "N17" : "C7",
+        "N18" : "C8",
+        "N19" : "C9",
+    }
+
+    //////////////////////////////
 
 
 /**
@@ -122,6 +148,13 @@ function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, norma
 
         })
     }
+    ///////////////////////////////////////////////////////////////////////////
+    let split_ID = id.split("_")
+    let combined_ID = id
+    if(Object.keys(conversion_mapping).includes(split_ID[1])){
+      combined_ID = split_ID[0] + "_" + conversion_mapping[split_ID[1]]
+    }
+    ///////////////////////////////////////////////////////////////////////////
 
     let dynamicID = id + "imageTrack" + (isHighDef ? "highDef" : "-")
     return (
@@ -144,7 +177,7 @@ function ImageTrack({ image, offset, zoom, id, genome = false, cap, color, norma
                             pointerEvents: 'none',
 
                         }}
-                    >{"Chromosome: " + id + "-bitmap"}</Typography>}
+                    >{"Chromosome: " + combined_ID}</Typography>}
                 {!genome && orthologs && <img
                     className={'testingTracks'}
                     src={orthologs}
