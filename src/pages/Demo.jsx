@@ -776,7 +776,7 @@ function RenderDemo({ isDark }) {
                                 if (JSON.stringify(demoFile) !== JSON.stringify(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])) setLoading(true)
 
                                 setDemoFile(["files/topas/all_gene_expression_100k.bed", "files/topas/all_smallRNA_100k.bed", "files/topas/leaf_gene_expression_100k.bed", "files/topas/leaf_smallRNA_100k.bed", "files/topas/seed_gene_expression_100k.bed", "files/topas/seed_smallRNA_100k.bed"])
-                                setTitleState("Topas")
+                                setTitleState("DH4079")
                                 setDemoCollinearity()
                             }}>DH4079</Button>
 
