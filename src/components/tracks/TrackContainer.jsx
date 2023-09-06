@@ -81,7 +81,30 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
   }
 
   //! Trial Logic ###################################################################
+  // Hacky fix for renaming chromosomes
   const trialSelector = useSelector(selectTrial)['trial']
+    let conversion_mapping = {
+        "N1" : "A1",
+        "N2" : "A2",
+        "N3" : "A3",
+        "N4" : "A4",
+        "N5" : "A5",
+        "N6" : "A6",
+        "N7" : "A7",
+        "N8" : "A8",
+        "N9" : "A9",
+        "N10" : "A10",
+        "N11" : "C1",
+        "N12" : "C2",
+        "N13" : "C3",
+        "N14" : "C4",
+        "N15" : "C5",
+        "N16" : "C6",
+        "N17" : "C7",
+        "N18" : "C8",
+        "N19" : "C9",
+    }
+
   //! Trial Logic ###################################################################
 
 
@@ -863,7 +886,12 @@ function TrackContainer({ trackType, id, color, isDark, zoom, offset, width, cap
     let gene = binarySearch(array, 0, array.length - 1, bpPosition)
     if (gene !== -1){
       
-            setInfo(`${gene.key.toUpperCase()}\nStart Location: ${gene.start}\nOrthologs: ${gene.siblings.length > 0 ? gene.siblings.map(x => x.key) : 'No Orthologs'}`)
+          let display_key = gene.key.toUpperCase().split("-")
+          if(Object.keys(conversion_mapping).includes(display_key[0])){
+            display_key[0] = conversion_mapping[display_key[0]]
+          }
+        display_key = display_key.join("-")
+            setInfo(`${display_key}\nStart Location: ${gene.start}\nOrthologs: ${gene.siblings.length > 0 ? gene.siblings.map(x => x.key) : 'No Orthologs'}`)
             setHoverStyle({ pointerEvents: "none", zIndex: 2, position: "absolute", left: xScale(gene.start) + trackBoundingRectangle.left + offset, width: width, top: renderOrthologs ? trackBoundingRectangle.top + verticalScroll + 50 : trackBoundingRectangle.top + verticalScroll + 25, height: renderOrthologs ? adjustedHeight : adjustedHeight + 25, backgroundColor: "red" })
           return
           }
